@@ -22,7 +22,6 @@ import {
   ShoppingBag,
   Send,
   X,
-  Sparkles,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
@@ -179,19 +178,6 @@ export default function ForumScreen({ user, onBuyTicket, onScroll }) {
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {/* Banner Informativo do Fórum */}
-        <View style={styles.forumHeaderBanner}>
-          <View style={styles.forumBannerIcon}>
-            <Sparkles size={20} color={COLORS.gold} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.forumBannerTitle}>Voz da Bancada Poente</Text>
-            <Text style={styles.forumBannerSub}>
-              Espaço oficial de debate e organização dos adeptos do Rio Ave FC.
-            </Text>
-          </View>
-        </View>
-
         {filteredPosts.map((post) => {
           const isExpanded = expandedPostId === post.id;
 
@@ -215,17 +201,9 @@ export default function ForumScreen({ user, onBuyTicket, onScroll }) {
                     <Text style={styles.postTimeAgo}>{post.timeAgo} · {post.categoryName}</Text>
                   </View>
                 </View>
-
-                {post.tag && (
-                  <View style={[styles.tagBadge, { borderColor: post.tagColor || COLORS.primaryLight }]}>
-                    <Text style={[styles.tagText, { color: post.tagColor || COLORS.primaryLight }]}>
-                      {post.tag}
-                    </Text>
-                  </View>
-                )}
               </View>
 
-              {/* Título & Conteúdo */}
+              {/* Título & Conteúdo do Tópico */}
               <Text style={styles.postTitle}>{post.title}</Text>
               <Text style={styles.postContent}>{post.content}</Text>
 
@@ -316,13 +294,13 @@ export default function ForumScreen({ user, onBuyTicket, onScroll }) {
         <View style={{ height: 140 }} />
       </ScrollView>
 
-      {/* Botão Flutuante de Criar Tópico */}
+      {/* Botão Flutuante de Criar Tópico Compacto */}
       <TouchableOpacity
         style={[styles.fabButton, !isTablet && styles.fabButtonPhone]}
         onPress={() => setIsNewPostModalOpen(true)}
         activeOpacity={0.85}
       >
-        <Plus size={22} color="#FFF" />
+        <Plus size={16} color="#FFF" />
         <Text style={styles.fabText}>Novo Tópico</Text>
       </TouchableOpacity>
 
@@ -451,36 +429,7 @@ const styles = StyleSheet.create({
   },
   feedContent: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  forumHeaderBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#131F19',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.25)',
-    marginBottom: 16,
-  },
-  forumBannerIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  forumBannerTitle: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  forumBannerSub: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
+    paddingTop: 14,
   },
   postCard: {
     backgroundColor: '#14201A',
@@ -541,17 +490,6 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 10,
     marginTop: 2,
-  },
-  tagBadge: {
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  tagText: {
-    fontSize: 10,
-    fontWeight: '800',
   },
   postTitle: {
     color: COLORS.white,
@@ -661,20 +599,20 @@ const styles = StyleSheet.create({
   fabButton: {
     position: 'absolute',
     bottom: 95,
-    right: 20,
+    right: 18,
     backgroundColor: '#00874E',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 24,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#00B368',
-    elevation: 8,
+    elevation: 6,
     ...Platform.select({
       web: {
-        boxShadow: '0 6px 20px rgba(0, 135, 78, 0.45)',
+        boxShadow: '0 4px 14px rgba(0, 135, 78, 0.4)',
       },
     }),
   },
@@ -683,8 +621,9 @@ const styles = StyleSheet.create({
   },
   fabText: {
     color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   modalOverlay: {
     flex: 1,
