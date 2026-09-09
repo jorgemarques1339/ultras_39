@@ -26,6 +26,7 @@ import {
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
+import DeslocacaoModal from '../components/DeslocacaoModal';
 
 export default function HomeScreen({
   user,
@@ -37,6 +38,7 @@ export default function HomeScreen({
 }) {
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
+  const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [isMatchdayExpanded, setIsMatchdayExpanded] = useState(true);
@@ -221,11 +223,7 @@ export default function HomeScreen({
       <View style={styles.subShortcutsRow}>
         <TouchableOpacity
           style={styles.subShortcutCard}
-          onPress={() => {
-            if (mainScrollRef.current) {
-              mainScrollRef.current.scrollTo({ y: 360, animated: true });
-            }
-          }}
+          onPress={() => setDeslocacaoModalVisible(true)}
           activeOpacity={0.8}
         >
           <View style={styles.subShortcutIconBgBus}>
@@ -390,49 +388,15 @@ export default function HomeScreen({
         </View>
       )}
 
-      {/* 4. FEED RÁPIDO: AVISOS DE DESLOCAÇÕES & NOTÍCIAS */}
+      {/* 4. FEED: NOTÍCIAS & COMUNICADOS */}
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleWithIcon}>
-          <Bus size={18} color={COLORS.primaryLight} />
-          <Text style={styles.sectionTitle}>Deslocações & Notícias</Text>
+          <Radio size={18} color={COLORS.primaryLight} />
+          <Text style={styles.sectionTitle}>Notícias</Text>
         </View>
       </View>
 
-      {/* Card Deslocação Guimarães */}
-      <View style={styles.newsCard}>
-        <View style={styles.newsBadgeRow}>
-          <View style={styles.deslocacaoBadge}>
-            <Text style={styles.deslocacaoBadgeText}>CARAVANA G39</Text>
-          </View>
-          <Text style={styles.newsTimeAgo}>19 de Setembro · 7.ª Jornada</Text>
-        </View>
-        <Text style={styles.newsCardTitle}>
-          Autocarros para Alverca (FC Alverca vs Rio Ave FC)
-        </Text>
-        <Text style={styles.newsCardDesc}>
-          Inscrições abertas na sede e pela app! Saída do Cais da Alfândega às 11h30. O pack inclui viagem ida/volta + bilhete no setor visitante por apenas 15,00 €.
-        </Text>
-
-        <TouchableOpacity
-          style={styles.quickBookBusBtn}
-          onPress={() =>
-            onBuyTicket({
-              title: 'Pack Deslocação Alverca (Autocarro + Bilhete Visitante)',
-              category: 'Deslocação Grupo 39',
-              amount: 15.00,
-              originalPrice: 20.00,
-              discount: 5.00,
-              type: 'bus',
-            })
-          }
-          activeOpacity={0.8}
-        >
-          <Text style={styles.quickBookBusText}>Reservar Lugar via MB WAY (15,00 €)</Text>
-          <ChevronRight size={14} color={COLORS.gold} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Card Comunicado da Bancada */}
+      {/* Comunicado 1: Concentração e Apoio no Jogo */}
       <View style={styles.communiqueCard}>
         <View style={styles.communiqueIcon}>
           <Users size={20} color={COLORS.gold} />
@@ -444,6 +408,26 @@ export default function HomeScreen({
           </Text>
         </View>
       </View>
+
+      {/* Comunicado 2: Quotas e Informações */}
+      <View style={styles.communiqueCard}>
+        <View style={styles.communiqueIcon}>
+          <Award size={20} color={COLORS.primaryLight} />
+        </View>
+        <View style={styles.communiqueContent}>
+          <Text style={styles.communiqueTitle}>Campanha de Quotas Época 2026/2027</Text>
+          <Text style={styles.communiqueDesc}>
+            Garante o teu selo de associado ativo e prioridade máxima na bilhética oficial nos Arcos. Regularização disponível na aba de Perfil com liquidação direta via MB WAY.
+          </Text>
+        </View>
+      </View>
+
+      {/* Modal Dedicado da Deslocação Oficial */}
+      <DeslocacaoModal
+        visible={deslocacaoModalVisible}
+        onClose={() => setDeslocacaoModalVisible(false)}
+        onBuyTicket={onBuyTicket}
+      />
 
       {/* Espaço para a barra flutuante */}
       <View style={{ height: 140 }} />
