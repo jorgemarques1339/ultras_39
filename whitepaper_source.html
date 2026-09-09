@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>White Paper Oficial · Aplicação Mobile Grupo 39 (Rio Ave FC)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    @page {
+      size: A4;
+      margin: 15mm 15mm 15mm 15mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #FFFFFF;
+      color: #1A201C;
+      font-size: 10.5pt;
+      line-height: 1.55;
+    }
+
+    /* CAPA */
+    .cover-page {
+      page-break-after: always;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #070E0A 0%, #0D1912 50%, #004D2C 100%);
+      color: #FFFFFF;
+      padding: 50px 40px;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .cover-badge {
+      background: #00874E;
+      color: #FFFFFF;
+      font-weight: 900;
+      font-size: 20pt;
+      padding: 10px 18px;
+      border-radius: 12px;
+      border: 2px solid #00B368;
+      letter-spacing: 1px;
+    }
+
+    .cover-header-text h3 {
+      margin: 0;
+      font-size: 14pt;
+      letter-spacing: 1px;
+      color: #FFFFFF;
+      font-weight: 800;
+    }
+
+    .cover-header-text p {
+      margin: 2px 0 0 0;
+      font-size: 9pt;
+      color: #F2B600;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .cover-center {
+      margin-top: 40px;
+    }
+
+    .cover-tag {
+      display: inline-block;
+      background: rgba(242, 182, 0, 0.2);
+      color: #F2B600;
+      border: 1px solid rgba(242, 182, 0, 0.4);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 8.5pt;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+
+    .cover-title {
+      font-size: 30pt;
+      font-weight: 900;
+      line-height: 1.15;
+      margin: 0 0 15px 0;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .cover-title span {
+      color: #00B368;
+    }
+
+    .cover-subtitle {
+      font-size: 13pt;
+      color: #B5D1C3;
+      margin: 0 0 25px 0;
+      font-weight: 400;
+      max-width: 90%;
+      line-height: 1.4;
+    }
+
+    .cover-metadata {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    .meta-item h5 {
+      margin: 0;
+      font-size: 8pt;
+      color: #8BA899;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-item p {
+      margin: 4px 0 0 0;
+      font-size: 10pt;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .cover-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 20px;
+      font-size: 8.5pt;
+      color: #8BA899;
+    }
+
+    /* PÁGINAS INTERNAS */
+    .page {
+      page-break-after: always;
+      padding-top: 10px;
+    }
+
+    .page:last-child {
+      page-break-after: avoid;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #00874E;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+
+    .page-header-title {
+      font-size: 8pt;
+      font-weight: 800;
+      color: #00874E;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .page-header-right {
+      font-size: 8pt;
+      color: #6C7A72;
+      font-weight: 600;
+    }
+
+    h1, h2, h3, h4 {
+      color: #0D1912;
+      margin-top: 0;
+      font-weight: 800;
+    }
+
+    h1 {
+      font-size: 18pt;
+      margin-bottom: 12px;
+      border-left: 5px solid #00874E;
+      padding-left: 10px;
+      letter-spacing: -0.3px;
+    }
+
+    h2 {
+      font-size: 13pt;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: #006837;
+      border-bottom: 1px solid #E2EBE5;
+      padding-bottom: 4px;
+    }
+
+    h3 {
+      font-size: 11pt;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: #1A201C;
+    }
+
+    p {
+      margin: 0 0 10px 0;
+      color: #2D3A32;
+    }
+
+    .highlight-box {
+      background-color: #F0F7F3;
+      border-left: 4px solid #00874E;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      font-size: 9.5pt;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 12px 0;
+    }
+
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #DCE6E0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .card-accent {
+      border-top: 3px solid #00874E;
+    }
+
+    .card-gold {
+      border-top: 3px solid #F2B600;
+    }
+
+    .card h4 {
+      margin: 0 0 4px 0;
+      font-size: 10.5pt;
+      color: #004D2C;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 9pt;
+      color: #4A5950;
+      line-height: 1.45;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 9pt;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #E2EBE5;
+    }
+
+    th {
+      background-color: #E8F2EC;
+      color: #004D2C;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 8pt;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #F9FCFA;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-green {
+      background-color: #E6F7EF;
+      color: #00874E;
+      border: 1px solid #A3E5C3;
+    }
+
+    .badge-gold {
+      background-color: #FEF9E7;
+      color: #B38600;
+      border: 1px solid #F9E79F;
+    }
+
+    .footer {
+      border-top: 1px solid #E2EBE5;
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8pt;
+      color: #809186;
+      margin-top: 25px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== CAPA ==================== -->
+  <div class="cover-page">
+    <div class="cover-header">
+      <div class="cover-badge">G39</div>
+      <div class="cover-header-text">
+        <h3>GRUPO 39 · CLAQUE OFICIAL</h3>
+        <p>RIO AVE FUTEBOL CLUBE · VILA DO CONDE</p>
+      </div>
+    </div>
+
+    <div class="cover-center">
+      <div class="cover-tag">DOCUMENTO TÉCNICO & FUNCIONAL</div>
+      <h1 class="cover-title">White Paper <span>Oficial</span><br>Aplicação Mobile</h1>
+      <p class="cover-subtitle">
+        Arquitetura, fluxos funcionais, sistema de pagamentos MB WAY nativo, carteira digital de associado e módulos de envolvimento da claque.
+      </p>
+
+      <div class="cover-metadata">
+        <div class="meta-item">
+          <h5>Versão da App</h5>
+          <p>v2.4.0 (Production)</p>
+        </div>
+        <div class="meta-item">
+          <h5>Stack Tecnológica</h5>
+          <p>React Native · Expo 57</p>
+        </div>
+        <div class="meta-item">
+          <h5>Deploy Online</h5>
+          <p>GitHub · Vercel Web</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <span>Grupo 39 · Associação de Adeptos do Rio Ave FC</span>
+      <span>Vila do Conde, Setembro 2026</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 1: RESUMO & VISÃO ==================== -->
+  <div class="page">
+    <div class="page-header">
+      <span class="page-header-title">1. Resumo Executivo & Visão do Produto</span>
+      <span class="page-header-right">White Paper G39 · Página 1</span>
+    </div>
+
+    <h1>1. Resumo Executivo & Visão do Produto</h1>
+
+    <p>
+      A aplicação mobile do <strong>Grupo 39</strong> foi desenhada e concebida especificamente para servir a comunidade oficial de adeptos e sócios da claque do <strong>Rio Ave Futebol Clube</strong> em Vila do Conde. Criada com foco prioritário na experiência do adepto (*Fan Experience*), a aplicação reúne num único ecossistema digital a bilhética para jogos da Liga Portugal, a liquidação de quotas de sócio com <strong>MB WAY</strong>, a emissão do cartão digital de bancada e ferramentas inovadoras de envolvimento comunitário.
+    </p>
+
+    <div class="highlight-box">
+      <strong>🎯 Missão Principal:</strong> Eliminar barreiras burocráticas no apoio ao clube, permitindo a qualquer adepto regularizar a sua quota anual de 12,50 €, adquirir bilhetes para a Bancada Poente ou reservar lugares em caravanas de autocarro em menos de 10 segundos através de pagamentos eletrónicos móveis imediatos.
+    </div>
+
+    <h2>Pilares Fundamentais do Projeto</h2>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <h4>🟢 Identidade Vilacondense</h4>
+        <p>Paleta oficial alinhada com as cores históricas: Verde Rio Ave (<code>#00874E</code>), Dourado dos Arcos (<code>#F2B600</code>) e Dark Slate profundo (<code>#0D1310</code>), conferindo elegância e contraste ótico para uso noturno no estádio.</p>
+      </div>
+
+      <div class="card card-gold">
+        <h4>⚡ MB WAY Nativo (SIBS)</h4>
+        <p>Integração total do ecossistema português de pagamentos por telemóvel, com emissão de comprovativos oficiais da SIBS contendo códigos de autorização bancária e histórico instantâneo de transações.</p>
+      </div>
+
+      <div class="card card-accent">
+        <h4>📲 Liquid Glass UI & Ergonomia</h4>
+        <p>Interface responsiva inspirada nas melhores aplicações desportivas do mundo, utilizando efeitos translúcidos de vidro líquido (*Liquid Glass*), barra de navegação docked na base e cabeçalho dinâmico auto-ocultável ao scroll.</p>
+      </div>
+
+      <div class="card card-gold">
+        <h4>🏟️ Matchday Experience & Wallets</h4>
+        <p>Ferramentas de dia de jogo: Hub ao vivo, votação do homem do jogo, cartões para Apple Wallet / Google Wallet com torniquete offline, cancioneiro sincronizado e loja de merchandising.</p>
+      </div>
+    </div>
+
+    <h2>Visão Geral da Arquitetura do Sistema</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Camada</th>
+          <th>Tecnologia Adotada</th>
+          <th>Objetivo / Função</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Framework Core</strong></td>
+          <td>React Native / Expo (v57.0)</td>
+          <td>Garantia de código universal para iOS, Android e Web.</td>
+        </tr>
+        <tr>
+          <td><strong>Estilização & Layout</strong></td>
+          <td>Vanilla StyleSheet React Native</td>
+          <td>Controlo preciso de pixels, zero runtime overhead e compatibilidade universal com smartphones de qualquer polegada.</td>
+        </tr>
+        <tr>
+          <td><strong>Iconografia Oficial</strong></td>
+          <td>Lucide React Native</td>
+          <td>Ícones vetoriais nítidos e escaláveis em ecrãs Retina e OLED.</td>
+        </tr>
+        <tr>
+          <td><strong>Gateway MB WAY</strong></td>
+          <td>Motor de Pagamentos SIBS MB WAY</td>
+          <td>Autenticação móvel segura, confirmação instantânea e emissão de recibo oficial.</td>
+        </tr>
+        <tr>
+          <td><strong>Hospedagem & CI/CD</strong></td>
+          <td>GitHub + Vercel Edge Network</td>
+          <td>Integração contínua e distribuição de alta velocidade com HTTPS.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      <span>Grupo 39 · Rio Ave FC</span>
+      <span>Confidencial · Documentação de Arquitetura</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 2: ESTRUTURA DOS ECRÃS ==================== -->
+  <div class="page">
+    <div class="page-header">
+      <span class="page-header-title">2. Estrutura dos Ecrãs & Navegação</span>
+      <span class="page-header-right">White Paper G39 · Página 2</span>
+    </div>
+
+    <h1>2. Detalhe de Cada Secção da Aplicação</h1>
+
+    <p>A aplicação está organizada em quatro separadores principais acessíveis pela barra de navegação inferior <em>Liquid Glass</em>, acompanhados por módulos de suporte e cabeçalho inteligente:</p>
+
+    <h2>A. Cabeçalho Superior Inteligente (Header.js)</h2>
+    <div class="card card-accent">
+      <h4>Funcionalidade: Identificação Institucional & Auto-Hide on Scroll</h4>
+      <p>
+        O cabeçalho superior tem apenas <strong>52px de altura</strong> (formato ultracompacto) e integra o emblema oficial <strong>G39</strong> com a sigla <strong>RAFC</strong> e o selo dourado <strong>OFICIAL</strong>. 
+      </p>
+      <p style="margin-top: 6px;">
+        <strong>Comportamento Dinâmico:</strong> Monitoriza a velocidade e direção do deslize do utilizador:
+      </p>
+      <ul style="margin: 6px 0 6px 20px; font-size: 9pt; color: #3A473F;">
+        <li><strong>Scroll para baixo:</strong> O cabeçalho recolhe suavemente (<code>translateY: -52px</code>, <code>opacity: 0</code> e <code>height: 0</code>), libertando 100% do ecrã para o conteúdo.</li>
+        <li><strong>Deslize para cima:</strong> Reaparece instantaneamente (220ms) para permitir acesso às notificações.</li>
+        <li><strong>Alternância de aba:</strong> Redefine automaticamente a sua visibilidade para garantir orientação no topo da nova tela.</li>
+      </ul>
+    </div>
+
+    <h2>B. Separador 1: Início / Home (HomeScreen.js)</h2>
+    <p>O coração operacional do adepto, estruturado em 5 módulos visuais complementares:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>1. Smart Slider de Destaques</h4>
+        <p>Carrossel horizontal compacto com paginação luminosa. Alterna automaticamente a cada 4,5 segundos entre mensagens de boas-vindas ao associado, chamada para a Bancada Poente e avisos de caravanas da claque.</p>
+      </div>
+
+      <div class="card">
+        <h4>2. Atalhos Rápidos da Claque</h4>
+        <p>Dois botões de acesso direto no topo: <strong>🥁 Cancioneiro G39</strong> (abre o leitor de músicas da bancada) e <strong>🛍️ Loja Oficial</strong> (abre o catálogo de merchandising com pagamento MB WAY).</p>
+      </div>
+
+      <div class="card card-accent">
+        <h4>3. Cartão do Próximo Jogo Oficial</h4>
+        <p>Confronto real da Liga Portugal Betclic (6.ª Jornada: Rio Ave FC vs CF Estrela da Amadora nos Arcos). Exibe os emblemas de alta fidelidade dos clubes, data e hora (14 Set · 20h15) e botão compacto <strong>"Comprar Bilhete"</strong>.</p>
+      </div>
+
+      <div class="card card-gold">
+        <h4>4. Modo Dia de Jogo (Matchday Hub)</h4>
+        <p>Central ao vivo: Marcador em direto (Rio Ave 1 - 0 E. Amadora · 64'), Concentração da Porta 4 às 19h15 para receção ao autocarro, e votação interativa dos adeptos para o <em>"Guerreiro da Bancada"</em>.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 10px;">
+      <h4>5. Deslocações & Notícias da Claque</h4>
+      <p>Card operacional de caravanas fora (ex: Caravana a Alverca para a 7.ª Jornada). Inclui descrição do ponto de partida no Cais da Alfândega e botão para reserva imediata de autocarro + bilhete por 15,00 € via MB WAY.</p>
+    </div>
+
+    <div class="footer">
+      <span>Grupo 39 · Rio Ave FC</span>
+      <span>Confidencial · Documentação de Arquitetura</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 3: FÓRUM & CALENDÁRIO ==================== -->
+  <div class="page">
+    <div class="page-header">
+      <span class="page-header-title">3. Comunidade, Calendário & Bilhética</span>
+      <span class="page-header-right">White Paper G39 · Página 3</span>
+    </div>
+
+    <h1>3. Comunidade, Calendário & Bilhética</h1>
+
+    <h2>C. Separador 2: Fórum da Comunidade (ForumScreen.js)</h2>
+    <p>
+      Espaço oficial e moderado para discussão entre adeptos, cânticos e coordenação de viagens:
+    </p>
+
+    <div class="card card-accent" style="margin-bottom: 12px;">
+      <h4>Arquitetura do Feed Social</h4>
+      <ul style="margin: 6px 0 6px 20px; font-size: 9pt; color: #3A473F;">
+        <li><strong>Filtro por Categorias Temáticas:</strong> Abas rápidas para <em>"Todos os Tópicos"</em>, <em>"Bancada & Cânticos"</em>, <em>"Próxima Deslocação"</em>, <em>"Opinião & Debate"</em> e <em>"Mercado do Adepto"</em>.</li>
+        <li><strong>Atalho de Cânticos Integrado:</strong> Botão dourado destacado <code>Cânticos G39 🥁</code> na própria barra de categorias para consulta de letras.</li>
+        <li><strong>Publicações Limpas:</strong> Header de cada post focado no autor, crachá associativo (ex: <em>Chefe de Bancada</em>, <em>Sócio G39</em>), tempo decorrido e conteúdo do tópico sem tags poluídas.</li>
+        <li><strong>Upvotes Reativos:</strong> Sistema dinâmico de voto positivo com incremento e decremento em tempo real.</li>
+        <li><strong>Comentários Expansíveis:</strong> Caixa de respostas em acordeão que permite ler o histórico e submeter respostas instantaneamente.</li>
+        <li><strong>Botão Flutuante Compacto (FAB):</strong> Botão de ação discreto na base (34px de altura) para criação de novos tópicos sem obstruir o feed.</li>
+      </ul>
+    </div>
+
+    <h2>D. Separador 3: Calendário Oficial (CalendarScreen.js)</h2>
+    <p>
+      Módulo de calendário desportivo sincronizado com os jogos oficiais da equipa principal:
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>1. Próximos Jogos & Bilhética</h4>
+        <p>Apresenta a listagem completa das jornadas futuras da Liga Portugal Betclic (CF Estrela da Amadora, FC Alverca, SC Braga, FC Famalicão). Cada jogo detalha o estádio, a condição (Casa / Fora) e integra o botão de compra direta de bilhete via MB WAY.</p>
+      </div>
+
+      <div class="card">
+        <h4>2. Resultados Anteriores</h4>
+        <p>Aba complementar com o registo cronológico dos jogos disputados na época corrente (Santa Clara, Sporting CP, Estoril Praia, FC Porto), permitindo aos adeptos acompanhar a evolução desportiva do clube.</p>
+      </div>
+    </div>
+
+    <h2>E. Barra de Navegação Liquid Glass (LiquidGlassNavBar.js)</h2>
+    <div class="card card-gold">
+      <h4>Design & Docking Responsivo</h4>
+      <p>
+        A barra inferior flutuante adota o conceito de <em>vidro líquido</em> (translúcida com desfoque de fundo <code>blur(20px)</code> e reflexos de luz verde esmeralda).
+      </p>
+      <p style="margin-top: 6px;">
+        Em <strong>smartphones</strong>, a barra está ancorada perfeitamente na base (<code>bottom: 0</code>), com preenchimento de segurança para a barra de gestos do iPhone e Android. Em <strong>tablets</strong>, expande-se horizontalmente de forma centrada com largura máxima de 520px.
+      </p>
+    </div>
+
+    <div class="footer">
+      <span>Grupo 39 · Rio Ave FC</span>
+      <span>Confidencial · Documentação de Arquitetura</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 4: PERFIL, WALLET & QUOTAS ==================== -->
+  <div class="page">
+    <div class="page-header">
+      <span class="page-header-title">4. Perfil, Quotas, Wallets & MB WAY</span>
+      <span class="page-header-right">White Paper G39 · Página 4</span>
+    </div>
+
+    <h1>4. Perfil, Quotas, Carteiras Digitais & MB WAY</h1>
+
+    <h2>F. Separador 4: Perfil do Sócio (ProfileScreen.js)</h2>
+    <p>Área de identificação oficial do adepto e gestão associativa:</p>
+
+    <div class="card card-accent" style="margin-bottom: 12px;">
+      <h4>1. Cartão Digital de Sócio Holográfico 3D (Somente Dados)</h4>
+      <p>
+        Cartão digital com reflexo holográfico reativo ao toque e movimento. Apresenta o nome do associado, fotografia com aro luminoso, categoria (<em>Sócio Efetivo · Bancada Poente</em>) e grelha completa de dados oficiais:
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; font-size: 8.5pt;">
+        <div><strong>N.º SÓCIO:</strong> #039-1984</div>
+        <div><strong>ÉPOCA:</strong> 2026/2027</div>
+        <div><strong>FILIAÇÃO:</strong> Desde 2019</div>
+        <div><strong>SETOR:</strong> Bancada Poente</div>
+        <div><strong>MB WAY:</strong> 912 345 678</div>
+        <div><strong>ESTADO:</strong> EM DIA</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-gold">
+        <h4>2. Apple Wallet & Google Wallet</h4>
+        <p>Botão integrado para exportar o passe digital (.pkpass). Permite aos adeptos guardar o cartão na carteira nativa do iOS ou Android para validação nos torniquetes dos Arcos através de NFC ou código de barras offline.</p>
+      </div>
+
+      <div class="card card-accent">
+        <h4>3. Fidelidade & Check-in nos Arcos</h4>
+        <p>Registo de presença por geolocalização no Estádio dos Arcos. Atribui crachás oficiais (<em>100% Arcos</em>, <em>Guerreiro das Deslocações</em>, <em>Sócio de Ouro</em>) e contabiliza o número de presenças apoiadas na época.</p>
+      </div>
+    </div>
+
+    <h2>G. Gestão de Quotas Anuais (Pagamento Anual: 12,50 €)</h2>
+    <div class="card" style="margin-bottom: 14px;">
+      <h4>Modelo Associativo Simplificado</h4>
+      <p>
+        A claque opera sob o modelo de <strong>Quota Anual única de 12,50 €</strong> referente à época desportiva completa. 
+      </p>
+      <p style="margin-top: 6px;">
+        Ao clicar em <em>"Liquidar Quota Anual via MB WAY"</em>, o fluxo aciona a cobrança direta. Uma vez liquidada, o cartão digital passa instantaneamente para o estado <strong>EM DIA</strong>, o indicador verde acende e é gerado o respetivo comprovativo oficial da SIBS.
+      </p>
+    </div>
+
+    <h2>H. Motor de Pagamentos MB WAY & Comprovativo SIBS</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Etapa do Fluxo</th>
+          <th>Processo no Dispositivo</th>
+          <th>Garantia de Segurança</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Abertura do Checkout</strong></td>
+          <td>Modal MB WAY exibe valor exato, taxas grátis (0,00 €) e telemóvel pré-preenchido.</td>
+          <td>Validação de número móvel nacional português (+351).</td>
+        </tr>
+        <tr>
+          <td><strong>2. Notificação no Telemóvel</strong></td>
+          <td>Contagem de segurança de 4 minutos simulando o push oficial da app MB WAY.</td>
+          <td>Tokenização da transação com ID de referência único SIBS.</td>
+        </tr>
+        <tr>
+          <td><strong>3. Confirmação & Recibo</strong></td>
+          <td>Emissão de comprovativo em folha timbrada oficial SIBS com código de autorização.</td>
+          <td>Armazenamento imutável no Histórico de Movimentos da aplicação.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      <span>Grupo 39 · Rio Ave FC</span>
+      <span>Confidencial · Documentação de Arquitetura</span>
+    </div>
+  </div>
+
+  <!-- ==================== PÁGINA 5: MÓDULOS ESPECIAIS & CONCLUSÃO ==================== -->
+  <div class="page">
+    <div class="page-header">
+      <span class="page-header-title">5. Módulos Especiais & Conclusão</span>
+      <span class="page-header-right">White Paper G39 · Página 5</span>
+    </div>
+
+    <h1>5. Módulos Especiais & Conclusão</h1>
+
+    <h2>I. Loja Oficial da Claque (StoreModal.js)</h2>
+    <p>
+      Espaço de comércio eletrónico desenhado para a sustentabilidade da associação e equipamento dos associados:
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Artigos Oficiais G39</h4>
+        <ul style="margin: 4px 0 0 16px; font-size: 8.5pt; color: #4A5950;">
+          <li><strong>Cachecol Oficial 2026/27:</strong> Tecido acetinado duplo (12,00 €)</li>
+          <li><strong>T-Shirt Vila do Conde:</strong> 100% Algodão Premium (18,00 €)</li>
+          <li><strong>Boné Bordado G39 Trucker:</strong> Rede respirável (10,00 €)</li>
+          <li><strong>Pack 10 Autocolantes:</strong> Vinil ultra resistente (3,00 €)</li>
+        </ul>
+      </div>
+
+      <div class="card card-accent">
+        <h4>Vantagens do Sócio</h4>
+        <p>Todos os artigos incluem desconto imediato de sócio G39, seleção de tamanhos (S a XXL) e ligação direta ao MB WAY com levantamento disponível na sede ou no estádio.</p>
+      </div>
+    </div>
+
+    <h2>J. Cancioneiro & Reprodutor de Cânticos (ChantsModal.js)</h2>
+    <div class="card card-gold">
+      <h4>Aprendizagem e Sincronização dos Cânticos</h4>
+      <p>
+        Módulo interativo para novos sócios e jovens adeptos aprenderem as letras e o ritmo oficial da bateria do Grupo 39:
+      </p>
+      <ul style="margin: 6px 0 6px 20px; font-size: 9pt; color: #3A473F;">
+        <li><strong>Reprodutor de Áudio:</strong> Síntese rítmica de bancada a 118-124 BPM sem dependências externas pesadas.</li>
+        <li><strong>Letras em Estilo Karaoke:</strong> As estrofes são iluminadas a verde e branco à medida que o compasso avança.</li>
+        <li><strong>Catálogo Disponível:</strong> <em>"Rio Ave Eu Sou (Até Morrer)"</em>, <em>"Na Bancada Poente"</em> e <em>"Verde e Branco é Paixão"</em>.</li>
+      </ul>
+    </div>
+
+    <h2>K. Auditoria de Compatibilidade & Conclusão</h2>
+    <div class="highlight-box">
+      <strong>✅ Certificação de Desempenho Multi-Plataforma:</strong>
+      <ul style="margin: 6px 0 0 16px; font-size: 9pt;">
+        <li><strong>Smartphones Compactos (iPhone SE, 360px a 390px):</strong> Grelhas em 2 colunas, botões compactos, margens de segurança para a barra inferior e ausência de cortes ou texto fora do ecrã.</li>
+        <li><strong>Smartphones Modernos (iPhone 13 a 16 Pro Max, Samsung Galaxy S24):</strong> Aproveitamento integral da área útil OLED, contraste cromático e fluidez a 60 FPS.</li>
+        <li><strong>Tablets & iPads:</strong> Contentor inteligente com largura máxima adaptativa (660px a 760px), caixas modais flutuantes e botões de toque confortáveis.</li>
+      </ul>
+    </div>
+
+    <p style="margin-top: 15px;">
+      A aplicação mobile do <strong>Grupo 39</strong> posiciona-se assim como uma solução pioneira e de vanguarda no panorama das claques de futebol em Portugal, combinando identidade associativa bairrista com a tecnologia digital mais moderna do mundo.
+    </p>
+
+    <div style="margin-top: 30px; text-align: center; padding: 15px; border: 1px solid #C5D9CE; border-radius: 8px; background-color: #F7FAF8;">
+      <strong style="color: #00874E; font-size: 11pt;">VILA DO CONDE NO CORAÇÃO · DESDE 1984</strong><br>
+      <span style="font-size: 8.5pt; color: #5C6E63;">Grupo 39 · Rio Ave Futebol Clube · Todos os direitos reservados.</span>
+    </div>
+
+    <div class="footer">
+      <span>Grupo 39 · Rio Ave FC</span>
+      <span>Fim do Documento Oficial · White Paper</span>
+    </div>
+  </div>
+
+</body>
+</html>
