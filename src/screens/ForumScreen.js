@@ -142,6 +142,7 @@ export default function ForumScreen({ user, onBuyTicket }) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.categoriesScrollView}
           contentContainerStyle={styles.categoriesContent}
         >
           {FORUM_CATEGORIES.map((cat) => {
@@ -310,12 +311,12 @@ export default function ForumScreen({ user, onBuyTicket }) {
           );
         })}
 
-        <View style={{ height: 110 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
 
       {/* Botão Flutuante de Criar Tópico */}
       <TouchableOpacity
-        style={styles.fabButton}
+        style={[styles.fabButton, !isTablet && styles.fabButtonPhone]}
         onPress={() => setIsNewPostModalOpen(true)}
         activeOpacity={0.85}
       >
@@ -406,12 +407,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0D1310',
+    overflow: 'hidden',
   },
   categoriesBar: {
     backgroundColor: '#111A15',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     paddingVertical: 12,
+    overflow: 'hidden',
+  },
+  categoriesScrollView: {
+    overflow: 'hidden',
   },
   categoriesContent: {
     paddingHorizontal: 16,
@@ -669,6 +675,9 @@ const styles = StyleSheet.create({
         boxShadow: '0 6px 20px rgba(0, 135, 78, 0.45)',
       },
     }),
+  },
+  fabButtonPhone: {
+    bottom: 80,
   },
   fabText: {
     color: '#FFF',

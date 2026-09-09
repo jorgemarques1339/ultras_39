@@ -288,9 +288,11 @@ export default function ProfileScreen({
         <View style={styles.sectionHeaderRow}>
           <View style={styles.iconHeadingRow}>
             <History size={16} color={COLORS.gold} />
-            <Text style={styles.sectionHeaderTitle}>Histórico de Pagamentos MB WAY</Text>
+            <Text style={styles.sectionHeaderTitle} numberOfLines={1}>
+              Histórico MB WAY
+            </Text>
           </View>
-          <Text style={styles.txCountBadge}>{transactions.length} movimentos</Text>
+          <Text style={styles.txCountBadge}>{transactions.length} mov.</Text>
         </View>
 
         {transactions.length === 0 ? (
@@ -352,7 +354,7 @@ export default function ProfileScreen({
         </View>
       </View>
 
-      <View style={{ height: 120 }} />
+      <View style={{ height: 140 }} />
     </ScrollView>
   );
 }
@@ -361,6 +363,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0D1310',
+    overflow: 'hidden',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -368,9 +371,9 @@ const styles = StyleSheet.create({
   },
   sectionHeaderTitle: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    marginBottom: 12,
+    marginBottom: 0,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -382,11 +385,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
+    marginRight: 8,
   },
   txCountBadge: {
     color: COLORS.textSecondary,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
+    flexShrink: 0,
   },
 
   // 1. Cartão Holográfico
@@ -398,11 +404,12 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1.5,
     borderColor: 'rgba(242, 182, 0, 0.45)',
-    padding: 18,
+    padding: 16,
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
       web: {
+        contain: 'paint',
         boxShadow:
           '0 16px 36px rgba(0, 0, 0, 0.6), 0 0 24px rgba(242, 182, 0, 0.2), inset 0 0 30px rgba(0, 135, 78, 0.25)',
       },
@@ -410,18 +417,19 @@ const styles = StyleSheet.create({
   },
   holoSheenOverlay: {
     position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    top: -20,
+    right: -20,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: 'rgba(242, 182, 0, 0.08)',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
+    gap: 6,
   },
   cardBrandRow: {
     flexDirection: 'row',
@@ -897,16 +905,18 @@ const styles = StyleSheet.create({
   supportRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
+    gap: 8,
+    flexWrap: 'wrap',
   },
   supportLabel: {
     color: COLORS.textSecondary,
-    fontSize: 12,
-    flex: 1,
+    fontSize: 11,
+    flexShrink: 1,
   },
   supportVal: {
     color: COLORS.white,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
 });

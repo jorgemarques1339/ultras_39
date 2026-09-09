@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { Home, MessageSquare, Calendar, User } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -11,9 +11,23 @@ const NAV_ITEMS = [
 ];
 
 export default function LiquidGlassNavBar({ activeTab, onSelectTab }) {
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 650;
+
   return (
-    <View style={[styles.outerContainer, { pointerEvents: 'box-none' }]}>
-      <View style={styles.glassBar}>
+    <View
+      style={[
+        styles.outerContainer,
+        isTablet ? styles.outerContainerTablet : styles.outerContainerPhone,
+        { pointerEvents: 'box-none' },
+      ]}
+    >
+      <View
+        style={[
+          styles.glassBar,
+          isTablet ? styles.glassBarTablet : styles.glassBarPhone,
+        ]}
+      >
         {/* Subtle Top Gradient Line */}
         <View style={styles.glowLine} />
 
@@ -33,7 +47,7 @@ export default function LiquidGlassNavBar({ activeTab, onSelectTab }) {
 
               <View style={styles.iconWrapper}>
                 <IconComponent
-                  size={22}
+                  size={20}
                   color={isActive ? COLORS.primaryLight : COLORS.textSecondary}
                   strokeWidth={isActive ? 2.5 : 1.8}
                 />
@@ -49,6 +63,7 @@ export default function LiquidGlassNavBar({ activeTab, onSelectTab }) {
                   styles.navLabel,
                   isActive ? styles.navLabelActive : styles.navLabelInactive,
                 ]}
+                numberOfLines={1}
               >
                 {item.label}
               </Text>
@@ -65,11 +80,17 @@ export default function LiquidGlassNavBar({ activeTab, onSelectTab }) {
 const styles = StyleSheet.create({
   outerContainer: {
     position: 'absolute',
-    bottom: 20,
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: 999,
+  },
+  outerContainerPhone: {
+    bottom: 0,
+    paddingHorizontal: 0,
+  },
+  outerContainerTablet: {
+    bottom: 20,
     paddingHorizontal: 16,
   },
   glassBar: {
@@ -77,27 +98,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     width: '100%',
-    maxWidth: 520,
-    height: 68,
-    borderRadius: 36,
-    backgroundColor: 'rgba(13, 20, 16, 0.84)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    paddingHorizontal: 8,
+    backgroundColor: 'rgba(11, 18, 14, 0.94)',
     overflow: 'hidden',
     ...Platform.select({
       web: {
         pointerEvents: 'auto',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 135, 78, 0.15)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
       },
       default: {
-        elevation: 12,
+        elevation: 16,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.5,
         shadowRadius: 16,
+      },
+    }),
+  },
+  glassBarPhone: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderTopWidth: 1.5,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderColor: 'rgba(0, 179, 104, 0.35)',
+    paddingTop: 8,
+    paddingBottom: Platform.OS === 'web' ? 14 : 18,
+    paddingHorizontal: 6,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -8px 28px rgba(0, 0, 0, 0.75), 0 -1px 12px rgba(0, 135, 78, 0.2)',
+      },
+    }),
+  },
+  glassBarTablet: {
+    maxWidth: 520,
+    height: 68,
+    borderRadius: 36,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    paddingHorizontal: 8,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 135, 78, 0.15)',
       },
     }),
   },

@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#0D1310',
+    overflow: 'hidden',
   },
   appContainer: {
     flex: 1,
@@ -178,18 +179,22 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     alignSelf: 'center',
+    overflow: 'hidden',
     ...Platform.select({
       web: {
-        minHeight: '100vh',
+        height: '100dvh',
+        maxHeight: '100dvh',
         boxShadow: '0 0 50px rgba(0, 0, 0, 0.8)',
         borderLeftWidth: 1,
         borderRightWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.08)',
+        overflowX: 'hidden',
       },
     }),
   },
   screenArea: {
     flex: 1,
     position: 'relative',
+    overflow: 'hidden',
   },
 });

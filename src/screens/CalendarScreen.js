@@ -273,7 +273,7 @@ export default function CalendarScreen({ onBuyTicket }) {
           </View>
         )}
 
-        <View style={{ height: 110 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
     </View>
   );
@@ -283,6 +283,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0D1310',
+    overflow: 'hidden',
   },
   topTabsBar: {
     flexDirection: 'row',

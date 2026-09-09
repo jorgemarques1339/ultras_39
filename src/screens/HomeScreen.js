@@ -351,7 +351,7 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
       </View>
 
       {/* Espaço para a barra flutuante */}
-      <View style={{ height: 100 }} />
+      <View style={{ height: 140 }} />
     </ScrollView>
   );
 }
@@ -360,6 +360,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0D1310',
+    overflow: 'hidden',
   },
   contentContainer: {
     paddingHorizontal: 16,
@@ -369,6 +370,7 @@ const styles = StyleSheet.create({
   // 1. Compact Sliding Highlights Banner
   sliderWrapper: {
     marginBottom: 14,
+    overflow: 'hidden',
   },
   sliderScrollView: {
     borderRadius: 16,
@@ -386,11 +388,11 @@ const styles = StyleSheet.create({
   },
   slideGlow: {
     position: 'absolute',
-    top: -20,
-    right: -20,
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    top: 0,
+    right: 0,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: 'rgba(0, 179, 104, 0.08)',
   },
   slideHeaderRow: {
@@ -548,6 +550,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     textAlign: 'center',
+    maxWidth: 110,
   },
   teamRole: {
     color: COLORS.textMuted,
@@ -593,18 +596,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1410',
     borderRadius: 14,
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
+    gap: 4,
   },
   countdownBlock: {
     alignItems: 'center',
-    minWidth: 44,
+    minWidth: 36,
   },
   countdownNumber: {
     color: COLORS.white,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     fontVariant: ['tabular-nums'],
   },
@@ -616,9 +620,9 @@ const styles = StyleSheet.create({
   },
   countdownColon: {
     color: COLORS.primaryLight,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    marginHorizontal: 4,
+    marginHorizontal: 2,
     marginBottom: 10,
   },
   weatherCapacityRow: {
@@ -670,12 +674,12 @@ const styles = StyleSheet.create({
   },
   heroBuyTitle: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
   },
   heroBuySub: {
     color: '#D2F5E2',
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 2,
   },
 
@@ -762,6 +766,7 @@ const styles = StyleSheet.create({
     color: COLORS.gold,
     fontSize: 12,
     fontWeight: '700',
+    flex: 1,
   },
 
   // Communique

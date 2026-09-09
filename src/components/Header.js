@@ -24,7 +24,7 @@ export default function Header({ onOpenNotifications }) {
               <Text style={styles.officialPillText}>OFICIAL</Text>
             </View>
           </View>
-          <Text style={styles.subTitle}>Rio Ave F.C. · Vila do Conde</Text>
+          <Text style={styles.subTitle} numberOfLines={1}>Rio Ave F.C. · Vila do Conde</Text>
         </View>
       </View>
 
@@ -45,17 +45,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 14,
     backgroundColor: '#0D1310',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    overflow: 'hidden',
   },
   leftBrand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flex: 1,
+    marginRight: 8,
   },
   emblemWrapper: {
     position: 'relative',
