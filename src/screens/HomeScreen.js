@@ -189,10 +189,6 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
             <Text style={styles.compName}>{NEXT_MATCH.competition}</Text>
             <Text style={styles.compRound}>{NEXT_MATCH.round}</Text>
           </View>
-          <View style={styles.liveMatchBadge}>
-            <View style={styles.greenPulse} />
-            <Text style={styles.liveMatchBadgeText}>Bancada Poente</Text>
-          </View>
         </View>
 
         {/* Equipas & Emblemas Reais */}
@@ -267,7 +263,7 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
           style={styles.heroBuyBtn}
           onPress={() =>
             onBuyTicket({
-              title: `Bilhete Bancada Grupo 39 · ${NEXT_MATCH.homeTeam.name} vs ${NEXT_MATCH.awayTeam.name}`,
+              title: `Bilhete Grupo 39 · ${NEXT_MATCH.homeTeam.name} vs ${NEXT_MATCH.awayTeam.name}`,
               category: 'Bilhética Oficial RAFC',
               amount: NEXT_MATCH.ticketPriceMember,
               originalPrice: NEXT_MATCH.ticketPricePublic,
@@ -283,7 +279,7 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
             </View>
             <View style={styles.btnTextBox}>
               <Text style={styles.heroBuyTitle}>
-                Garantir Bilhete / Bancada Grupo 39
+                Comprar Bilhete
               </Text>
               <Text style={styles.heroBuySub}>
                 Preço de Sócio: {NEXT_MATCH.ticketPriceMember.toFixed(2)} € (Checkout MB WAY)
@@ -674,7 +670,7 @@ const styles = StyleSheet.create({
   },
   heroBuyTitle: {
     color: '#FFF',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
   },
   heroBuySub: {
