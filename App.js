@@ -12,6 +12,9 @@ import LiquidGlassNavBar from './src/components/LiquidGlassNavBar';
 import MbWayCheckoutModal from './src/components/MbWayCheckoutModal';
 import ReceiptModal from './src/components/ReceiptModal';
 import NotificationsModal from './src/components/NotificationsModal';
+import WalletPassModal from './src/components/WalletPassModal';
+import ChantsModal from './src/components/ChantsModal';
+import StoreModal from './src/components/StoreModal';
 import HomeScreen from './src/screens/HomeScreen';
 import ForumScreen from './src/screens/ForumScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
@@ -64,6 +67,9 @@ export default function App() {
   const [receiptModalVisible, setReceiptModalVisible] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const [walletPassModalVisible, setWalletPassModalVisible] = useState(false);
+  const [chantsModalVisible, setChantsModalVisible] = useState(false);
+  const [storeModalVisible, setStoreModalVisible] = useState(false);
 
   // Iniciar fluxo de compra de bilhete
   const handleBuyTicket = (itemData) => {
@@ -123,6 +129,8 @@ export default function App() {
               onBuyTicket={handleBuyTicket}
               onNavigateTab={handleSelectTab}
               onScroll={handleScroll}
+              onOpenChants={() => setChantsModalVisible(true)}
+              onOpenStore={() => setStoreModalVisible(true)}
             />
           )}
 
@@ -131,6 +139,7 @@ export default function App() {
               user={user}
               onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
+              onOpenChants={() => setChantsModalVisible(true)}
             />
           )}
 
@@ -148,6 +157,7 @@ export default function App() {
               onPayQuota={handlePayQuota}
               onViewReceipt={handleViewReceipt}
               onScroll={handleScroll}
+              onOpenWalletPass={() => setWalletPassModalVisible(true)}
             />
           )}
         </View>
@@ -172,6 +182,26 @@ export default function App() {
           visible={receiptModalVisible}
           onClose={() => setReceiptModalVisible(false)}
           transaction={selectedReceipt}
+        />
+
+        {/* Modal de Carteira Digital (Apple & Google Wallet) */}
+        <WalletPassModal
+          visible={walletPassModalVisible}
+          onClose={() => setWalletPassModalVisible(false)}
+          user={user}
+        />
+
+        {/* Modal do Cancioneiro Grupo 39 */}
+        <ChantsModal
+          visible={chantsModalVisible}
+          onClose={() => setChantsModalVisible(false)}
+        />
+
+        {/* Modal da Loja Oficial G39 */}
+        <StoreModal
+          visible={storeModalVisible}
+          onClose={() => setStoreModalVisible(false)}
+          onCheckoutItem={handleBuyTicket}
         />
 
         {/* Modal de Notificações / Avisos */}

@@ -280,3 +280,176 @@ export const CHANT_OF_THE_WEEK = {
   chorus: 'Rio Ave eu sou! Rio Ave até morrer! / Grupo 39 não te vai esquecer! 🥁👏🟢⚪',
   verse2: 'Nos Arcos ou lá fora / Com chuva ou com calor / Esta camisola 12 / Canta com fervor!',
 };
+
+// ==========================================
+// 1. MODO DIA DE JOGO (MATCHDAY LIVE HUB)
+// ==========================================
+export const MATCHDAY_DATA = {
+  isActive: true,
+  status: 'EM DIRETO · 64\'',
+  homeScore: 1,
+  awayScore: 0,
+  events: [
+    { minute: '38\'', player: 'Clayton Silva', type: 'golo', text: '⚽ GOLO DO RIO AVE! Remate cruzado ao ângulo superior!' },
+    { minute: '52\'', player: 'Amine Oudrhiri', type: 'amarelo', text: '🟨 Cartão amarelo por corte providencial no contra-ataque.' }
+  ],
+  meetingPoint: {
+    title: 'Concentração Oficial Porta 4',
+    time: '19h15 (Receção ao Autocarro)',
+    location: 'Estádio dos Arcos · Bancada Poente',
+    instructions: 'Levar cachecol verde e branco e camisola oficial. Entrada coordenada com a bateria G39.'
+  },
+  motmCandidates: [
+    { id: 'p-9', name: 'Clayton Silva', position: 'Avançado', number: 9, votes: 142, pct: 54 },
+    { id: 'p-6', name: 'Amine Oudrhiri', position: 'Médio', number: 6, votes: 58, pct: 22 },
+    { id: 'p-1', name: 'Jhonatan Luiz', position: 'Guarda-redes', number: 1, votes: 38, pct: 15 },
+    { id: 'p-3', name: 'Jonathan Panzo', position: 'Defesa Central', number: 3, votes: 24, pct: 9 }
+  ]
+};
+
+// ==========================================
+// 2. LOJA OFICIAL DA CLAQUE (G39 STORE)
+// ==========================================
+export const STORE_PRODUCTS = [
+  {
+    id: 'prod-scarf-26',
+    title: 'Cachecol Oficial Época 2026/2027',
+    category: 'Cachecóis',
+    price: 12.00,
+    memberDiscount: 'Preço Sócio: 12,00 € (Público: 15,00 €)',
+    badge: 'OFICIAL G39',
+    image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&w=400&q=80',
+    description: 'Tecido duplo acetinado de alta densidade com franjas verdes e brancas. Edição oficial comemorativa Grupo 39.',
+    sizes: ['Tamanho Único (140x18cm)'],
+    inStock: true
+  },
+  {
+    id: 'prod-tshirt-vdc',
+    title: 'T-Shirt "Vila do Conde no Coração"',
+    category: 'Vestuário',
+    price: 18.00,
+    memberDiscount: 'Preço Sócio: 18,00 € (Público: 22,00 €)',
+    badge: 'LANÇAMENTO',
+    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80',
+    description: '100% Algodão Premium orgânico 190g com serigrafia de alta resistência. Emblema G39 no peito e barco poveiro/vilacondense nas costas.',
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    inStock: true
+  },
+  {
+    id: 'prod-cap-g39',
+    title: 'Boné Bordado G39 Trucker Green',
+    category: 'Acessórios',
+    price: 10.00,
+    memberDiscount: 'Preço Sócio: 10,00 € (Público: 13,00 €)',
+    badge: 'POPULAR',
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=400&q=80',
+    description: 'Boné estilo trucker com rede respirável para dias de jogo e pala curva. Bordado 3D de alta definição.',
+    sizes: ['Ajustável (Snapback)'],
+    inStock: true
+  },
+  {
+    id: 'prod-stickers-pack',
+    title: 'Pack 10 Autocolantes Ultra G39',
+    category: 'Autocolantes',
+    price: 3.00,
+    memberDiscount: 'Pack Sócio: 3,00 €',
+    badge: 'COLEÇÃO',
+    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=80',
+    description: 'Vinil impermeável ultra resistente aos raios UV e intempéries. 10 designs exclusivos para marcar presença.',
+    sizes: ['10 Unidades Sortidas'],
+    inStock: true
+  }
+];
+
+// ==========================================
+// 3. CANCIONEIRO & REPRODUTOR DE CÂNTICOS
+// ==========================================
+export const CHANTS_DATA = [
+  {
+    id: 'chant-1',
+    title: 'Rio Ave Eu Sou (Até Morrer)',
+    duration: 38,
+    bpm: 118,
+    category: 'Hino da Bancada',
+    lines: [
+      { time: 0, text: 'Nas margens do nosso rio...' },
+      { time: 5, text: 'Onde o verde beija o mar! 🌊🟢' },
+      { time: 10, text: 'Ergue-se o nosso orgulho...' },
+      { time: 15, text: 'Sempre, sempre a te apoiar! 👏' },
+      { time: 20, text: 'RIO AVE EU SOU! RIO AVE ATÉ MORRER! 🥁' },
+      { time: 26, text: 'GRUPO 39 NÃO TE VAI ESQUECER! 🟢⚪' },
+      { time: 32, text: 'Olé, olé, olé, Rio Ave olé! 🎺🥁' }
+    ]
+  },
+  {
+    id: 'chant-2',
+    title: 'Na Bancada Poente',
+    duration: 32,
+    bpm: 124,
+    category: 'Apoio 90 Minutos',
+    lines: [
+      { time: 0, text: 'Na Bancada Poente nós estamos presentes!' },
+      { time: 6, text: 'A cantar pelo Rio Ave para a frente! 🥁' },
+      { time: 12, text: 'Com a força do mar e da nossa gente! 🌊' },
+      { time: 18, text: 'Ninguém nos vai parar, somos valentes! 🟢⚪' },
+      { time: 24, text: 'La la la la la la, Rio Ave olé! 👏' }
+    ]
+  },
+  {
+    id: 'chant-3',
+    title: 'Verde e Branco é Paixão',
+    duration: 35,
+    bpm: 112,
+    category: 'Clássico Vilacondense',
+    lines: [
+      { time: 0, text: 'Desde pequeno que sinto este amor...' },
+      { time: 6, text: 'Por esta camisola e por esta cor! 🟢⚪' },
+      { time: 13, text: 'Vila do Conde ergue a tua voz!' },
+      { time: 19, text: 'O Grupo 39 canta por todos nós! 🥁👏' },
+      { time: 26, text: 'Força Rio Ave, sê campeão! 🏆' }
+    ]
+  }
+];
+
+// ==========================================
+// 4. FIDELIDADE & GAMIFICAÇÃO (ACHIEVEMENTS)
+// ==========================================
+export const FAN_ACHIEVEMENTS = [
+  {
+    id: 'ach-1',
+    title: '100% Arcos',
+    description: 'Presença confirmada nos últimos 3 jogos em casa',
+    icon: 'ShieldCheck',
+    unlocked: true,
+    progress: '3/3 Jogos',
+    reward: 'Prioridade em Bilhética'
+  },
+  {
+    id: 'ach-2',
+    title: 'Guerreiro das Deslocações',
+    description: 'Inscrição confirmada na Caravana a Alverca',
+    icon: 'Bus',
+    unlocked: true,
+    progress: '1/1 Viagens',
+    reward: 'Desconto 2€ em Cachecóis'
+  },
+  {
+    id: 'ach-3',
+    title: 'Sócio de Ouro',
+    description: 'Quota anual da época 2026/2027 liquidada',
+    icon: 'Award',
+    unlocked: true,
+    progress: 'Época Regularizada',
+    reward: 'Selo Dourado no Cartão'
+  },
+  {
+    id: 'ach-4',
+    title: 'Voz da Bancada',
+    description: 'Publicar no Fórum e ensaiar cânticos na app',
+    icon: 'Flame',
+    unlocked: false,
+    progress: '1/3 Ações',
+    reward: 'Badge de Chefe de Claque'
+  }
+];
+

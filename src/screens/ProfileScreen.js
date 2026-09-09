@@ -17,8 +17,14 @@ import {
   Phone,
   Award,
   Calendar,
+  Smartphone,
+  MapPin,
+  Flame,
+  Bus,
+  Download,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
+import { FAN_ACHIEVEMENTS } from '../data/mockData';
 
 export default function ProfileScreen({
   user,
@@ -26,8 +32,22 @@ export default function ProfileScreen({
   onPayQuota,
   onViewReceipt,
   onScroll,
+  onOpenWalletPass,
 }) {
   const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
+  const [hasCheckedIn, setHasCheckedIn] = useState(false);
+  const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
+
+  const handleCheckIn = () => {
+    if (hasCheckedIn) return;
+    setHasCheckedIn(true);
+    setAchievements((prev) =>
+      prev.map((ach) =>
+        ach.id === 'ach-1' ? { ...ach, unlocked: true, progress: '4/4 Jogos' } : ach
+      )
+    );
+    alert('📍 Check-in de Bancada confirmado no Estádio dos Arcos! A tua presença no apoio ao Rio Ave FC foi registada com sucesso.');
+  };
 
   // Efeito holográfico interativo com toque ou movimento
   const handleCardTouch = (e) => {
@@ -176,6 +196,91 @@ export default function ProfileScreen({
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* NOVO: BOTÕES OFICIAIS APPLE WALLET & GOOGLE WALLET */}
+        <View style={styles.walletBtnContainer}>
+          <TouchableOpacity
+            style={styles.walletActionBtn}
+            onPress={onOpenWalletPass}
+            activeOpacity={0.85}
+          >
+            <View style={styles.walletBtnLeft}>
+              <View style={styles.walletIconBlack}>
+                <Text style={styles.appleLogoGlyph}></Text>
+              </View>
+              <View>
+                <Text style={styles.walletBtnMain}>Guardar na Carteira Digital</Text>
+                <Text style={styles.walletBtnSub}>Apple Wallet & Google Wallet (Torniquetes Offline)</Text>
+              </View>
+            </View>
+            <Download size={16} color={COLORS.gold} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* NOVO: FIDELIDADE DE BANCADA & GAMIFICAÇÃO */}
+      <View style={styles.loyaltySection}>
+        <View style={styles.loyaltyHeaderRow}>
+          <View style={styles.loyaltyTitleGroup}>
+            <Award size={16} color={COLORS.gold} />
+            <Text style={styles.sectionHeaderTitle}>Fidelidade de Bancada</Text>
+          </View>
+          <View style={styles.loyaltyPointsBadge}>
+            <Text style={styles.loyaltyPointsText}>{hasCheckedIn ? '15 Presenças' : '14 Presenças'}</Text>
+          </View>
+        </View>
+
+        {/* Botão de Check-in no Estádio */}
+        <TouchableOpacity
+          style={[styles.checkInBtn, hasCheckedIn && styles.checkInBtnActive]}
+          onPress={handleCheckIn}
+          activeOpacity={0.85}
+        >
+          {hasCheckedIn ? (
+            <>
+              <CheckCircle2 size={16} color="#FFF" />
+              <Text style={styles.checkInBtnText}>Presença Confirmada nos Arcos Hoje!</Text>
+            </>
+          ) : (
+            <>
+              <MapPin size={16} color="#FFF" />
+              <Text style={styles.checkInBtnText}>Fazer Check-in no Estádio dos Arcos</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Vitrine de Crachás de Sócio */}
+        <View style={styles.achievementsGrid}>
+          {achievements.map((ach) => (
+            <View
+              key={ach.id}
+              style={[styles.achievementCard, ach.unlocked && styles.achievementCardUnlocked]}
+            >
+              <View style={styles.achievementTop}>
+                <View style={[styles.achievementIconBox, ach.unlocked && styles.achievementIconBoxUnlocked]}>
+                  {ach.unlocked ? (
+                    <Award size={16} color={COLORS.gold} />
+                  ) : (
+                    <ShieldCheck size={16} color={COLORS.textMuted} />
+                  )}
+                </View>
+                <View style={[styles.achBadgePill, ach.unlocked ? styles.achBadgePillUnlocked : styles.achBadgePillLocked]}>
+                  <Text style={[styles.achBadgeText, ach.unlocked ? styles.achBadgeTextUnlocked : styles.achBadgeTextLocked]}>
+                    {ach.unlocked ? 'DESBLOQUEADO' : 'EM CURSO'}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.achTitle}>{ach.title}</Text>
+              <Text style={styles.achDesc}>{ach.description}</Text>
+
+              <View style={styles.achFooter}>
+                <Text style={styles.achProgress}>{ach.progress}</Text>
+                <Text style={styles.achReward}>🎁 {ach.reward}</Text>
+              </View>
+            </View>
+          ))}
         </View>
       </View>
 
@@ -920,6 +1025,195 @@ const styles = StyleSheet.create({
   supportVal: {
     color: COLORS.white,
     fontSize: 11,
+    fontWeight: '700',
+  },
+
+  // Carteira Digital (Apple & Google Wallet)
+  walletBtnContainer: {
+    marginTop: 10,
+  },
+  walletActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#070D09',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
+      },
+    }),
+  },
+  walletBtnLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  walletIconBlack: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appleLogoGlyph: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  walletBtnMain: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  walletBtnSub: {
+    color: COLORS.textMuted,
+    fontSize: 9.5,
+    marginTop: 1,
+  },
+
+  // Fidelidade de Bancada & Gamificação
+  loyaltySection: {
+    marginBottom: 20,
+  },
+  loyaltyHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  loyaltyTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  loyaltyPointsBadge: {
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.35)',
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: 8,
+  },
+  loyaltyPointsText: {
+    color: COLORS.gold,
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
+  checkInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#00874E',
+    borderRadius: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#00B368',
+    marginBottom: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 14px rgba(0, 135, 78, 0.3)',
+      },
+    }),
+  },
+  checkInBtnActive: {
+    backgroundColor: '#12241A',
+    borderColor: COLORS.primaryLight,
+  },
+  checkInBtnText: {
+    color: '#FFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  achievementsGrid: {
+    gap: 10,
+  },
+  achievementCard: {
+    backgroundColor: '#111A15',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  achievementCardUnlocked: {
+    borderColor: 'rgba(242, 182, 0, 0.25)',
+    backgroundColor: '#131E18',
+  },
+  achievementTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  achievementIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  achievementIconBoxUnlocked: {
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+  },
+  achBadgePill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  achBadgePillUnlocked: {
+    backgroundColor: 'rgba(0, 179, 104, 0.15)',
+  },
+  achBadgePillLocked: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  achBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '800',
+  },
+  achBadgeTextUnlocked: {
+    color: COLORS.primaryLight,
+  },
+  achBadgeTextLocked: {
+    color: COLORS.textMuted,
+  },
+  achTitle: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  achDesc: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    lineHeight: 15,
+    marginBottom: 8,
+  },
+  achFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  achProgress: {
+    color: COLORS.primaryLight,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  achReward: {
+    color: COLORS.gold,
+    fontSize: 10,
     fontWeight: '700',
   },
 });

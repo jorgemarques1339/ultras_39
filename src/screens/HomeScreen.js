@@ -15,12 +15,28 @@ import {
   Bus,
   Sparkles,
   Users,
+  Music,
+  ShoppingBag,
+  Radio,
+  Award,
+  CheckCircle2,
+  Trophy,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
-import { NEXT_MATCH } from '../data/mockData';
+import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll }) {
+export default function HomeScreen({
+  user,
+  onBuyTicket,
+  onNavigateTab,
+  onScroll,
+  onOpenChants,
+  onOpenStore,
+}) {
+  const [votedPlayerId, setVotedPlayerId] = useState(null);
+  const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
+  const [isMatchdayExpanded, setIsMatchdayExpanded] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const sliderRef = useRef(null);
@@ -82,6 +98,19 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll 
   const goToSlide = (idx) => {
     setActiveSlide(idx);
     sliderRef.current?.scrollTo({ x: idx * containerWidth, animated: true });
+  };
+
+  const handleVoteMotm = (playerId) => {
+    if (votedPlayerId === playerId) return;
+    setVotedPlayerId(playerId);
+    setMotmList((prev) =>
+      prev.map((p) => {
+        if (p.id === playerId) {
+          return { ...p, votes: p.votes + 1, pct: Math.min(100, p.pct + 3) };
+        }
+        return p;
+      })
+    );
   };
 
   return (
@@ -160,6 +189,49 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll 
         </View>
       </View>
 
+      {/* NOVO: ATALHOS RÁPIDOS MUNDIAIS (CANCIONEIRO & LOJA OFICIAL G39) */}
+      <View style={styles.quickShortcutsRow}>
+        <TouchableOpacity
+          style={styles.quickShortcutCard}
+          onPress={onOpenChants}
+          activeOpacity={0.8}
+        >
+          <View style={styles.shortcutIconBgMusic}>
+            <Music size={16} color={COLORS.gold} />
+          </View>
+          <View style={styles.shortcutTextBox}>
+            <View style={styles.shortcutHeaderRow}>
+              <Text style={styles.shortcutTitle}>Cancioneiro G39</Text>
+              <View style={styles.shortcutBadgeGold}>
+                <Text style={styles.shortcutBadgeText}>ÁUDIO</Text>
+              </View>
+            </View>
+            <Text style={styles.shortcutDesc}>Letras e bateria de estádio</Text>
+          </View>
+          <ChevronRight size={14} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.quickShortcutCard}
+          onPress={onOpenStore}
+          activeOpacity={0.8}
+        >
+          <View style={styles.shortcutIconBgStore}>
+            <ShoppingBag size={16} color={COLORS.primaryLight} />
+          </View>
+          <View style={styles.shortcutTextBox}>
+            <View style={styles.shortcutHeaderRow}>
+              <Text style={styles.shortcutTitle}>Loja Oficial</Text>
+              <View style={styles.shortcutBadgeGreen}>
+                <Text style={styles.shortcutBadgeTextGreen}>MB WAY</Text>
+              </View>
+            </View>
+            <Text style={styles.shortcutDesc}>Cachecóis e merchandising</Text>
+          </View>
+          <ChevronRight size={14} color={COLORS.textMuted} />
+        </TouchableOpacity>
+      </View>
+
       {/* 2. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <View style={styles.heroCard}>
         {/* Header do Confronto */}
@@ -224,6 +296,81 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll 
         </TouchableOpacity>
       </View>
 
+      {/* 3. NOVO: MODO DIA DE JOGO (MATCHDAY LIVE HUB) */}
+      <View style={styles.matchdayCard}>
+        <View style={styles.matchdayHeaderRow}>
+          <View style={styles.matchdayLiveBadge}>
+            <View style={styles.greenLivePulse} />
+            <Text style={styles.matchdayLiveBadgeText}>MODO DIA DE JOGO</Text>
+          </View>
+          <Text style={styles.matchdayStatusText}>{MATCHDAY_DATA.status}</Text>
+        </View>
+
+        {/* Marcador em Direto */}
+        <View style={styles.liveScoreboardRow}>
+          <View style={styles.scoreTeamCol}>
+            <Text style={styles.scoreTeamName}>RIO AVE</Text>
+          </View>
+          <View style={styles.scoreDigitsBox}>
+            <Text style={styles.scoreDigitGreen}>{MATCHDAY_DATA.homeScore}</Text>
+            <Text style={styles.scoreSeparator}>-</Text>
+            <Text style={styles.scoreDigit}>{MATCHDAY_DATA.awayScore}</Text>
+          </View>
+          <View style={styles.scoreTeamColRight}>
+            <Text style={styles.scoreTeamName}>E. AMADORA</Text>
+          </View>
+        </View>
+
+        {/* Evento Recente */}
+        <View style={styles.liveEventNotice}>
+          <Text style={styles.liveEventText}>{MATCHDAY_DATA.events[0].text}</Text>
+        </View>
+
+        {/* Ponto de Encontro da Bancada Poente */}
+        <View style={styles.meetingPointBox}>
+          <View style={styles.meetingPointHeader}>
+            <MapPin size={13} color={COLORS.gold} />
+            <Text style={styles.meetingPointTitle}>{MATCHDAY_DATA.meetingPoint.title}</Text>
+          </View>
+          <Text style={styles.meetingPointDesc}>{MATCHDAY_DATA.meetingPoint.instructions}</Text>
+        </View>
+
+        {/* Votação: Guerreiro da Bancada */}
+        <View style={styles.motmSection}>
+          <View style={styles.motmHeader}>
+            <Trophy size={14} color={COLORS.gold} />
+            <Text style={styles.motmTitle}>Eleger "Guerreiro da Bancada"</Text>
+          </View>
+
+          <View style={styles.motmGrid}>
+            {motmList.map((player) => {
+              const hasVoted = votedPlayerId === player.id;
+              return (
+                <TouchableOpacity
+                  key={player.id}
+                  style={[styles.motmCandidateCard, hasVoted && styles.motmCandidateCardActive]}
+                  onPress={() => handleVoteMotm(player.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.motmTopLine}>
+                    <Text style={styles.motmPlayerNumber}>#{player.number}</Text>
+                    <Text style={[styles.motmPlayerName, hasVoted && styles.motmPlayerNameActive]}>
+                      {player.name}
+                    </Text>
+                  </View>
+                  <View style={styles.motmBarContainer}>
+                    <View style={[styles.motmBarFill, { width: `${player.pct}%` }]} />
+                  </View>
+                  <View style={styles.motmBottomLine}>
+                    <Text style={styles.motmVotesCount}>{player.votes} votos</Text>
+                    <Text style={styles.motmPctText}>{player.pct}%</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </View>
 
       {/* 4. FEED RÁPIDO: AVISOS DE DESLOCAÇÕES & NOTÍCIAS */}
       <View style={styles.sectionHeader}>
@@ -681,5 +828,291 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 11,
     lineHeight: 16,
+  },
+
+  // Atalhos Rápidos da Claque
+  quickShortcutsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  quickShortcutCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#121C16',
+    borderRadius: 14,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 8,
+  },
+  shortcutIconBgMusic: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shortcutIconBgStore: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 135, 78, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shortcutTextBox: {
+    flex: 1,
+  },
+  shortcutHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  shortcutTitle: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  shortcutBadgeGold: {
+    backgroundColor: 'rgba(242, 182, 0, 0.2)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  shortcutBadgeText: {
+    color: COLORS.gold,
+    fontSize: 7.5,
+    fontWeight: '800',
+  },
+  shortcutBadgeGreen: {
+    backgroundColor: 'rgba(0, 179, 104, 0.2)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  shortcutBadgeTextGreen: {
+    color: COLORS.primaryLight,
+    fontSize: 7.5,
+    fontWeight: '800',
+  },
+  shortcutDesc: {
+    color: COLORS.textMuted,
+    fontSize: 9.5,
+    marginTop: 1,
+  },
+
+  // Modo Dia de Jogo (Matchday Live Hub)
+  matchdayCard: {
+    backgroundColor: '#0A120D',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 179, 104, 0.4)',
+    padding: 14,
+    marginBottom: 14,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px rgba(0, 135, 78, 0.2)',
+      },
+    }),
+  },
+  matchdayHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  matchdayLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 10,
+  },
+  greenLivePulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.primaryLight,
+  },
+  matchdayLiveBadgeText: {
+    color: COLORS.primaryLight,
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  matchdayStatusText: {
+    color: COLORS.gold,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  liveScoreboardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#121F17',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  scoreTeamCol: {
+    flex: 1,
+  },
+  scoreTeamColRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  scoreTeamName: {
+    color: '#FFF',
+    fontSize: 12.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  scoreDigitsBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+  },
+  scoreDigitGreen: {
+    color: COLORS.primaryLight,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  scoreDigit: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  scoreSeparator: {
+    color: COLORS.textMuted,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  liveEventNotice: {
+    backgroundColor: 'rgba(242, 182, 0, 0.12)',
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.gold,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    marginBottom: 10,
+  },
+  liveEventText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  meetingPointBox: {
+    backgroundColor: '#101A14',
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: 12,
+  },
+  meetingPointHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 3,
+  },
+  meetingPointTitle: {
+    color: COLORS.gold,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  meetingPointDesc: {
+    color: COLORS.textSecondary,
+    fontSize: 10.5,
+    lineHeight: 14,
+  },
+  motmSection: {
+    backgroundColor: '#0F1913',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  motmHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  motmTitle: {
+    color: COLORS.white,
+    fontSize: 11.5,
+    fontWeight: '800',
+  },
+  motmGrid: {
+    gap: 6,
+  },
+  motmCandidateCard: {
+    backgroundColor: '#16241B',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  motmCandidateCardActive: {
+    borderColor: COLORS.primaryLight,
+    backgroundColor: '#1A3022',
+  },
+  motmTopLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  motmPlayerNumber: {
+    color: COLORS.gold,
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  motmPlayerName: {
+    color: '#FFF',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  motmPlayerNameActive: {
+    color: COLORS.primaryLight,
+  },
+  motmBarContainer: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  motmBarFill: {
+    height: '100%',
+    backgroundColor: COLORS.primaryLight,
+    borderRadius: 2,
+  },
+  motmBottomLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  motmVotesCount: {
+    color: COLORS.textMuted,
+    fontSize: 9.5,
+    fontWeight: '500',
+  },
+  motmPctText: {
+    color: COLORS.gold,
+    fontSize: 10,
+    fontWeight: '800',
   },
 });

@@ -26,7 +26,7 @@ import {
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
 
-export default function ForumScreen({ user, onBuyTicket, onScroll }) {
+export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -136,7 +136,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll }) {
 
   return (
     <View style={styles.container}>
-      {/* Barra de Filtro de Categorias */}
+      {/* Barra de Filtro de Categorias com Atalho do Cancioneiro */}
       <View style={styles.categoriesBar}>
         <ScrollView
           horizontal
@@ -144,6 +144,15 @@ export default function ForumScreen({ user, onBuyTicket, onScroll }) {
           style={styles.categoriesScrollView}
           contentContainerStyle={styles.categoriesContent}
         >
+          {/* Atalho Especial Cancioneiro */}
+          <TouchableOpacity
+            style={styles.chantsShortcutPill}
+            onPress={onOpenChants}
+            activeOpacity={0.75}
+          >
+            <Music size={13} color={COLORS.gold} />
+            <Text style={styles.chantsShortcutPillText}>Cânticos G39 🥁</Text>
+          </TouchableOpacity>
           {FORUM_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
@@ -417,6 +426,22 @@ const styles = StyleSheet.create({
   categoryPillSelected: {
     backgroundColor: 'rgba(0, 135, 78, 0.3)',
     borderColor: COLORS.primaryLight,
+  },
+  chantsShortcutPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.4)',
+  },
+  chantsShortcutPillText: {
+    color: COLORS.gold,
+    fontSize: 12,
+    fontWeight: '800',
   },
   categoryPillText: {
     color: COLORS.textSecondary,
