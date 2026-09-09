@@ -76,7 +76,7 @@ export default function DeslocacaoModal({ visible, onClose, onBuyTicket }) {
               </Text>
 
               <Text style={styles.matchDesc}>
-                Inscrições abertas na sede e pela app! Saída do Cais da Alfândega às
+                Inscrições abertas na sede e pela app! Saída do Estadio dos Arcos às
                 11h30. O pack inclui viagem ida/volta em autocarro de turismo + bilhete no
                 setor visitante por apenas 15,00 €.
               </Text>
@@ -87,7 +87,7 @@ export default function DeslocacaoModal({ visible, onClose, onBuyTicket }) {
                   <MapPin size={15} color={COLORS.primaryLight} />
                   <View style={styles.itineraryCol}>
                     <Text style={styles.itineraryLabel}>Ponto de Partida</Text>
-                    <Text style={styles.itineraryValue}>Cais da Alfândega (Vila do Conde)</Text>
+                    <Text style={styles.itineraryValue}>Estádio dos Arcos</Text>
                   </View>
                 </View>
 

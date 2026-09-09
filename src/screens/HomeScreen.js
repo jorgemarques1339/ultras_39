@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Animated,
 } from 'react-native';
 import {
   MapPin,
@@ -41,70 +42,29 @@ export default function HomeScreen({
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
-  const [isMatchdayExpanded, setIsMatchdayExpanded] = useState(true);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const sliderRef = useRef(null);
   const mainScrollRef = useRef(null);
 
-  const SLIDES = [
-    {
-      id: 'welcome',
-      icon: Sparkles,
-      iconColor: COLORS.gold,
-      tag: 'Vila do Conde no Coração',
-      badge: `Sócio #${user.memberNumber}`,
-      title: `Bem-vindo à família, ${user.name.split(' ')[0]}!`,
-      subtitle: 'Orgulho Vilacondense. A tua camisola 12 começa aqui.',
-    },
-    {
-      id: 'match',
-      icon: Flame,
-      iconColor: '#FF8A00',
-      tag: '6.ª Jornada Betclic',
-      badge: '14 Set · 20h15',
-      title: 'Rio Ave FC vs Estrela da Amadora',
-      subtitle: 'Bancada Poente nos Arcos · Concentração Porta 4 às 19h15',
-    },
-    {
-      id: 'bus',
-      icon: Bus,
-      iconColor: COLORS.primaryLight,
-      tag: 'Caravana G39 Alverca',
-      badge: 'Pack 15,00 €',
-      title: 'Rumo à 7.ª Jornada em Alverca',
-      subtitle: 'Sábado, 19 Setembro · Viagem e bilhete incluídos.',
-    },
-  ];
+  // Efeito de pulso contínuo no botão Deslocações
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Transição automática suave dos slides deslizantes
   useEffect(() => {
-    if (containerWidth <= 0) return;
-    const interval = setInterval(() => {
-      setActiveSlide((prev) => {
-        const next = (prev + 1) % SLIDES.length;
-        sliderRef.current?.scrollTo({ x: next * containerWidth, animated: true });
-        return next;
-      });
-    }, 4500);
-
-    return () => clearInterval(interval);
-  }, [containerWidth, SLIDES.length]);
-
-  const handleSliderScroll = (e) => {
-    const x = e.nativeEvent.contentOffset.x;
-    if (containerWidth > 0) {
-      const idx = Math.round(x / containerWidth);
-      if (idx !== activeSlide && idx >= 0 && idx < SLIDES.length) {
-        setActiveSlide(idx);
-      }
-    }
-  };
-
-  const goToSlide = (idx) => {
-    setActiveSlide(idx);
-    sliderRef.current?.scrollTo({ x: idx * containerWidth, animated: true });
-  };
+    const pulseLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.05,
+          duration: 750,
+          useNativeDriver: false,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1.0,
+          duration: 750,
+          useNativeDriver: false,
+        }),
+      ])
+    );
+    pulseLoop.start();
+    return () => pulseLoop.stop();
+  }, [pulseAnim]);
 
   const handleVoteMotm = (playerId) => {
     if (votedPlayerId === playerId) return;
@@ -128,75 +88,7 @@ export default function HomeScreen({
       onScroll={onScroll}
       scrollEventThrottle={16}
     >
-      {/* 1. BANNER COMPACTO DESLIZANTE DE BOAS-VINDAS & DESTAQUES */}
-      <View
-        style={styles.sliderWrapper}
-        onLayout={(e) => {
-          const w = e.nativeEvent.layout.width;
-          if (w > 0 && w !== containerWidth) {
-            setContainerWidth(w);
-          }
-        }}
-      >
-        <ScrollView
-          ref={sliderRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={handleSliderScroll}
-          scrollEventThrottle={16}
-          style={styles.sliderScrollView}
-        >
-          {SLIDES.map((slide) => {
-            const IconComp = slide.icon;
-            return (
-              <View
-                key={slide.id}
-                style={[
-                  styles.compactSlideCard,
-                  containerWidth > 0 && { width: containerWidth },
-                ]}
-              >
-                <View style={styles.slideGlow} />
-
-                <View style={styles.slideHeaderRow}>
-                  <View style={styles.slideTagPill}>
-                    <IconComp size={10} color={slide.iconColor} />
-                    <Text style={[styles.slideTagText, { color: slide.iconColor }]}>
-                      {slide.tag}
-                    </Text>
-                  </View>
-                  <Text style={styles.slideBadgeText}>{slide.badge}</Text>
-                </View>
-
-                <Text style={styles.slideTitle} numberOfLines={1}>
-                  {slide.title}
-                </Text>
-                <Text style={styles.slideSubtitle} numberOfLines={1}>
-                  {slide.subtitle}
-                </Text>
-              </View>
-            );
-          })}
-        </ScrollView>
-
-        {/* Indicadores de Paginação Deslizante */}
-        <View style={styles.dotsRow}>
-          {SLIDES.map((_, idx) => (
-            <TouchableOpacity
-              key={idx}
-              onPress={() => goToSlide(idx)}
-              style={[
-                styles.dot,
-                activeSlide === idx ? styles.dotActive : styles.dotInactive,
-              ]}
-              hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-            />
-          ))}
-        </View>
-      </View>
-
-      {/* ATALHO PRINCIPAL: CÂNTICOS G39 (CENTRALIZADO) */}
+      {/* ATALHO PRINCIPAL: CÂNTICOS G39 (TEXTO TOTALMENTE CENTRALIZADO) */}
       <View style={styles.chantsCenterWrapper}>
         <TouchableOpacity
           style={styles.chantsCenteredBtn}
@@ -206,32 +98,42 @@ export default function HomeScreen({
           <View style={styles.shortcutIconBgMusic}>
             <Music size={18} color={COLORS.gold} />
           </View>
-          <View style={styles.chantsTextBox}>
-            <View style={styles.shortcutHeaderRow}>
-              <Text style={styles.shortcutTitle}>Canticos G39</Text>
+          <View style={styles.chantsTextBoxCentered}>
+            <View style={styles.shortcutHeaderRowCentered}>
+              <Text style={styles.shortcutTitleCentered}>Canticos G39</Text>
               <View style={styles.shortcutBadgeGold}>
                 <Text style={styles.shortcutBadgeText}>ÁUDIO & BATERIA</Text>
               </View>
             </View>
-            <Text style={styles.shortcutDesc}>Letras e ritmo oficial de bancada</Text>
+            <Text style={styles.shortcutDescCentered}>Letras e ritmo oficial de bancada</Text>
           </View>
           <ChevronRight size={16} color={COLORS.textMuted} />
         </TouchableOpacity>
       </View>
 
-      {/* 2 BOTÕES POR DEBAIXO: DESLOCAÇÕES & CALENDÁRIO */}
+      {/* 2 BOTÕES POR DEBAIXO: DESLOCAÇÕES (SEMPRE A PULSAR) & CALENDÁRIO */}
       <View style={styles.subShortcutsRow}>
-        <TouchableOpacity
-          style={styles.subShortcutCard}
-          onPress={() => setDeslocacaoModalVisible(true)}
-          activeOpacity={0.8}
+        <Animated.View
+          style={[
+            styles.animatedBusWrapper,
+            { transform: [{ scale: pulseAnim }] },
+          ]}
         >
-          <View style={styles.subShortcutIconBgBus}>
-            <Bus size={15} color={COLORS.gold} />
-          </View>
-          <Text style={styles.subShortcutText}>Deslocações</Text>
-          <ChevronRight size={13} color={COLORS.textMuted} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.subShortcutCardPulsing}
+            onPress={() => setDeslocacaoModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.subShortcutIconBgBus}>
+              <Bus size={15} color={COLORS.gold} />
+            </View>
+            <View style={styles.busTextRow}>
+              <Text style={styles.subShortcutTextPulsing}>Deslocações</Text>
+              <View style={styles.livePulseDot} />
+            </View>
+            <ChevronRight size={13} color={COLORS.gold} />
+          </TouchableOpacity>
+        </Animated.View>
 
         <TouchableOpacity
           style={styles.subShortcutCard}
@@ -444,91 +346,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
-  },
-
-  // 1. Compact Sliding Highlights Banner
-  sliderWrapper: {
-    marginBottom: 14,
-    overflow: 'hidden',
-  },
-  sliderScrollView: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  compactSlideCard: {
-    backgroundColor: '#121C16',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.25)',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  slideGlow: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(0, 179, 104, 0.08)',
-  },
-  slideHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  slideTagPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  slideTagText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  slideBadgeText: {
-    color: COLORS.primaryLight,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  slideTitle: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  slideSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 8,
-  },
-  dot: {
-    height: 4,
-    borderRadius: 2,
-  },
-  dotActive: {
-    width: 16,
-    backgroundColor: COLORS.primaryLight,
-  },
-  dotInactive: {
-    width: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
 
   // Hero Match Card
@@ -854,13 +671,72 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  chantsTextBox: {
+  chantsTextBoxCentered: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  shortcutHeaderRowCentered: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  shortcutTitleCentered: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  shortcutDescCentered: {
+    color: COLORS.textMuted,
+    fontSize: 10,
+    marginTop: 1.5,
+    textAlign: 'center',
   },
   subShortcutsRow: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: 12,
+  },
+  animatedBusWrapper: {
+    flex: 1,
+  },
+  subShortcutCardPulsing: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#162419',
+    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.gold,
+    gap: 8,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 14px rgba(242, 182, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.4)',
+      },
+    }),
+  },
+  busTextRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  subShortcutTextPulsing: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.2,
+  },
+  livePulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.gold,
   },
   subShortcutCard: {
     flex: 1,
@@ -904,16 +780,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shortcutHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  shortcutTitle: {
-    color: '#FFF',
-    fontSize: 12.5,
-    fontWeight: '800',
-  },
   shortcutBadgeGold: {
     backgroundColor: 'rgba(242, 182, 0, 0.2)',
     paddingHorizontal: 5,
@@ -925,11 +791,6 @@ const styles = StyleSheet.create({
     fontSize: 7.5,
     fontWeight: '800',
     letterSpacing: 0.3,
-  },
-  shortcutDesc: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    marginTop: 1,
   },
 
   // Modo Dia de Jogo (Matchday Live Hub)
