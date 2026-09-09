@@ -34,6 +34,8 @@ export default function HomeScreen({
   onOpenChants,
   onOpenStore,
 }) {
+  // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
+  const isMatchdayActive = false;
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [isMatchdayExpanded, setIsMatchdayExpanded] = useState(true);
@@ -189,7 +191,7 @@ export default function HomeScreen({
         </View>
       </View>
 
-      {/* NOVO: ATALHOS RÁPIDOS MUNDIAIS (CANCIONEIRO & LOJA OFICIAL G39) */}
+      {/* ATALHOS RÁPIDOS: CÂNTICOS & LOJA G39 */}
       <View style={styles.quickShortcutsRow}>
         <TouchableOpacity
           style={styles.quickShortcutCard}
@@ -201,7 +203,7 @@ export default function HomeScreen({
           </View>
           <View style={styles.shortcutTextBox}>
             <View style={styles.shortcutHeaderRow}>
-              <Text style={styles.shortcutTitle}>Cancioneiro G39</Text>
+              <Text style={styles.shortcutTitle}>Canticos G39</Text>
               <View style={styles.shortcutBadgeGold}>
                 <Text style={styles.shortcutBadgeText}>ÁUDIO</Text>
               </View>
@@ -220,13 +222,7 @@ export default function HomeScreen({
             <ShoppingBag size={16} color={COLORS.primaryLight} />
           </View>
           <View style={styles.shortcutTextBox}>
-            <View style={styles.shortcutHeaderRow}>
-              <Text style={styles.shortcutTitle}>Loja Oficial</Text>
-              <View style={styles.shortcutBadgeGreen}>
-                <Text style={styles.shortcutBadgeTextGreen}>MB WAY</Text>
-              </View>
-            </View>
-            <Text style={styles.shortcutDesc}>Cachecóis e merchandising</Text>
+            <Text style={styles.shortcutTitle}>Loja G39</Text>
           </View>
           <ChevronRight size={14} color={COLORS.textMuted} />
         </TouchableOpacity>
@@ -296,81 +292,83 @@ export default function HomeScreen({
         </TouchableOpacity>
       </View>
 
-      {/* 3. NOVO: MODO DIA DE JOGO (MATCHDAY LIVE HUB) */}
-      <View style={styles.matchdayCard}>
-        <View style={styles.matchdayHeaderRow}>
-          <View style={styles.matchdayLiveBadge}>
-            <View style={styles.greenLivePulse} />
-            <Text style={styles.matchdayLiveBadgeText}>MODO DIA DE JOGO</Text>
-          </View>
-          <Text style={styles.matchdayStatusText}>{MATCHDAY_DATA.status}</Text>
-        </View>
-
-        {/* Marcador em Direto */}
-        <View style={styles.liveScoreboardRow}>
-          <View style={styles.scoreTeamCol}>
-            <Text style={styles.scoreTeamName}>RIO AVE</Text>
-          </View>
-          <View style={styles.scoreDigitsBox}>
-            <Text style={styles.scoreDigitGreen}>{MATCHDAY_DATA.homeScore}</Text>
-            <Text style={styles.scoreSeparator}>-</Text>
-            <Text style={styles.scoreDigit}>{MATCHDAY_DATA.awayScore}</Text>
-          </View>
-          <View style={styles.scoreTeamColRight}>
-            <Text style={styles.scoreTeamName}>E. AMADORA</Text>
-          </View>
-        </View>
-
-        {/* Evento Recente */}
-        <View style={styles.liveEventNotice}>
-          <Text style={styles.liveEventText}>{MATCHDAY_DATA.events[0].text}</Text>
-        </View>
-
-        {/* Ponto de Encontro da Bancada Poente */}
-        <View style={styles.meetingPointBox}>
-          <View style={styles.meetingPointHeader}>
-            <MapPin size={13} color={COLORS.gold} />
-            <Text style={styles.meetingPointTitle}>{MATCHDAY_DATA.meetingPoint.title}</Text>
-          </View>
-          <Text style={styles.meetingPointDesc}>{MATCHDAY_DATA.meetingPoint.instructions}</Text>
-        </View>
-
-        {/* Votação: Guerreiro da Bancada */}
-        <View style={styles.motmSection}>
-          <View style={styles.motmHeader}>
-            <Trophy size={14} color={COLORS.gold} />
-            <Text style={styles.motmTitle}>Eleger "Guerreiro da Bancada"</Text>
+      {/* 3. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
+      {isMatchdayActive && (
+        <View style={styles.matchdayCard}>
+          <View style={styles.matchdayHeaderRow}>
+            <View style={styles.matchdayLiveBadge}>
+              <View style={styles.greenLivePulse} />
+              <Text style={styles.matchdayLiveBadgeText}>MODO DIA DE JOGO</Text>
+            </View>
+            <Text style={styles.matchdayStatusText}>{MATCHDAY_DATA.status}</Text>
           </View>
 
-          <View style={styles.motmGrid}>
-            {motmList.map((player) => {
-              const hasVoted = votedPlayerId === player.id;
-              return (
-                <TouchableOpacity
-                  key={player.id}
-                  style={[styles.motmCandidateCard, hasVoted && styles.motmCandidateCardActive]}
-                  onPress={() => handleVoteMotm(player.id)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.motmTopLine}>
-                    <Text style={styles.motmPlayerNumber}>#{player.number}</Text>
-                    <Text style={[styles.motmPlayerName, hasVoted && styles.motmPlayerNameActive]}>
-                      {player.name}
-                    </Text>
-                  </View>
-                  <View style={styles.motmBarContainer}>
-                    <View style={[styles.motmBarFill, { width: `${player.pct}%` }]} />
-                  </View>
-                  <View style={styles.motmBottomLine}>
-                    <Text style={styles.motmVotesCount}>{player.votes} votos</Text>
-                    <Text style={styles.motmPctText}>{player.pct}%</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+          {/* Marcador em Direto */}
+          <View style={styles.liveScoreboardRow}>
+            <View style={styles.scoreTeamCol}>
+              <Text style={styles.scoreTeamName}>RIO AVE</Text>
+            </View>
+            <View style={styles.scoreDigitsBox}>
+              <Text style={styles.scoreDigitGreen}>{MATCHDAY_DATA.homeScore}</Text>
+              <Text style={styles.scoreSeparator}>-</Text>
+              <Text style={styles.scoreDigit}>{MATCHDAY_DATA.awayScore}</Text>
+            </View>
+            <View style={styles.scoreTeamColRight}>
+              <Text style={styles.scoreTeamName}>E. AMADORA</Text>
+            </View>
+          </View>
+
+          {/* Evento Recente */}
+          <View style={styles.liveEventNotice}>
+            <Text style={styles.liveEventText}>{MATCHDAY_DATA.events[0].text}</Text>
+          </View>
+
+          {/* Ponto de Encontro da Bancada Poente */}
+          <View style={styles.meetingPointBox}>
+            <View style={styles.meetingPointHeader}>
+              <MapPin size={13} color={COLORS.gold} />
+              <Text style={styles.meetingPointTitle}>{MATCHDAY_DATA.meetingPoint.title}</Text>
+            </View>
+            <Text style={styles.meetingPointDesc}>{MATCHDAY_DATA.meetingPoint.instructions}</Text>
+          </View>
+
+          {/* Votação: Guerreiro da Bancada */}
+          <View style={styles.motmSection}>
+            <View style={styles.motmHeader}>
+              <Trophy size={14} color={COLORS.gold} />
+              <Text style={styles.motmTitle}>Eleger "Guerreiro da Bancada"</Text>
+            </View>
+
+            <View style={styles.motmGrid}>
+              {motmList.map((player) => {
+                const hasVoted = votedPlayerId === player.id;
+                return (
+                  <TouchableOpacity
+                    key={player.id}
+                    style={[styles.motmCandidateCard, hasVoted && styles.motmCandidateCardActive]}
+                    onPress={() => handleVoteMotm(player.id)}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.motmTopLine}>
+                      <Text style={styles.motmPlayerNumber}>#{player.number}</Text>
+                      <Text style={[styles.motmPlayerName, hasVoted && styles.motmPlayerNameActive]}>
+                        {player.name}
+                      </Text>
+                    </View>
+                    <View style={styles.motmBarContainer}>
+                      <View style={[styles.motmBarFill, { width: `${player.pct}%` }]} />
+                    </View>
+                    <View style={styles.motmBottomLine}>
+                      <Text style={styles.motmVotesCount}>{player.votes} votos</Text>
+                      <Text style={styles.motmPctText}>{player.pct}%</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
         </View>
-      </View>
+      )}
 
       {/* 4. FEED RÁPIDO: AVISOS DE DESLOCAÇÕES & NOTÍCIAS */}
       <View style={styles.sectionHeader}>
