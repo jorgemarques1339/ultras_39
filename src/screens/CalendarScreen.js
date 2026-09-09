@@ -20,7 +20,7 @@ import { COLORS } from '../theme/colors';
 import { CALENDAR_MATCHES, PAST_RESULTS } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-export default function CalendarScreen({ onBuyTicket }) {
+export default function CalendarScreen({ onBuyTicket, onScroll }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
 
   return (
@@ -69,6 +69,8 @@ export default function CalendarScreen({ onBuyTicket }) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {/* ABA 1: PRÓXIMOS JOGOS COM SÍMBOLOS */}
         {activeTab === 'upcoming' && (

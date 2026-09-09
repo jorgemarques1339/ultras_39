@@ -25,6 +25,7 @@ export default function ProfileScreen({
   transactions,
   onPayQuota,
   onViewReceipt,
+  onScroll,
 }) {
   const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
 
@@ -49,6 +50,8 @@ export default function ProfileScreen({
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
     >
       {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (SOMENTE DADOS) */}
       <View style={styles.cardSection}>

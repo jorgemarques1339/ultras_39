@@ -20,7 +20,7 @@ import { COLORS } from '../theme/colors';
 import { NEXT_MATCH } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
+export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll }) {
   // Contagem decrescente para o jogo real (14 Setembro 2026 às 20:15)
   const targetDate = new Date('2026-09-14T20:15:00').getTime();
 
@@ -112,6 +112,8 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
     >
       {/* 1. BANNER COMPACTO DESLIZANTE DE BOAS-VINDAS & DESTAQUES */}
       <View

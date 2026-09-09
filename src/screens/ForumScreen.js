@@ -27,7 +27,7 @@ import {
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
 
-export default function ForumScreen({ user, onBuyTicket }) {
+export default function ForumScreen({ user, onBuyTicket, onScroll }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -176,6 +176,8 @@ export default function ForumScreen({ user, onBuyTicket }) {
       <ScrollView
         contentContainerStyle={styles.feedContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {/* Banner Informativo do Fórum */}
         <View style={styles.forumHeaderBanner}>

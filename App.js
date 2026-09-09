@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -31,6 +31,32 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [user, setUser] = useState(INITIAL_USER);
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+
+  // Visibilidade do Header ao fazer Scroll
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  const handleScroll = (event) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const diff = currentY - lastScrollY.current;
+
+    if (Math.abs(diff) > 8) {
+      if (diff > 0 && currentY > 30) {
+        // Deslizar para baixo -> esconder Header
+        setIsHeaderVisible(false);
+      } else if (diff < 0) {
+        // Deslizar para cima -> mostrar Header
+        setIsHeaderVisible(true);
+      }
+    }
+    lastScrollY.current = currentY;
+  };
+
+  const handleSelectTab = (tab) => {
+    setIsHeaderVisible(true);
+    lastScrollY.current = 0;
+    setActiveTab(tab);
+  };
 
   // Modais
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
@@ -72,7 +98,7 @@ export default function App() {
     }
   };
 
-  // Abrir comprovativo oficial
+  // Ver recibo/comprovativo oficial
   const handleViewReceipt = (tx) => {
     setSelectedReceipt(tx);
     setReceiptModalVisible(true);
@@ -83,25 +109,36 @@ export default function App() {
       <StatusBar barStyle="light-content" backgroundColor="#0D1310" />
 
       <View style={[styles.appContainer, { maxWidth: containerMaxWidth }]}>
-        {/* Cabeçalho Superior Fixo */}
-        <Header onOpenNotifications={() => setNotificationsVisible(true)} />
+        {/* Cabeçalho Superior Retrátil com Animação Fluida */}
+        <Header
+          onOpenNotifications={() => setNotificationsVisible(true)}
+          visible={isHeaderVisible}
+        />
 
-        {/* Ecrãs Conforme a Aba Ativa */}
+        {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll */}
         <View style={styles.screenArea}>
           {activeTab === 'home' && (
             <HomeScreen
               user={user}
               onBuyTicket={handleBuyTicket}
-              onNavigateTab={setActiveTab}
+              onNavigateTab={handleSelectTab}
+              onScroll={handleScroll}
             />
           )}
 
           {activeTab === 'forum' && (
-            <ForumScreen user={user} onBuyTicket={handleBuyTicket} />
+            <ForumScreen
+              user={user}
+              onBuyTicket={handleBuyTicket}
+              onScroll={handleScroll}
+            />
           )}
 
           {activeTab === 'calendar' && (
-            <CalendarScreen onBuyTicket={handleBuyTicket} />
+            <CalendarScreen
+              onBuyTicket={handleBuyTicket}
+              onScroll={handleScroll}
+            />
           )}
 
           {activeTab === 'profile' && (
@@ -110,6 +147,7 @@ export default function App() {
               transactions={transactions}
               onPayQuota={handlePayQuota}
               onViewReceipt={handleViewReceipt}
+              onScroll={handleScroll}
             />
           )}
         </View>
@@ -117,7 +155,7 @@ export default function App() {
         {/* Barra de Navegação Flutuante Liquid Glass UI */}
         <LiquidGlassNavBar
           activeTab={activeTab}
-          onSelectTab={(tab) => setActiveTab(tab)}
+          onSelectTab={handleSelectTab}
         />
 
         {/* Módulo Especial: Modal de Checkout MB WAY */}
