@@ -186,8 +186,8 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
         {/* Header do Confronto */}
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
-            <Text style={styles.compName}>{NEXT_MATCH.competition}</Text>
-            <Text style={styles.compRound}>{NEXT_MATCH.round}</Text>
+            <Text style={styles.compName}>LIGA PORTUGAL BETCLIC</Text>
+            <Text style={styles.compRound}>6.ª Jornada</Text>
           </View>
         </View>
 
@@ -274,16 +274,11 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
           activeOpacity={0.85}
         >
           <View style={styles.heroBuyContent}>
-            <View style={styles.ticketIconBox}>
-              <Ticket size={18} color="#FFF" />
-            </View>
-            <View style={styles.btnTextBox}>
-              <Text style={styles.heroBuyTitle}>
-                Comprar Bilhete
-              </Text>
-              <Text style={styles.heroBuySub}>
-                Preço de Sócio: {NEXT_MATCH.ticketPriceMember.toFixed(2)} € (Checkout MB WAY)
-              </Text>
+            <View style={styles.heroBuyLeft}>
+              <View style={styles.ticketIconBox}>
+                <Ticket size={16} color="#FFF" />
+              </View>
+              <Text style={styles.heroBuyTitle}>Comprar Bilhete</Text>
             </View>
             <ChevronRight size={18} color="#FFF" />
           </View>
@@ -451,11 +446,11 @@ const styles = StyleSheet.create({
   // Hero Match Card
   heroCard: {
     backgroundColor: '#14201A',
-    borderRadius: 24,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 18,
-    marginBottom: 20,
+    padding: 15,
+    marginBottom: 16,
     ...Platform.select({
       web: {
         boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(0, 135, 78, 0.12)',
@@ -463,24 +458,28 @@ const styles = StyleSheet.create({
     }),
   },
   heroTopBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    marginBottom: 14,
   },
   compInfo: {
+    alignItems: 'center',
     justifyContent: 'center',
   },
   compName: {
     color: COLORS.white,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
+    textAlign: 'center',
   },
   compRound: {
     color: COLORS.textSecondary,
     fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 2,
   },
   liveMatchBadge: {
     flexDirection: 'row',
@@ -640,14 +639,14 @@ const styles = StyleSheet.create({
   // Botão Bilhete MB WAY
   heroBuyBtn: {
     backgroundColor: '#00874E',
-    borderRadius: 16,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingVertical: 10,
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: '#00B368',
     ...Platform.select({
       web: {
-        boxShadow: '0 6px 18px rgba(0, 135, 78, 0.4)',
+        boxShadow: '0 4px 14px rgba(0, 135, 78, 0.35)',
       },
     }),
   },
@@ -656,27 +655,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  heroBuyLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   ticketIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
-  },
-  btnTextBox: {
-    flex: 1,
   },
   heroBuyTitle: {
     color: '#FFF',
     fontSize: 14,
     fontWeight: '800',
-  },
-  heroBuySub: {
-    color: '#D2F5E2',
-    fontSize: 10,
-    marginTop: 2,
+    letterSpacing: 0.2,
   },
 
   // Headers de Secção
