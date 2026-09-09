@@ -21,6 +21,7 @@ import {
   Award,
   CheckCircle2,
   Trophy,
+  Calendar,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
@@ -42,6 +43,7 @@ export default function HomeScreen({
   const [activeSlide, setActiveSlide] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const sliderRef = useRef(null);
+  const mainScrollRef = useRef(null);
 
   const SLIDES = [
     {
@@ -117,6 +119,7 @@ export default function HomeScreen({
 
   return (
     <ScrollView
+      ref={mainScrollRef}
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
@@ -191,40 +194,57 @@ export default function HomeScreen({
         </View>
       </View>
 
-      {/* ATALHOS RÁPIDOS: CÂNTICOS & LOJA G39 */}
-      <View style={styles.quickShortcutsRow}>
+      {/* ATALHO PRINCIPAL: CÂNTICOS G39 (CENTRALIZADO) */}
+      <View style={styles.chantsCenterWrapper}>
         <TouchableOpacity
-          style={styles.quickShortcutCard}
+          style={styles.chantsCenteredBtn}
           onPress={onOpenChants}
           activeOpacity={0.8}
         >
           <View style={styles.shortcutIconBgMusic}>
-            <Music size={16} color={COLORS.gold} />
+            <Music size={18} color={COLORS.gold} />
           </View>
-          <View style={styles.shortcutTextBox}>
+          <View style={styles.chantsTextBox}>
             <View style={styles.shortcutHeaderRow}>
               <Text style={styles.shortcutTitle}>Canticos G39</Text>
               <View style={styles.shortcutBadgeGold}>
-                <Text style={styles.shortcutBadgeText}>ÁUDIO</Text>
+                <Text style={styles.shortcutBadgeText}>ÁUDIO & BATERIA</Text>
               </View>
             </View>
-            <Text style={styles.shortcutDesc}>Letras e bateria de estádio</Text>
+            <Text style={styles.shortcutDesc}>Letras e ritmo oficial de bancada</Text>
           </View>
-          <ChevronRight size={14} color={COLORS.textMuted} />
+          <ChevronRight size={16} color={COLORS.textMuted} />
+        </TouchableOpacity>
+      </View>
+
+      {/* 2 BOTÕES POR DEBAIXO: DESLOCAÇÕES & CALENDÁRIO */}
+      <View style={styles.subShortcutsRow}>
+        <TouchableOpacity
+          style={styles.subShortcutCard}
+          onPress={() => {
+            if (mainScrollRef.current) {
+              mainScrollRef.current.scrollTo({ y: 360, animated: true });
+            }
+          }}
+          activeOpacity={0.8}
+        >
+          <View style={styles.subShortcutIconBgBus}>
+            <Bus size={15} color={COLORS.gold} />
+          </View>
+          <Text style={styles.subShortcutText}>Deslocações</Text>
+          <ChevronRight size={13} color={COLORS.textMuted} />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.quickShortcutCard}
-          onPress={onOpenStore}
+          style={styles.subShortcutCard}
+          onPress={() => onNavigateTab('calendar')}
           activeOpacity={0.8}
         >
-          <View style={styles.shortcutIconBgStore}>
-            <ShoppingBag size={16} color={COLORS.primaryLight} />
+          <View style={styles.subShortcutIconBgCalendar}>
+            <Calendar size={15} color={COLORS.primaryLight} />
           </View>
-          <View style={styles.shortcutTextBox}>
-            <Text style={styles.shortcutTitle}>Loja G39</Text>
-          </View>
-          <ChevronRight size={14} color={COLORS.textMuted} />
+          <Text style={styles.subShortcutText}>Calendário</Text>
+          <ChevronRight size={13} color={COLORS.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -829,76 +849,102 @@ const styles = StyleSheet.create({
   },
 
   // Atalhos Rápidos da Claque
-  quickShortcutsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+  chantsCenterWrapper: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
-  quickShortcutCard: {
-    flex: 1,
+  chantsCenteredBtn: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#121C16',
     borderRadius: 14,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.25)',
+    gap: 10,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+      },
+    }),
+  },
+  chantsTextBox: {
+    flex: 1,
+  },
+  subShortcutsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  subShortcutCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111A14',
+    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 8,
   },
+  subShortcutIconBgBus: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subShortcutIconBgCalendar: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 179, 104, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subShortcutText: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
   shortcutIconBgMusic: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     borderRadius: 10,
     backgroundColor: 'rgba(242, 182, 0, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shortcutIconBgStore: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 135, 78, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shortcutTextBox: {
-    flex: 1,
-  },
   shortcutHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   shortcutTitle: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '800',
   },
   shortcutBadgeGold: {
     backgroundColor: 'rgba(242, 182, 0, 0.2)',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
     borderRadius: 4,
   },
   shortcutBadgeText: {
     color: COLORS.gold,
     fontSize: 7.5,
     fontWeight: '800',
-  },
-  shortcutBadgeGreen: {
-    backgroundColor: 'rgba(0, 179, 104, 0.2)',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  shortcutBadgeTextGreen: {
-    color: COLORS.primaryLight,
-    fontSize: 7.5,
-    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   shortcutDesc: {
     color: COLORS.textMuted,
-    fontSize: 9.5,
+    fontSize: 10,
     marginTop: 1,
   },
 

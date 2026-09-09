@@ -15,16 +15,31 @@ import {
   ChevronRight,
   Trophy,
   Navigation,
+  ArrowLeft,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { CALENDAR_MATCHES, PAST_RESULTS } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-export default function CalendarScreen({ onBuyTicket, onScroll }) {
+export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
 
   return (
     <View style={styles.container}>
+      {/* Botão de Retorno (se acedido via atalho da Home) */}
+      {onBack && (
+        <View style={styles.backNavRow}>
+          <TouchableOpacity
+            style={styles.backNavBtn}
+            onPress={onBack}
+            activeOpacity={0.7}
+          >
+            <ArrowLeft size={16} color={COLORS.primaryLight} />
+            <Text style={styles.backNavText}>Voltar ao Início</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Tabs Superiores */}
       <View style={styles.topTabsBar}>
         <TouchableOpacity
@@ -286,6 +301,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0D1310',
     overflow: 'hidden',
+  },
+  backNavRow: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+    backgroundColor: '#0D1310',
+  },
+  backNavBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 135, 78, 0.15)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+  },
+  backNavText: {
+    color: COLORS.primaryLight,
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   topTabsBar: {
     flexDirection: 'row',

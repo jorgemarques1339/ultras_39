@@ -19,6 +19,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ForumScreen from './src/screens/ForumScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import StoreScreen from './src/screens/StoreScreen';
 import {
   INITIAL_USER,
   INITIAL_TRANSACTIONS,
@@ -130,7 +131,7 @@ export default function App() {
               onNavigateTab={handleSelectTab}
               onScroll={handleScroll}
               onOpenChants={() => setChantsModalVisible(true)}
-              onOpenStore={() => setStoreModalVisible(true)}
+              onOpenStore={() => handleSelectTab('store')}
             />
           )}
 
@@ -143,10 +144,19 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'store' && (
+            <StoreScreen
+              user={user}
+              onCheckoutItem={handleBuyTicket}
+              onScroll={handleScroll}
+            />
+          )}
+
           {activeTab === 'calendar' && (
             <CalendarScreen
               onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
+              onBack={() => handleSelectTab('home')}
             />
           )}
 

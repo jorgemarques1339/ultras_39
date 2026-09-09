@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
-import { Home, MessageSquare, Calendar, User } from 'lucide-react-native';
+import { Home, MessageSquare, ShoppingBag, User } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'Início', icon: Home },
   { id: 'forum', label: 'Fórum', icon: MessageSquare, badge: '2' },
-  { id: 'calendar', label: 'Calendário', icon: Calendar },
+  { id: 'store', label: 'Loja', icon: ShoppingBag },
   { id: 'profile', label: 'Perfil', icon: User },
 ];
 
