@@ -16,7 +16,7 @@ export const NEXT_MATCH = {
   id: 'match-real-j06',
   competition: 'Liga Portugal Betclic',
   round: '6.ª Jornada',
-  dateFormatted: 'Segunda-feira, 14 Setembro · 20:15',
+  dateFormatted: '14 Setembro · 20:15',
   stadium: 'Estádio dos Arcos',
   city: 'Vila do Conde',
   weather: '19°C · Brisa Marítima 12km/h',

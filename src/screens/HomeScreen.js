@@ -195,7 +195,7 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
         <View style={styles.matchTeamsRow}>
           {/* Rio Ave FC */}
           <View style={styles.teamColumn}>
-            <ClubBadge name={NEXT_MATCH.homeTeam.name} size="lg" style={{ marginBottom: 8 }} />
+            <ClubBadge name={NEXT_MATCH.homeTeam.name} size="md" style={{ marginBottom: 4 }} />
             <Text style={styles.teamName}>{NEXT_MATCH.homeTeam.name}</Text>
             <Text style={styles.teamRole}>Anfitrião</Text>
           </View>
@@ -204,7 +204,7 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
           <View style={styles.vsColumn}>
             <Text style={styles.vsText}>VS</Text>
             <View style={styles.stadiumTag}>
-              <MapPin size={11} color={COLORS.gold} />
+              <MapPin size={10} color={COLORS.gold} />
               <Text style={styles.stadiumTagText}>{NEXT_MATCH.stadium}</Text>
             </View>
             <Text style={styles.matchTime}>{NEXT_MATCH.dateFormatted}</Text>
@@ -212,7 +212,7 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab }) {
 
           {/* Adversário Real */}
           <View style={styles.teamColumn}>
-            <ClubBadge name={NEXT_MATCH.awayTeam.name} size="lg" style={{ marginBottom: 8 }} />
+            <ClubBadge name={NEXT_MATCH.awayTeam.name} size="md" style={{ marginBottom: 4 }} />
             <Text style={styles.teamName}>{NEXT_MATCH.awayTeam.name}</Text>
             <Text style={styles.teamRole}>Visitante</Text>
           </View>
@@ -446,21 +446,22 @@ const styles = StyleSheet.create({
   // Hero Match Card
   heroCard: {
     backgroundColor: '#14201A',
-    borderRadius: 22,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 15,
-    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginBottom: 12,
     ...Platform.select({
       web: {
-        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(0, 135, 78, 0.12)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 135, 78, 0.1)',
       },
     }),
   },
   heroTopBar: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 8,
   },
   compInfo: {
     alignItems: 'center',
@@ -468,7 +469,7 @@ const styles = StyleSheet.create({
   },
   compName: {
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
@@ -476,10 +477,10 @@ const styles = StyleSheet.create({
   },
   compRound: {
     color: COLORS.textSecondary,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 1,
   },
   liveMatchBadge: {
     flexDirection: 'row',
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   teamColumn: {
     flex: 1,
@@ -542,44 +543,45 @@ const styles = StyleSheet.create({
   },
   teamName: {
     color: COLORS.white,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
-    maxWidth: 110,
+    maxWidth: 100,
   },
   teamRole: {
     color: COLORS.textMuted,
-    fontSize: 10,
-    marginTop: 2,
+    fontSize: 9,
+    marginTop: 1,
   },
   vsColumn: {
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
   },
   vsText: {
     color: COLORS.gold,
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '900',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   stadiumTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     backgroundColor: '#1A2922',
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   stadiumTagText: {
     color: COLORS.white,
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '600',
   },
   matchTime: {
     color: COLORS.textSecondary,
     fontSize: 10,
+    fontWeight: '600',
     textAlign: 'center',
   },
 
@@ -589,59 +591,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#0D1410',
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    marginBottom: 12,
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     gap: 4,
   },
   countdownBlock: {
     alignItems: 'center',
-    minWidth: 36,
+    minWidth: 32,
   },
   countdownNumber: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '900',
     fontVariant: ['tabular-nums'],
   },
   countdownLabel: {
     color: COLORS.textMuted,
-    fontSize: 9,
+    fontSize: 8,
     textTransform: 'uppercase',
     marginTop: 1,
   },
   countdownColon: {
     color: COLORS.primaryLight,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '800',
-    marginHorizontal: 2,
-    marginBottom: 10,
+    marginHorizontal: 1,
+    marginBottom: 8,
   },
   weatherCapacityRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 4,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   weatherInfoText: {
     color: COLORS.textSecondary,
-    fontSize: 11,
+    fontSize: 10,
   },
   capacityText: {
     color: COLORS.gold,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
 
   // Botão Bilhete MB WAY
   heroBuyBtn: {
     backgroundColor: '#00874E',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: '#00B368',
     ...Platform.select({
@@ -658,19 +660,19 @@ const styles = StyleSheet.create({
   heroBuyLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   ticketIconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroBuyTitle: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
