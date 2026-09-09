@@ -21,21 +21,6 @@ import { NEXT_MATCH } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
 export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll }) {
-  // Contagem decrescente para o jogo real (14 Setembro 2026 às 20:15)
-  const targetDate = new Date('2026-09-14T20:15:00').getTime();
-
-  const calculateTimeLeft = () => {
-    const now = new Date().getTime();
-    const diff = Math.max(0, targetDate - now);
-    return {
-      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-      hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-      minutes: Math.floor((diff / 1000 / 60) % 60),
-      seconds: Math.floor((diff / 1000) % 60),
-    };
-  };
-
-  const [countdown, setCountdown] = useState(calculateTimeLeft());
   const [activeSlide, setActiveSlide] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
   const sliderRef = useRef(null);
@@ -69,14 +54,6 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll 
       subtitle: 'Sábado, 19 Setembro · Viagem e bilhete incluídos.',
     },
   ];
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown(calculateTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   // Transição automática suave dos slides deslizantes
   useEffect(() => {
@@ -220,46 +197,6 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll 
           </View>
         </View>
 
-        {/* Contagem Decrescente em Tempo Real */}
-        <View style={styles.countdownRow}>
-          <View style={styles.countdownBlock}>
-            <Text style={styles.countdownNumber}>
-              {String(countdown.days).padStart(2, '0')}
-            </Text>
-            <Text style={styles.countdownLabel}>Dias</Text>
-          </View>
-          <Text style={styles.countdownColon}>:</Text>
-
-          <View style={styles.countdownBlock}>
-            <Text style={styles.countdownNumber}>
-              {String(countdown.hours).padStart(2, '0')}
-            </Text>
-            <Text style={styles.countdownLabel}>Horas</Text>
-          </View>
-          <Text style={styles.countdownColon}>:</Text>
-
-          <View style={styles.countdownBlock}>
-            <Text style={styles.countdownNumber}>
-              {String(countdown.minutes).padStart(2, '0')}
-            </Text>
-            <Text style={styles.countdownLabel}>Min</Text>
-          </View>
-          <Text style={styles.countdownColon}>:</Text>
-
-          <View style={styles.countdownBlock}>
-            <Text style={styles.countdownNumber}>
-              {String(countdown.seconds).padStart(2, '0')}
-            </Text>
-            <Text style={styles.countdownLabel}>Seg</Text>
-          </View>
-        </View>
-
-        {/* Info adicional: clima e vagas */}
-        <View style={styles.weatherCapacityRow}>
-          <Text style={styles.weatherInfoText}>🌤️ {NEXT_MATCH.weather}</Text>
-          <Text style={styles.capacityText}>🔥 Lotação Bancada: 84%</Text>
-        </View>
-
         {/* CTA BILHÉTICA INTEGRADO: COMPRA RÁPIDA MB WAY */}
         <TouchableOpacity
           style={styles.heroBuyBtn}
@@ -278,11 +215,11 @@ export default function HomeScreen({ user, onBuyTicket, onNavigateTab, onScroll 
           <View style={styles.heroBuyContent}>
             <View style={styles.heroBuyLeft}>
               <View style={styles.ticketIconBox}>
-                <Ticket size={16} color="#FFF" />
+                <Ticket size={13} color="#FFF" />
               </View>
               <Text style={styles.heroBuyTitle}>Comprar Bilhete</Text>
             </View>
-            <ChevronRight size={18} color="#FFF" />
+            <ChevronRight size={14} color="#FFF" />
           </View>
         </TouchableOpacity>
       </View>
@@ -512,7 +449,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   teamColumn: {
     flex: 1,
@@ -587,70 +524,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Countdown
-  countdownRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0D1410',
-    borderRadius: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 6,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    gap: 4,
-  },
-  countdownBlock: {
-    alignItems: 'center',
-    minWidth: 32,
-  },
-  countdownNumber: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '900',
-    fontVariant: ['tabular-nums'],
-  },
-  countdownLabel: {
-    color: COLORS.textMuted,
-    fontSize: 8,
-    textTransform: 'uppercase',
-    marginTop: 1,
-  },
-  countdownColon: {
-    color: COLORS.primaryLight,
-    fontSize: 13,
-    fontWeight: '800',
-    marginHorizontal: 1,
-    marginBottom: 8,
-  },
-  weatherCapacityRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
-    marginBottom: 10,
-  },
-  weatherInfoText: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-  },
-  capacityText: {
-    color: COLORS.gold,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-
-  // Botão Bilhete MB WAY
+  // Botão Bilhete MB WAY Compacto
   heroBuyBtn: {
     backgroundColor: '#00874E',
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderRadius: 8,
+    paddingVertical: 5.5,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: '#00B368',
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 14px rgba(0, 135, 78, 0.35)',
+        boxShadow: '0 3px 10px rgba(0, 135, 78, 0.3)',
       },
     }),
   },
@@ -662,20 +546,20 @@ const styles = StyleSheet.create({
   heroBuyLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   ticketIconBox: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroBuyTitle: {
     color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 11.5,
+    fontWeight: '700',
     letterSpacing: 0.2,
   },
 
