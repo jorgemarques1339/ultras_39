@@ -8,6 +8,7 @@ import {
   Platform,
   Animated,
 } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import {
   MapPin,
   Ticket,
@@ -22,12 +23,38 @@ import {
   Award,
   CheckCircle2,
   Trophy,
-  Calendar,
+  Table,
+  IdCard,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 import DeslocacaoModal from '../components/DeslocacaoModal';
+import TabelaModal from '../components/TabelaModal';
+import SejaSocioModal from '../components/SejaSocioModal';
+
+function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Circle cx="12" cy="12" r="10" />
+      <Path d="M12 7l3.2 2.3-1.2 3.8H10l-1.2-3.8z" fill={color} fillOpacity="0.3" />
+      <Path d="M12 7V2" />
+      <Path d="M15.2 9.3l4.3-1.4" />
+      <Path d="M14 13.1l2.8 3.5" />
+      <Path d="M10 13.1l-2.8 3.5" />
+      <Path d="M8.8 9.3l-4.3-1.4" />
+    </Svg>
+  );
+}
 
 export default function HomeScreen({
   user,
@@ -41,6 +68,8 @@ export default function HomeScreen({
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
+  const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
+  const [socioModalVisible, setSocioModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const mainScrollRef = useRef(null);
@@ -89,66 +118,7 @@ export default function HomeScreen({
       onScroll={onScroll}
       scrollEventThrottle={16}
     >
-      {/* ATALHO PRINCIPAL: CÂNTICOS G39 COM GRANDE DESTAQUE */}
-      <View style={styles.chantsCenterWrapper}>
-        <TouchableOpacity
-          style={[styles.chantsCenteredBtn, !isDark && styles.chantsCenteredBtnLight]}
-          onPress={onOpenChants}
-          activeOpacity={0.85}
-        >
-          <View style={styles.shortcutIconBgMusic}>
-            <Drum size={20} color="#FFF" />
-          </View>
-          <View style={styles.chantsTextBoxCentered}>
-            <View style={styles.shortcutHeaderRowCentered}>
-              <Text style={[styles.shortcutTitleCentered, !isDark && styles.shortcutTitleCenteredLight]}>Cânticos G39</Text>
-            </View>
-            <Text style={[styles.shortcutDescCentered, !isDark && styles.shortcutDescCenteredLight]}>Letra e Ritmos</Text>
-          </View>
-          <View style={styles.chantsArrowCircle}>
-            <ChevronRight size={16} color="#FFF" />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* 2 BOTÕES POR DEBAIXO: AUTOCARRO (SEMPRE A PULSAR) & CALENDÁRIO */}
-      <View style={styles.subShortcutsRow}>
-        <Animated.View
-          style={[
-            styles.animatedBusWrapper,
-            { transform: [{ scale: pulseAnim }] },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.subShortcutCardPulsing, !isDark && styles.subShortcutCardPulsingLight]}
-            onPress={() => setDeslocacaoModalVisible(true)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.subShortcutIconBgBus}>
-              <Bus size={15} color={COLORS.primaryLight} />
-            </View>
-            <View style={styles.busTextRow}>
-              <Text style={[styles.subShortcutTextPulsing, !isDark && styles.subShortcutTextPulsingLight]}>Autocarro</Text>
-              <View style={styles.livePulseDot} />
-            </View>
-            <ChevronRight size={13} color={COLORS.primaryLight} />
-          </TouchableOpacity>
-        </Animated.View>
-
-        <TouchableOpacity
-          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => onNavigateTab('calendar')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.subShortcutIconBgCalendar}>
-            <Calendar size={15} color={COLORS.primaryLight} />
-          </View>
-          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Calendário</Text>
-          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-        </TouchableOpacity>
-      </View>
-
-      {/* 2. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
+      {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <View style={[styles.heroCard, !isDark && styles.heroCardLight]}>
         {/* Header do Confronto */}
         <View style={styles.heroTopBar}>
@@ -212,7 +182,7 @@ export default function HomeScreen({
         </TouchableOpacity>
       </View>
 
-      {/* 3. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
+      {/* 2. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
       {isMatchdayActive && (
         <View style={styles.matchdayCard}>
           <View style={styles.matchdayHeaderRow}>
@@ -290,38 +260,98 @@ export default function HomeScreen({
         </View>
       )}
 
-      {/* 4. FEED: NOTÍCIAS & COMUNICADOS */}
+      {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 */}
+      <View style={styles.chantsCenterWrapper}>
+        <TouchableOpacity
+          style={[styles.chantsCenteredBtn, !isDark && styles.chantsCenteredBtnLight]}
+          onPress={onOpenChants}
+          activeOpacity={0.85}
+        >
+          <View style={styles.shortcutIconBgMusic}>
+            <Drum size={20} color="#FFF" />
+          </View>
+          <View style={styles.chantsTextBoxCentered}>
+            <View style={styles.shortcutHeaderRowCentered}>
+              <Text style={[styles.shortcutTitleCentered, !isDark && styles.shortcutTitleCenteredLight]}>Cânticos G39</Text>
+            </View>
+            <Text style={[styles.shortcutDescCentered, !isDark && styles.shortcutDescCenteredLight]}>Letra e Ritmos</Text>
+          </View>
+          <View style={styles.chantsArrowCircle}>
+            <ChevronRight size={16} color="#FFF" />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* 3. SECÇÃO: ACESSOS RÁPIDOS */}
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleWithIcon}>
-          <Radio size={18} color={COLORS.primaryLight} />
-          <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>Notícias</Text>
+          <Sparkles size={18} color={COLORS.primaryLight} />
+          <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>Acessos Rápidos</Text>
         </View>
       </View>
 
-      {/* Comunicado 1: Concentração e Apoio no Jogo */}
-      <View style={[styles.communiqueCard, !isDark && styles.communiqueCardLight]}>
-        <View style={styles.communiqueIcon}>
-          <Users size={20} color={COLORS.primaryLight} />
-        </View>
-        <View style={styles.communiqueContent}>
-          <Text style={[styles.communiqueTitle, !isDark && styles.communiqueTitleLight]}>Apoio Máximo: Rio Ave FC vs Estrela da Amadora</Text>
-          <Text style={[styles.communiqueDesc, !isDark && styles.communiqueDescLight]}>
-            Segunda-feira, 14 de Setembro às 20h15 nos Arcos. Concentração do Grupo 39 na Porta 4 da Bancada Poente a partir das 19h15 para recepção ao autocarro da equipa.
-          </Text>
-        </View>
+      {/* BOTÕES: AUTOCARRO (SEMPRE A PULSAR) & CALENDÁRIO */}
+      <View style={styles.subShortcutsRow}>
+        <Animated.View
+          style={[
+            styles.animatedBusWrapper,
+            { transform: [{ scale: pulseAnim }] },
+          ]}
+        >
+          <TouchableOpacity
+            style={[styles.subShortcutCardPulsing, !isDark && styles.subShortcutCardPulsingLight]}
+            onPress={() => setDeslocacaoModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.subShortcutIconBgBus}>
+              <Bus size={15} color={COLORS.primaryLight} />
+            </View>
+            <View style={styles.busTextRow}>
+              <Text style={[styles.subShortcutTextPulsing, !isDark && styles.subShortcutTextPulsingLight]}>Deslocação</Text>
+              <View style={styles.livePulseDot} />
+            </View>
+            <ChevronRight size={13} color={COLORS.primaryLight} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        <TouchableOpacity
+          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+          onPress={() => onNavigateTab('calendar')}
+          activeOpacity={0.8}
+        >
+          <View style={styles.subShortcutIconBgCalendar}>
+            <SoccerBallIcon size={16} color={COLORS.primaryLight} />
+          </View>
+          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Jogos</Text>
+          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+        </TouchableOpacity>
       </View>
 
-      {/* Comunicado 2: Quotas e Informações */}
-      <View style={[styles.communiqueCard, !isDark && styles.communiqueCardLight]}>
-        <View style={styles.communiqueIcon}>
-          <Award size={20} color={COLORS.primaryLight} />
-        </View>
-        <View style={styles.communiqueContent}>
-          <Text style={[styles.communiqueTitle, !isDark && styles.communiqueTitleLight]}>Campanha de Quotas Época 2026/2027</Text>
-          <Text style={[styles.communiqueDesc, !isDark && styles.communiqueDescLight]}>
-            Garante o teu selo de associado ativo e prioridade máxima na bilhética oficial nos Arcos. Regularização disponível na aba de Perfil com liquidação direta via MB WAY.
-          </Text>
-        </View>
+      {/* 2 BOTÕES POR DEBAIXO: TABELA & SEJA SÓCIO */}
+      <View style={styles.subShortcutsRow}>
+        <TouchableOpacity
+          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+          onPress={() => setTabelaModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.subShortcutIconBgCalendar}>
+            <Table size={16} color={COLORS.primaryLight} />
+          </View>
+          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Tabela</Text>
+          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+          onPress={() => setSocioModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.subShortcutIconBgCalendar}>
+            <IdCard size={16} color={COLORS.primaryLight} />
+          </View>
+          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Seja Sócio</Text>
+          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+        </TouchableOpacity>
       </View>
 
       {/* Modal Dedicado da Deslocação Oficial */}
@@ -329,6 +359,21 @@ export default function HomeScreen({
         visible={deslocacaoModalVisible}
         onClose={() => setDeslocacaoModalVisible(false)}
         onBuyTicket={onBuyTicket}
+      />
+
+      {/* Modal de Tabela Classificativa */}
+      <TabelaModal
+        visible={tabelaModalVisible}
+        onClose={() => setTabelaModalVisible(false)}
+        onNavigateTab={onNavigateTab}
+      />
+
+      {/* Modal Seja Sócio */}
+      <SejaSocioModal
+        visible={socioModalVisible}
+        onClose={() => setSocioModalVisible(false)}
+        onJoinMember={onBuyTicket}
+        onNavigateTab={onNavigateTab}
       />
 
       {/* Espaço para a barra flutuante */}

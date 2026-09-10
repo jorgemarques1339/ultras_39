@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
 import { Bell, Sun, Moon } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -33,14 +33,13 @@ export default function Header({ onOpenNotifications, visible = true, isDark = t
     <Animated.View style={[styles.headerAnimatedWrapper, { height, opacity, transform: [{ translateY }] }, !isDark && styles.headerAnimatedWrapperLight]}>
       <View style={[styles.headerContainer, !isDark && styles.headerContainerLight]}>
         <View style={styles.leftBrand}>
-          {/* Emblema Grupo 39 & Rio Ave FC */}
-          <View style={styles.emblemWrapper}>
-            <View style={styles.emblemBadge}>
-              <Text style={styles.emblemLetters}>G39</Text>
-            </View>
-            <View style={styles.rioAveMiniBadge}>
-              <Text style={styles.rioAveLetters}>RAFC</Text>
-            </View>
+          {/* Logótipo Oficial Grupo 39 */}
+          <View style={[styles.logoWrapper, !isDark && styles.logoWrapperLight]}>
+            <Image
+              source={require('../../assets/logo_39.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
 
           <View style={styles.brandTitleRow}>
@@ -104,40 +103,35 @@ const styles = StyleSheet.create({
     gap: 10,
     flex: 1,
   },
-  emblemWrapper: {
-    position: 'relative',
-  },
-  emblemBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: '#00874E',
+  logoWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#0D1410',
     borderWidth: 1.5,
     borderColor: '#00B368',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 10px rgba(0, 179, 104, 0.35)',
+      },
+    }),
   },
-  emblemLetters: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 13,
-    letterSpacing: 0.5,
+  logoWrapperLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#00874E',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 135, 78, 0.2)',
+      },
+    }),
   },
-  rioAveMiniBadge: {
-    position: 'absolute',
-    bottom: -3,
-    right: -3,
-    backgroundColor: '#111A15',
-    borderWidth: 1,
-    borderColor: COLORS.gold,
-    paddingHorizontal: 3,
-    paddingVertical: 0.5,
-    borderRadius: 4,
-  },
-  rioAveLetters: {
-    color: '#00B368',
-    fontSize: 7,
-    fontWeight: '900',
+  logoImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   brandTitleRow: {
     flexDirection: 'row',
