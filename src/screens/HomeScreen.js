@@ -202,7 +202,9 @@ function HomeScreen({
               isDark={isDark}
               style={{ marginBottom: 2 }}
             />
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={1}>{nextMatch.homeTeam.name}</Text>
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={2}>
+              {nextMatch.homeTeam.name}
+            </Text>
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Anfitrião</Text>
           </View>
 
@@ -225,7 +227,9 @@ function HomeScreen({
               isDark={isDark}
               style={{ marginBottom: 2 }}
             />
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={1}>{nextMatch.awayTeam.name}</Text>
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={2}>
+              {nextMatch.awayTeam.name}
+            </Text>
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
@@ -664,7 +668,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
     paddingVertical: 9,
     paddingHorizontal: 12,
-    marginBottom: 6,
+    marginBottom: 12,
     flexShrink: 0,
     ...Platform.select({
       web: {
@@ -675,7 +679,7 @@ const styles = StyleSheet.create({
   heroCardSmall: {
     paddingVertical: 7,
     paddingHorizontal: 10,
-    marginBottom: 4,
+    marginBottom: 9,
   },
   heroTopBar: {
     alignItems: 'center',
@@ -732,8 +736,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   teamColumn: {
-    flex: 1,
+    flex: 1.2,
     alignItems: 'center',
+    paddingHorizontal: 2,
   },
   teamEmblem: {
     width: 58,
@@ -762,10 +767,10 @@ const styles = StyleSheet.create({
   },
   teamName: {
     color: COLORS.white,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11.5,
+    fontWeight: '800',
     textAlign: 'center',
-    maxWidth: 100,
+    lineHeight: 14.5,
   },
   teamRole: {
     color: COLORS.textMuted,
@@ -804,12 +809,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Botão Bilhete MB WAY Compacto
+  // Botão Bilhete MB WAY Compacto e Centralizado
   heroBuyBtn: {
+    alignSelf: 'center',
+    marginTop: 8,
     backgroundColor: '#00874E',
-    borderRadius: 8,
-    paddingVertical: 5.5,
-    paddingHorizontal: 10,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: '#00B368',
     ...Platform.select({
@@ -821,7 +828,8 @@ const styles = StyleSheet.create({
   heroBuyContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: 8,
   },
   heroBuyLeft: {
     flexDirection: 'row',
@@ -829,17 +837,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   ticketIconBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroBuyTitle: {
     color: '#FFF',
     fontSize: 11.5,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.2,
   },
 
@@ -966,11 +974,11 @@ const styles = StyleSheet.create({
   // Atalhos Rápidos da Claque
   chantsCenterWrapper: {
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 12,
     flexShrink: 0,
   },
   chantsCenterWrapperSmall: {
-    marginBottom: 4,
+    marginBottom: 10,
   },
   chantsCenteredBtn: {
     width: '100%',
