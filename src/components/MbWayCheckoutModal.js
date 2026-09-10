@@ -11,6 +11,7 @@ import {
   Platform,
   ScrollView,
   useWindowDimensions,
+  Image,
 } from 'react-native';
 import {
   X,
@@ -31,9 +32,11 @@ import { useAppTheme } from '../context/ThemeContext';
 export default function MbWayCheckoutModal({
   visible,
   onClose,
-  checkoutData, // { title, category, amount, originalPrice, discount, phone, type }
+  checkoutData, // { title, category, amount, originalPrice, discount, phone, type, isNewMemberWelcome }
   onPaymentSuccess,
   onViewReceipt,
+  onGoProfile,
+  user,
   isDark,
 }) {
   const themeContext = useAppTheme?.();
@@ -428,67 +431,207 @@ export default function MbWayCheckoutModal({
 
             {/* ESTADO 3: SUCESSO */}
             {status === 'success' && (
-              <View style={styles.successContainer}>
-                <View style={styles.successIconCircle}>
-                  <CheckCircle2 size={46} color="#FFF" />
-                </View>
-
-                <Text style={[styles.successTitle, !isEffectiveDark && styles.successTitleLight]}>Pagamento Confirmado!</Text>
-                <Text style={[styles.successSubtitle, !isEffectiveDark && styles.successSubtitleLight]}>
-                  A transação MB WAY foi autorizada pela SIBS com sucesso.
-                </Text>
-
-                {/* Cartão de Confirmação Rápida */}
-                <View style={[styles.successReceiptCard, !isEffectiveDark && styles.successReceiptCardLight]}>
-                  <View style={styles.successReceiptRow}>
-                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Valor Pago</Text>
-                    <Text style={[styles.receiptValueHighlight, !isEffectiveDark && styles.totalAmountLight]}>
-                      {safeData.amount.toFixed(2)} €
-                    </Text>
+              safeData.type === 'quota' || safeData.isNewMemberWelcome ? (
+                /* MENSAGEM DE BOAS-VINDAS: NOVO SÓCIO GRUPO 39 */
+                <View style={styles.welcomeContainer}>
+                  <View style={styles.welcomeCelebrationBadge}>
+                    <Sparkles size={13} color="#F2B600" />
+                    <Text style={styles.welcomeCelebrationBadgeText}>NOVO ASSOCIADO GRUPO 39</Text>
                   </View>
-                  <View style={styles.successReceiptRow}>
-                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Referência SIBS</Text>
-                    <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>
+
+                  <View style={styles.welcomeIconCircle}>
+                    <ShieldCheck size={44} color="#FFF" />
+                  </View>
+
+                  <Text style={[styles.welcomeTitle, !isEffectiveDark && styles.textDark]}>
+                    Bem-vindo à Família!
+                  </Text>
+                  <Text style={[styles.welcomeSubtitle, !isEffectiveDark && styles.textMutedLight]}>
+                    Parabéns! O teu registo de sócio e a quota para a <Text style={styles.welcomeHighlight}>Época 2026/2027</Text> foram confirmados com sucesso.
+                  </Text>
+
+                  {/* Cartão de Sócio Oficial Ativado */}
+                  <View style={[styles.welcomeCard, !isEffectiveDark && styles.welcomeCardLight]}>
+                    <View style={styles.welcomeCardHeader}>
+                      <View style={styles.welcomeCardLogoRow}>
+                        <View style={styles.welcomeMiniLogo}>
+                          <Image
+                            source={require('../../assets/logo_39.png')}
+                            style={styles.welcomeMiniLogoImg}
+                            resizeMode="contain"
+                          />
+                        </View>
+                        <View>
+                          <Text style={styles.welcomeCardOrg}>GRUPO 39 · ULTRAS</Text>
+                          <Text style={styles.welcomeCardOrgSub}>Rio Ave Futebol Clube</Text>
+                        </View>
+                      </View>
+                      <View style={styles.activeQuotaBadge}>
+                        <View style={styles.activeQuotaDot} />
+                        <Text style={styles.activeQuotaText}>QUOTA ATIVA</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.welcomeDivider} />
+
+                    <View style={styles.welcomeCardBody}>
+                      <View style={styles.welcomeCardRow}>
+                        <Text style={styles.welcomeCardLabel}>Nome do Sócio</Text>
+                        <Text style={styles.welcomeCardValueName} numberOfLines={1}>
+                          {user?.name || safeData.userName || 'Sócio Grupo 39'}
+                        </Text>
+                      </View>
+                      <View style={styles.welcomeCardGrid}>
+                        <View style={styles.welcomeCardCol}>
+                          <Text style={styles.welcomeCardLabel}>N.º Sócio</Text>
+                          <Text style={styles.welcomeCardValueGold}>
+                            {user?.memberNumber || '039-1984'}
+                          </Text>
+                        </View>
+                        <View style={styles.welcomeCardCol}>
+                          <Text style={styles.welcomeCardLabel}>Categoria</Text>
+                          <Text style={styles.welcomeCardValue}>Sócio Efetivo</Text>
+                        </View>
+                        <View style={styles.welcomeCardCol}>
+                          <Text style={styles.welcomeCardLabel}>Validade</Text>
+                          <Text style={styles.welcomeCardValueGreen}>2026/2027</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Vantagens Ativas */}
+                    <View style={styles.welcomePerksBox}>
+                      <View style={styles.welcomePerkItem}>
+                        <CheckCircle2 size={12} color="#00E676" />
+                        <Text style={styles.welcomePerkText}>Desconto nos bilhetes em todos os jogos nos Arcos</Text>
+                      </View>
+                      <View style={styles.welcomePerkItem}>
+                        <CheckCircle2 size={12} color="#00E676" />
+                        <Text style={styles.welcomePerkText}>Prioridade e preço exclusivo em autocarros oficiais</Text>
+                      </View>
+                      <View style={styles.welcomePerkItem}>
+                        <CheckCircle2 size={12} color="#00E676" />
+                        <Text style={styles.welcomePerkText}>Cartão digital e acesso imediato ao Fórum</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Resumo Rápido da Quota Paga */}
+                  <View style={[styles.miniReceiptRow, !isEffectiveDark && styles.miniReceiptRowLight]}>
+                    <Text style={[styles.miniReceiptText, !isEffectiveDark && styles.textMutedLight]}>
+                      Quota Anual 12,00 € paga por MB WAY
+                    </Text>
+                    <Text style={styles.miniReceiptRef}>
                       {lastTransaction?.sibsRef || 'SIBS-PT-039-98214'}
                     </Text>
                   </View>
-                  <View style={styles.successReceiptRow}>
-                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Destinatário</Text>
-                    <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>
-                      Grupo 39 - Rio Ave F.C.
-                    </Text>
-                  </View>
-                  <View style={styles.successReceiptRow}>
-                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Telemóvel</Text>
-                    <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>+351 {phoneNumber}</Text>
+
+                  {/* Botões de Ação de Boas-Vindas */}
+                  <TouchableOpacity
+                    style={styles.welcomeProfileBtn}
+                    onPress={() => {
+                      onClose();
+                      if (onGoProfile) onGoProfile();
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <ShieldCheck size={18} color="#FFF" />
+                    <Text style={styles.welcomeProfileBtnText}>Ver o meu Cartão de Sócio</Text>
+                    <ChevronRight size={16} color="#FFF" />
+                  </TouchableOpacity>
+
+                  <View style={styles.welcomeSecRow}>
+                    <TouchableOpacity
+                      style={styles.welcomeReceiptBtn}
+                      onPress={() => {
+                        onClose();
+                        if (onViewReceipt && lastTransaction) {
+                          onViewReceipt(lastTransaction);
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Receipt size={14} color={isEffectiveDark ? COLORS.textSecondary : '#5A6E63'} />
+                      <Text style={[styles.welcomeReceiptBtnText, !isEffectiveDark && styles.textMutedLight]}>
+                        Ver Comprovativo SIBS
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.welcomeCloseBtn}
+                      onPress={onClose}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.welcomeCloseBtnText, !isEffectiveDark && styles.textMutedLight]}>
+                        Concluir
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
+              ) : (
+                /* SUCESSO STANDARD (ex: BILHÉTICA OU LOJA) */
+                <View style={styles.successContainer}>
+                  <View style={styles.successIconCircle}>
+                    <CheckCircle2 size={46} color="#FFF" />
+                  </View>
 
-                {/* Botões do Sucesso */}
-                <TouchableOpacity
-                  style={styles.viewReceiptBtn}
-                  onPress={() => {
-                    onClose();
-                    if (onViewReceipt && lastTransaction) {
-                      onViewReceipt(lastTransaction);
-                    }
-                  }}
-                  activeOpacity={0.85}
-                >
-                  <Receipt size={18} color="#FFF" />
-                  <Text style={styles.viewReceiptBtnText}>
-                    Ver Comprovativo Oficial
+                  <Text style={[styles.successTitle, !isEffectiveDark && styles.successTitleLight]}>Pagamento Confirmado!</Text>
+                  <Text style={[styles.successSubtitle, !isEffectiveDark && styles.successSubtitleLight]}>
+                    A transação MB WAY foi autorizada pela SIBS com sucesso.
                   </Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.doneBtn}
-                  onPress={onClose}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.doneBtnText, !isEffectiveDark && styles.textMutedLight]}>Concluir e Voltar</Text>
-                </TouchableOpacity>
-              </View>
+                  {/* Cartão de Confirmação Rápida */}
+                  <View style={[styles.successReceiptCard, !isEffectiveDark && styles.successReceiptCardLight]}>
+                    <View style={styles.successReceiptRow}>
+                      <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Valor Pago</Text>
+                      <Text style={[styles.receiptValueHighlight, !isEffectiveDark && styles.totalAmountLight]}>
+                        {safeData.amount.toFixed(2)} €
+                      </Text>
+                    </View>
+                    <View style={styles.successReceiptRow}>
+                      <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Referência SIBS</Text>
+                      <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>
+                        {lastTransaction?.sibsRef || 'SIBS-PT-039-98214'}
+                      </Text>
+                    </View>
+                    <View style={styles.successReceiptRow}>
+                      <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Destinatário</Text>
+                      <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>
+                        Grupo 39 - Rio Ave F.C.
+                      </Text>
+                    </View>
+                    <View style={styles.successReceiptRow}>
+                      <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Telemóvel</Text>
+                      <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>+351 {phoneNumber}</Text>
+                    </View>
+                  </View>
+
+                  {/* Botões do Sucesso */}
+                  <TouchableOpacity
+                    style={styles.viewReceiptBtn}
+                    onPress={() => {
+                      onClose();
+                      if (onViewReceipt && lastTransaction) {
+                        onViewReceipt(lastTransaction);
+                      }
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <Receipt size={18} color="#FFF" />
+                    <Text style={styles.viewReceiptBtnText}>
+                      Ver Comprovativo Oficial
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.doneBtn}
+                    onPress={onClose}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.doneBtnText, !isEffectiveDark && styles.textMutedLight]}>Concluir e Voltar</Text>
+                  </TouchableOpacity>
+                </View>
+              )
             )}
 
             {/* ESTADO 4: EXPIRADO / REJEITADO */}
@@ -987,6 +1130,289 @@ const styles = StyleSheet.create({
     color: COLORS.gold,
     fontSize: 12,
     fontWeight: '600',
+  },
+  welcomeContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    width: '100%',
+  },
+  welcomeCelebrationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(242, 182, 0, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 12,
+  },
+  welcomeCelebrationBadgeText: {
+    color: '#F2B600',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  welcomeIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#00874E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: '#00E676',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 24px rgba(0, 230, 118, 0.4)',
+      },
+    }),
+  },
+  welcomeTitle: {
+    color: '#FFF',
+    fontSize: 21,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: 0.2,
+    marginBottom: 6,
+  },
+  welcomeSubtitle: {
+    color: '#A2B5AB',
+    fontSize: 12.5,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  welcomeHighlight: {
+    color: '#00E676',
+    fontWeight: '800',
+  },
+  welcomeCard: {
+    width: '100%',
+    backgroundColor: '#0F1A13',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 179, 104, 0.4)',
+    padding: 14,
+    marginBottom: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 135, 78, 0.2)',
+      },
+    }),
+  },
+  welcomeCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+      },
+    }),
+  },
+  welcomeCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  welcomeCardLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  welcomeMiniLogo: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#00B368',
+  },
+  welcomeMiniLogoImg: {
+    width: 24,
+    height: 24,
+  },
+  welcomeCardOrg: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  welcomeCardOrgSub: {
+    color: '#7E9187',
+    fontSize: 9.5,
+    fontWeight: '600',
+  },
+  activeQuotaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 230, 118, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.4)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  activeQuotaDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00E676',
+  },
+  activeQuotaText: {
+    color: '#00E676',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+  },
+  welcomeDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginBottom: 10,
+  },
+  welcomeCardBody: {
+    gap: 8,
+    marginBottom: 10,
+  },
+  welcomeCardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeCardGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    padding: 8,
+    borderRadius: 8,
+  },
+  welcomeCardCol: {
+    alignItems: 'center',
+  },
+  welcomeCardLabel: {
+    color: '#7E9187',
+    fontSize: 9.5,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  welcomeCardValueName: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  welcomeCardValueGold: {
+    color: '#F2B600',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  welcomeCardValue: {
+    color: '#E0EDE5',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  welcomeCardValueGreen: {
+    color: '#00E676',
+    fontSize: 11.5,
+    fontWeight: '800',
+  },
+  welcomePerksBox: {
+    backgroundColor: 'rgba(0, 179, 104, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.2)',
+    borderRadius: 8,
+    padding: 8,
+    gap: 5,
+  },
+  welcomePerkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  welcomePerkText: {
+    color: '#CFDFD6',
+    fontSize: 10.5,
+    fontWeight: '600',
+  },
+  miniReceiptRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 4,
+    marginBottom: 14,
+  },
+  miniReceiptRowLight: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.06)',
+    paddingTop: 8,
+  },
+  miniReceiptText: {
+    color: '#8A9E93',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  miniReceiptRef: {
+    color: '#F2B600',
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
+  welcomeProfileBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#00874E',
+    borderRadius: 13,
+    paddingVertical: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#00B368',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 14px rgba(0, 135, 78, 0.4)',
+      },
+    }),
+  },
+  welcomeProfileBtnText: {
+    color: '#FFF',
+    fontSize: 13.5,
+    fontWeight: '800',
+  },
+  welcomeSecRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 4,
+  },
+  welcomeReceiptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 8,
+  },
+  welcomeReceiptBtnText: {
+    color: '#8A9E93',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  welcomeCloseBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  welcomeCloseBtnText: {
+    color: '#7E9187',
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   successContainer: {
     alignItems: 'center',

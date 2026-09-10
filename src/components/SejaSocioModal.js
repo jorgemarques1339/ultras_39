@@ -25,7 +25,7 @@ const BENEFITS = [
   {
     icon: Ticket,
     title: 'Bilhética a Preço Reduzido',
-    desc: 'Descontos de mais de 50% em todos os jogos nos Arcos e acesso prioritário na Bancada Poente.',
+    desc: 'Desconto nos bilhetes em todos os jogos no Estádio dos Arcos',
   },
   {
     icon: Bus,
@@ -54,12 +54,7 @@ function SejaSocioModal({
   const handleJoin = () => {
     onClose();
     if (onJoinMember) {
-      onJoinMember({
-        title: 'Quota Anual Grupo 39 · Época 2026/2027',
-        category: 'Quota de Sócio Efetivo',
-        amount: 12.00,
-        type: 'quota',
-      });
+      onJoinMember();
     } else if (onNavigateTab) {
       onNavigateTab('profile');
     }
@@ -125,7 +120,7 @@ function SejaSocioModal({
               </View>
 
               <Text style={[styles.heroTitle, !isDark && styles.textDark]}>
-                A Força do Rio Ave FC na Bancada Poente
+                A Voz do Rio Ave FC
               </Text>
               <Text style={[styles.heroDesc, !isDark && styles.heroDescLight]}>
                 Garante o teu estatuto de associado oficial do Grupo 39, apoia o Rio Ave em qualquer estádio e desfruta de regalias exclusivas ao longo de toda a época desportiva.
@@ -168,7 +163,7 @@ function SejaSocioModal({
             >
               <View style={styles.joinBtnRow}>
                 <ShieldCheck size={18} color="#FFF" />
-                <Text style={styles.joinBtnText}>Aderir / Regularizar Quota (12,00 €)</Text>
+                <Text style={styles.joinBtnText}>Faça-se Sócio do G39</Text>
               </View>
               <ChevronRight size={16} color="#FFF" />
             </TouchableOpacity>

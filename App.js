@@ -42,6 +42,7 @@ function MainApp() {
     user,
     isLoggedIn,
     authModalVisible,
+    authModalOptions,
     openAuthModal,
     closeAuthModal,
     logout,
@@ -87,18 +88,6 @@ function MainApp() {
     setActiveTab(tab);
   }, [isLoggedIn]);
 
-  const handleAuthSuccess = useCallback(() => {
-    if (pendingTabAfterLogin) {
-      setActiveTab(pendingTabAfterLogin);
-      setPendingTabAfterLogin(null);
-    }
-  }, [pendingTabAfterLogin]);
-
-  const handleLogout = useCallback(async () => {
-    await logout();
-    setActiveTab('home');
-  }, [logout]);
-
   // Modais
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
   const [checkoutData, setCheckoutData] = useState(null);
@@ -118,6 +107,32 @@ function MainApp() {
     });
     setCheckoutModalVisible(true);
   }, [user?.phone]);
+
+  const handleAuthSuccess = useCallback(() => {
+    if (authModalOptions?.pendingAction === 'pay_quota') {
+      setTimeout(() => {
+        handleBuyTicket({
+          title: 'Inscrição de Sócio · Quota Anual 2026/2027',
+          category: 'Quota Oficial Grupo 39',
+          amount: 12.00,
+          originalPrice: 12.00,
+          type: 'quota',
+          isNewMemberWelcome: true,
+          phone: user?.phone || '912 345 678',
+        });
+      }, 350);
+      return;
+    }
+    if (pendingTabAfterLogin) {
+      setActiveTab(pendingTabAfterLogin);
+      setPendingTabAfterLogin(null);
+    }
+  }, [authModalOptions, handleBuyTicket, pendingTabAfterLogin, user?.phone]);
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+    setActiveTab('home');
+  }, [logout]);
 
   // Iniciar fluxo de regularização de quota
   const handlePayQuota = useCallback((itemData) => {
@@ -142,6 +157,7 @@ function MainApp() {
         quotaStatus: 'em_dia',
         quotaPendingPeriod: 'Época 2026/2027 Regularizada',
         quotaPendingMonth: 'Época 2026/2027 Regularizada',
+        memberCategory: 'Sócio Efetivo (Bancada Poente)',
       });
     }
   }, [updateUser]);
@@ -257,6 +273,11 @@ function MainApp() {
           checkoutData={checkoutData}
           onPaymentSuccess={handlePaymentSuccess}
           onViewReceipt={handleViewReceipt}
+          onGoProfile={() => {
+            setCheckoutModalVisible(false);
+            handleSelectTab('profile');
+          }}
+          user={user}
           isDark={isDark}
         />
 

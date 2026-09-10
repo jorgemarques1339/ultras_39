@@ -393,19 +393,11 @@ function JogosModal({
                   <Text style={[styles.headerTitle, !isDark && styles.textDark]}>
                     Jogos do Rio Ave FC
                   </Text>
-                  <View style={[styles.liveBadge, !isDark && styles.liveBadgeLight]}>
-                    <View style={styles.liveDot} />
-                    <Text style={styles.liveBadgeText}>EM DIRETO</Text>
-                  </View>
                 </View>
 
                 <View style={styles.subTitleRow}>
                   <Text style={[styles.headerSubtitle, !isDark && styles.headerSubtitleLight]}>
                     Liga Portugal Betclic · 2026/2027
-                  </Text>
-                  <Text style={[styles.dotSeparator, !isDark && styles.textMutedDark]}>•</Text>
-                  <Text style={[styles.lastUpdatedText, !isDark && styles.textMutedDark]}>
-                    {lastUpdated}
                   </Text>
                 </View>
               </View>

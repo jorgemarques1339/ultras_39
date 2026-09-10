@@ -41,6 +41,7 @@ import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
 import GaleriaModal from '../components/GaleriaModal';
 import EventosModal from '../components/EventosModal';
+import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -170,6 +171,31 @@ function HomeScreen({
       return playerId;
     });
   }, []);
+
+  const handleJoinSocio = useCallback(() => {
+    setSocioModalVisible(false);
+    if (!isLoggedIn) {
+      if (onOpenAuth) {
+        onOpenAuth({
+          initialTab: 'register',
+          message: 'Cria a tua conta para te fazeres Sócio do Grupo 39 e prosseguires para a ativação da quota.',
+          pendingAction: 'pay_quota',
+        });
+      }
+    } else {
+      if (onBuyTicket) {
+        onBuyTicket({
+          title: 'Inscrição de Sócio · Quota Anual 2026/2027',
+          category: 'Quota Oficial Grupo 39',
+          amount: 12.00,
+          originalPrice: 12.00,
+          type: 'quota',
+          isNewMemberWelcome: true,
+          phone: user?.phone || '912 345 678',
+        });
+      }
+    }
+  }, [isLoggedIn, onOpenAuth, onBuyTicket, user?.phone]);
 
   return (
     <View
@@ -546,78 +572,36 @@ function HomeScreen({
         onOpenAuth={onOpenAuth}
       />
 
-      {/* Modal de Aviso: Deslocação Bloqueada para Não-Sócios até 3 dias antes */}
-      <Modal
+      {/* Modal de Aviso: Deslocação Bloqueada para Não-Sócios (Layout idêntico ao Fórum) */}
+      <ForumLoginPromptModal
         visible={deslocacaoNoticeVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeslocacaoNoticeVisible(false)}
-      >
-        <View style={styles.noticeOverlay}>
-          <View style={[styles.noticeContainer, !isDark && styles.noticeContainerLight]}>
-            <View style={styles.noticeHeader}>
-              <View style={styles.noticeIconBox}>
-                <Lock size={20} color="#F2B600" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.noticeTitle, !isDark && styles.textDark]}>
-                  Deslocação Oficial a Alverca
-                </Text>
-                <Text style={[styles.noticeSubtitle, !isDark && styles.textMutedDark]}>
-                  7.ª Jornada · 19 de Setembro
-                </Text>
-              </View>
-            </View>
-
-            <View style={[styles.noticeBody, !isDark && styles.noticeBodyLight]}>
-              <Text style={[styles.noticeText, !isDark && styles.textDark]}>
-                As inscrições antecipadas em autocarro são <Text style={styles.noticeHighlightGreen}>exclusivas para Sócios do Grupo 39</Text> por apenas <Text style={styles.noticeHighlightGreen}>7,50 €</Text>.
-              </Text>
-              <Text style={[styles.noticeTextSub, !isDark && styles.textMutedDark]}>
-                Para quem não tem login (público geral), as vagas abrem a <Text style={styles.noticeHighlightGold}>16 de Setembro</Text> (3 dias antes do jogo) pelo valor de <Text style={styles.noticeHighlightGold}>10,00 €</Text>.
-              </Text>
-            </View>
-
-            <View style={styles.noticeActions}>
-              {onOpenAuth && (
-                <TouchableOpacity
-                  style={styles.noticeLoginBtn}
-                  onPress={() => {
-                    setDeslocacaoNoticeVisible(false);
-                    onOpenAuth();
-                  }}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.noticeLoginBtnText}>Iniciar Sessão como Sócio (7,50 €)</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Opção de teste rápido para simular data após 11 de Setembro */}
-              <TouchableOpacity
-                style={[styles.noticeSimulateBtn, !isDark && styles.noticeSimulateBtnLight]}
-                onPress={() => {
-                  setSimulatedUnlocked(true);
-                  setDeslocacaoNoticeVisible(false);
-                  setDeslocacaoModalVisible(true);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.noticeSimulateBtnText}>
-                  ⚡ Simular Data a partir de 16 Setembro (10,00 €)
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.noticeCloseBtn, !isDark && styles.noticeCloseBtnLight]}
-                onPress={() => setDeslocacaoNoticeVisible(false)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.noticeCloseBtnText, !isDark && styles.textMutedDark]}>Fechar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setDeslocacaoNoticeVisible(false)}
+        type="deslocacao"
+        isDark={isDark}
+        onOpenLogin={() => {
+          setDeslocacaoNoticeVisible(false);
+          if (onOpenAuth) {
+            onOpenAuth({
+              initialTab: 'login',
+              message: 'Inicia sessão como Sócio para acederes à Deslocação a Alverca por apenas 7,50 €.',
+            });
+          }
+        }}
+        onOpenRegister={() => {
+          setDeslocacaoNoticeVisible(false);
+          if (onOpenAuth) {
+            onOpenAuth({
+              initialTab: 'register',
+              message: 'Cria a tua conta para te fazeres Sócio do Grupo 39 e acederes à Deslocação a Alverca.',
+            });
+          }
+        }}
+        onSimulateUnlock={() => {
+          setSimulatedUnlocked(true);
+          setDeslocacaoNoticeVisible(false);
+          setDeslocacaoModalVisible(true);
+        }}
+      />
 
       {/* Modal de Jogos e Calendário Oficial em Direto */}
       <JogosModal
@@ -646,9 +630,10 @@ function HomeScreen({
       <SejaSocioModal
         visible={socioModalVisible}
         onClose={() => setSocioModalVisible(false)}
-        onJoinMember={onBuyTicket}
+        onJoinMember={handleJoinSocio}
         onNavigateTab={onNavigateTab}
         isDark={isDark}
+        isLoggedIn={isLoggedIn}
       />
 
       {/* Modal Galeria / Instagram Ultras Grupo 39 */}
@@ -1180,122 +1165,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginTop: 0.5,
   },
-  // Notice Modal
-  noticeOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    ...Platform.select({
-      web: {
-        backdropFilter: 'blur(8px)',
-      },
-    }),
-  },
-  noticeContainer: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: '#0F1A13',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
-    padding: 20,
-    gap: 14,
-  },
-  noticeContainerLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(242, 182, 0, 0.4)',
-  },
-  noticeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  noticeIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(242, 182, 0, 0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  noticeTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#FFF',
-  },
-  noticeSubtitle: {
-    fontSize: 11,
-    color: '#8A9E93',
-  },
-  noticeBody: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 12,
-    padding: 14,
-    gap: 8,
-  },
-  noticeBodyLight: {
-    backgroundColor: '#F5F9F6',
-  },
-  noticeText: {
-    fontSize: 13,
-    color: '#E0EDE5',
-    lineHeight: 18,
-  },
-  noticeTextSub: {
-    fontSize: 12,
-    color: '#9CAFA4',
-    lineHeight: 17,
-  },
-  noticeHighlightGreen: {
-    color: '#00E676',
-    fontWeight: '800',
-  },
-  noticeHighlightGold: {
-    color: '#F2B600',
-    fontWeight: '800',
-  },
-  noticeActions: {
-    gap: 8,
-    marginTop: 4,
-  },
-  noticeLoginBtn: {
-    backgroundColor: '#00B368',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  noticeLoginBtnText: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  noticeSimulateBtn: {
-    backgroundColor: 'rgba(242, 182, 0, 0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
-    paddingVertical: 9,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  noticeSimulateBtnLight: {
-    backgroundColor: '#FFFDF0',
-  },
-  noticeSimulateBtnText: {
-    color: '#F2B600',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  noticeCloseBtn: {
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  noticeCloseBtnText: {
-    color: '#7E9187',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+
   subShortcutCard: {
     flex: 1,
     flexDirection: 'row',
