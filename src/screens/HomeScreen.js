@@ -473,18 +473,45 @@ function HomeScreen({
 
           {/* 3ª LINHA: BOTÕES GALERIA & EVENTOS */}
           <View style={styles.subShortcutsRow}>
+            {/* Galeria - Temporariamente Bloqueada */}
             <TouchableOpacity
-              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-              onPress={() => setGaleriaModalVisible(true)}
-              activeOpacity={0.8}
+              style={[
+                styles.subShortcutCard,
+                styles.subShortcutCardDisabled,
+                !isDark && styles.subShortcutCardLight,
+                !isDark && styles.subShortcutCardDisabledLight,
+              ]}
+              disabled={true}
+              activeOpacity={1}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: true }}
+              accessibilityLabel="Galeria temporariamente indisponível (Em breve)"
             >
-              <View style={styles.subShortcutIconBgCamera}>
-                <Camera size={16} color={COLORS.primaryLight} />
+              <View
+                style={[
+                  styles.subShortcutIconBgCamera,
+                  styles.subShortcutIconBgDisabled,
+                  !isDark && styles.subShortcutIconBgDisabledLight,
+                ]}
+              >
+                <Camera size={16} color={isDark ? '#7E9187' : '#9CAFA4'} />
               </View>
-              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                Galeria
-              </Text>
-              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+              <View style={styles.subShortcutTextLockedCol}>
+                <Text
+                  style={[
+                    styles.subShortcutText,
+                    styles.subShortcutTextDisabled,
+                    !isDark && styles.subShortcutTextDisabledLight,
+                  ]}
+                  numberOfLines={1}
+                >
+                  Galeria
+                </Text>
+                <Text style={styles.lockedBadgeTextMuted} numberOfLines={1}>
+                  Em breve
+                </Text>
+              </View>
+              <Lock size={12} color={isDark ? '#7E9187' : '#9CAFA4'} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1314,6 +1341,36 @@ const styles = StyleSheet.create({
   },
   subShortcutTextLight: {
     color: '#15241C',
+  },
+  subShortcutCardDisabled: {
+    opacity: 0.62,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  subShortcutCardDisabledLight: {
+    backgroundColor: '#F0F4F1',
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  subShortcutIconBgDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  subShortcutIconBgDisabledLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  },
+  subShortcutTextLockedCol: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  subShortcutTextDisabled: {
+    color: '#8A9E93',
+  },
+  subShortcutTextDisabledLight: {
+    color: '#7A8C82',
+  },
+  lockedBadgeTextMuted: {
+    color: '#7E9187',
+    fontSize: 9.5,
+    fontWeight: '700',
+    marginTop: 0.5,
   },
   shortcutIconBgMusic: {
     width: 42,
