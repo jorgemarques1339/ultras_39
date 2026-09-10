@@ -16,7 +16,7 @@ import {
   Bus,
   Sparkles,
   Users,
-  Music,
+  Drum,
   ShoppingBag,
   Radio,
   Award,
@@ -97,16 +97,13 @@ export default function HomeScreen({
           activeOpacity={0.85}
         >
           <View style={styles.shortcutIconBgMusic}>
-            <Music size={20} color="#FFF" />
+            <Drum size={20} color="#FFF" />
           </View>
           <View style={styles.chantsTextBoxCentered}>
             <View style={styles.shortcutHeaderRowCentered}>
-              <Text style={[styles.shortcutTitleCentered, !isDark && styles.shortcutTitleCenteredLight]}>Canticos G39</Text>
-              <View style={styles.shortcutBadgeGold}>
-                <Text style={styles.shortcutBadgeText}>ÁUDIO & BATERIA</Text>
-              </View>
+              <Text style={[styles.shortcutTitleCentered, !isDark && styles.shortcutTitleCenteredLight]}>Cânticos G39</Text>
             </View>
-            <Text style={[styles.shortcutDescCentered, !isDark && styles.shortcutDescCenteredLight]}>Letras e ritmo oficial de bancada</Text>
+            <Text style={[styles.shortcutDescCentered, !isDark && styles.shortcutDescCenteredLight]}>Letra e Ritmos</Text>
           </View>
           <View style={styles.chantsArrowCircle}>
             <ChevronRight size={16} color="#FFF" />

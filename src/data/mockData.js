@@ -269,6 +269,18 @@ export const INITIAL_TRANSACTIONS = [
     sibsRef: 'MBW-2026-RAFC-8910',
     status: 'Concluído',
     statusColor: '#00C853',
+  },
+  {
+    id: 'tx-mbw-8712',
+    title: 'Cachecol Oficial Grupo 39',
+    category: 'Loja Oficial G39',
+    amount: 12.00,
+    date: '28 Ago 2026 · 19:30',
+    method: 'MB WAY',
+    phone: '912 345 678',
+    sibsRef: 'MBW-2026-RAFC-8712',
+    status: 'Concluído',
+    statusColor: '#00C853',
   }
 ];
 

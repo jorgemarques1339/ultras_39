@@ -22,6 +22,8 @@ import {
   Flame,
   Bus,
   Download,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
@@ -38,6 +40,8 @@ export default function ProfileScreen({
   const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
+  const [showAllTransactions, setShowAllTransactions] = useState(false);
 
   const handleCheckIn = () => {
     if (hasCheckedIn) return;
@@ -76,7 +80,7 @@ export default function ProfileScreen({
     >
       {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (SOMENTE DADOS) */}
       <View style={styles.cardSection}>
-        <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Cartão Digital de Sócio</Text>
+        <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Cartão Digital</Text>
 
         <View
           style={[
@@ -92,23 +96,6 @@ export default function ProfileScreen({
           {/* Brilho metálico holográfico */}
           <View style={styles.holoSheenOverlay} />
 
-          {/* Topo do Cartão */}
-          <View style={styles.cardHeader}>
-            <View style={styles.cardBrandRow}>
-              <View style={styles.cardLogoBox}>
-                <Text style={styles.cardLogoText}>G39</Text>
-              </View>
-              <View>
-                <Text style={styles.cardClubTitle}>RIO AVE FUTEBOL CLUBE</Text>
-                <Text style={styles.cardClaqueSubtitle}>CLAQUE OFICIAL GRUPO 39</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardCategoryBadge}>
-              <Award size={12} color={COLORS.gold} />
-              <Text style={styles.cardCategoryText}>Sócio Efetivo</Text>
-            </View>
-          </View>
 
           {/* Miolo do Cartão: Foto & Identificação */}
           <View style={styles.cardBody}>
@@ -123,7 +110,7 @@ export default function ProfileScreen({
 
             <View style={styles.memberInfoCol}>
               <Text style={styles.memberName}>{user.name}</Text>
-              <Text style={styles.memberRole}>{user.memberCategory || 'Sócio Efetivo · Bancada Poente'}</Text>
+              <Text style={styles.memberRole}>Membro Oficial G39</Text>
               <View style={styles.memberStatusInline}>
                 <View style={[styles.statusDot, { backgroundColor: isQuotaPending ? '#FFB74D' : COLORS.primaryLight }]} />
                 <Text style={[styles.statusInlineText, { color: isQuotaPending ? '#FFB74D' : COLORS.primaryLight }]}>
@@ -153,24 +140,8 @@ export default function ProfileScreen({
 
             <View style={styles.cardDataRow}>
               <View style={styles.cardDataCol}>
-                <Text style={styles.dataLabel}>SETOR NO ESTÁDIO</Text>
-                <Text style={styles.dataVal}>Bancada Poente</Text>
-              </View>
-
-              <View style={styles.cardDataDivider} />
-
-              <View style={styles.cardDataCol}>
                 <Text style={styles.dataLabel}>FILIAÇÃO</Text>
                 <Text style={styles.dataVal}>Desde {user.memberSince}</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardHorizontalDivider} />
-
-            <View style={styles.cardDataRow}>
-              <View style={styles.cardDataCol}>
-                <Text style={styles.dataLabel}>CONTACTO MB WAY</Text>
-                <Text style={styles.dataVal}>{user.phone}</Text>
               </View>
 
               <View style={styles.cardDataDivider} />
@@ -182,20 +153,46 @@ export default function ProfileScreen({
             </View>
           </View>
 
-          {/* Rodapé Oficial do Cartão Digital (Certificação Oficial Sem QR Code) */}
-          <View style={styles.cardFooterData}>
-            <View style={styles.cardFooterLeft}>
-              <ShieldCheck size={16} color={COLORS.primaryLight} />
-              <View>
-                <Text style={styles.cardFooterTitle}>Cartão Oficial Grupo 39</Text>
-                <Text style={styles.cardFooterSub}>Identificação oficial do associado Rio Ave FC</Text>
+          {/* Rodapé Oficial do Cartão: Pagamento / Estado de Quotas */}
+          <View style={[styles.cardFooterData, !isQuotaPending && styles.cardFooterDataPaid]}>
+            {isQuotaPending ? (
+              <View style={styles.cardQuotaRow}>
+                <View style={styles.cardQuotaInfo}>
+                  <AlertTriangle size={15} color="#FF9800" />
+                  <View>
+                    <Text style={styles.cardQuotaTitle}>Quota Anual em Atraso</Text>
+                    <Text style={styles.cardQuotaSub}>Época 2026/2027 · 12,50 €</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.cardPayBtn}
+                  onPress={() =>
+                    onPayQuota({
+                      title: 'Quota Anual Grupo 39 · Época 2026/2027',
+                      category: 'Quota Anual de Sócio',
+                      amount: 12.50,
+                      type: 'quota',
+                    })
+                  }
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.cardPayBtnText}>Pagar Quota Anual</Text>
+                </TouchableOpacity>
               </View>
-            </View>
-            <View style={[styles.cardPillBadge, isQuotaPending ? styles.cardPillPending : styles.cardPillPaid]}>
-              <Text style={[styles.cardPillText, isQuotaPending ? styles.cardPillTextPending : styles.cardPillTextPaid]}>
-                {isQuotaPending ? 'PENDENTE' : 'EM DIA'}
-              </Text>
-            </View>
+            ) : (
+              <View style={styles.cardQuotaPaidRow}>
+                <View style={styles.cardQuotaPaidInfo}>
+                  <CheckCircle2 size={16} color="#00C853" />
+                  <View>
+                    <Text style={styles.cardQuotaPaidTitle}>Quotas em Ordem ✓</Text>
+                    <Text style={styles.cardQuotaPaidSub}>Época 2026/2027 Regularizada</Text>
+                  </View>
+                </View>
+                <View style={styles.cardPillPaid}>
+                  <Text style={styles.cardPillTextPaid}>EM ORDEM</Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
 
@@ -246,14 +243,14 @@ export default function ProfileScreen({
           ) : (
             <>
               <MapPin size={16} color="#FFF" />
-              <Text style={styles.checkInBtnText}>Fazer Check-in no Estádio dos Arcos</Text>
+              <Text style={styles.checkInBtnText}>Fazer Check-In</Text>
             </>
           )}
         </TouchableOpacity>
 
         {/* Vitrine de Crachás de Sócio */}
         <View style={styles.achievementsGrid}>
-          {achievements.map((ach) => (
+          {achievements.slice(0, showAllAchievements ? 4 : 1).map((ach) => (
             <View
               key={ach.id}
               style={[
@@ -293,116 +290,26 @@ export default function ProfileScreen({
             </View>
           ))}
         </View>
-      </View>
 
-      {/* 2. GESTÃO DE QUOTAS (PAGAMENTO ANUAL 12,50 €) */}
-      <View style={styles.quotaSection}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Gestão de Quota Anual de Sócio</Text>
-          <View
-            style={[
-              styles.quotaStatusBadge,
-              isQuotaPending ? styles.statusPendingBadge : styles.statusPaidBadge,
-              !isDark && (isQuotaPending ? styles.statusPendingBadgeLight : styles.statusPaidBadgeLight),
-            ]}
+        {/* Botão Ver Mais / Ver Menos para Fidelidade */}
+        {achievements.length > 1 && (
+          <TouchableOpacity
+            style={[styles.viewMoreBtn, !isDark && styles.viewMoreBtnLight]}
+            onPress={() => setShowAllAchievements((prev) => !prev)}
+            activeOpacity={0.8}
           >
-            {isQuotaPending ? (
-              <AlertTriangle size={13} color="#FF9800" />
-            ) : (
-              <CheckCircle2 size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
-            )}
-            <Text
-              style={[
-                styles.quotaStatusText,
-                isQuotaPending ? styles.statusPendingText : styles.statusPaidText,
-                !isDark && (isQuotaPending ? styles.statusPendingTextLight : styles.statusPaidTextLight),
-              ]}
-            >
-              {isQuotaPending ? 'Quota Anual Pendente' : 'Quota Anual em Dia'}
+            <Text style={[styles.viewMoreBtnText, !isDark && styles.viewMoreBtnTextLight]}>
+              {showAllAchievements ? 'Ver Menos' : 'Ver Mais (Últimos 4 Check-ins)'}
             </Text>
-          </View>
-        </View>
-
-        <View style={[styles.quotaCard, !isDark && styles.quotaCardLight]}>
-          {isQuotaPending ? (
-            <View>
-              <View style={styles.quotaAlertRow}>
-                <View style={styles.quotaAlertIcon}>
-                  <AlertTriangle size={24} color="#FF9800" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.quotaAlertTitle, !isDark && styles.quotaAlertTitleLight]}>
-                    Regularização de Quota Anual
-                  </Text>
-                  <Text style={[styles.quotaAlertDesc, !isDark && styles.quotaAlertDescLight]}>
-                    A quota anual da <Text style={{ color: isDark ? COLORS.white : '#0E1712', fontWeight: '700' }}>{user.quotaPendingPeriod || user.quotaPendingMonth || 'Época 2026/2027'}</Text> está por liquidar. Mantém os teus direitos de voto e desconto nos bilhetes.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={[styles.quotaPriceBreakdown, !isDark && styles.quotaPriceBreakdownLight]}>
-                <Text style={[styles.quotaPriceLabel, !isDark && styles.textMutedDark]}>Valor Anual da Quota:</Text>
-                <Text style={[styles.quotaPriceValue, !isDark && styles.textDark]}>12,50 €</Text>
-              </View>
-
-              {/* Botão de Pagamento MB WAY */}
-              <TouchableOpacity
-                style={styles.payQuotaBtn}
-                onPress={() =>
-                  onPayQuota({
-                    title: `Quota Anual Grupo 39 · ${user.quotaPendingPeriod || user.quotaPendingMonth || 'Época 2026/2027'}`,
-                    category: 'Quota Anual de Sócio',
-                    amount: 12.50,
-                    type: 'quota',
-                  })
-                }
-                activeOpacity={0.85}
-              >
-                <View style={styles.miniMbwayBadge}>
-                  <Text style={styles.miniMbwayText}>MB</Text>
-                  <View style={styles.miniDot} />
-                  <Text style={styles.miniMbwaySub}>WAY</Text>
-                </View>
-                <Text style={styles.payQuotaBtnText}>
-                  Liquidar Quota Anual via MB WAY (12,50 €)
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View>
-              <View style={styles.quotaSuccessRow}>
-                <CheckCircle2 size={24} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.quotaSuccessTitle, !isDark && styles.textDark]}>
-                    Parabéns! Época 2026/2027 Regularizada
-                  </Text>
-                  <Text style={[styles.quotaSuccessDesc, !isDark && styles.textMutedDark]}>
-                    A tua quota anual está regularizada. O teu cartão digital de sócio está ativo para acesso livre ao Estádio dos Arcos e descontos na loja da claque.
-                  </Text>
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.advanceQuotaBtn, !isDark && styles.advanceQuotaBtnLight]}
-                onPress={() =>
-                  onPayQuota({
-                    title: 'Antecipação Quota Anual · Época 2027/2028',
-                    category: 'Quota Anual de Sócio',
-                    amount: 12.50,
-                    type: 'quota',
-                  })
-                }
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.advanceQuotaBtnText, !isDark && styles.advanceQuotaBtnTextLight]}>
-                  Adiantar Próxima Época via MB WAY (12,50 €)
-                </Text>
-                <ChevronRight size={14} color={isDark ? COLORS.gold : '#00874E'} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+            {showAllAchievements ? (
+              <ChevronUp size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
+            ) : (
+              <ChevronDown size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
+
 
       {/* 3. HISTÓRICO DE TRANSAÇÕES MB WAY */}
       <View style={styles.transactionsSection}>
@@ -421,40 +328,60 @@ export default function ProfileScreen({
             <Text style={[styles.emptyTxText, !isDark && styles.textMutedDark]}>Nenhum pagamento efetuado ainda.</Text>
           </View>
         ) : (
-          transactions.map((tx) => (
-            <TouchableOpacity
-              key={tx.id}
-              style={[styles.txCard, !isDark && styles.txCardLight]}
-              onPress={() => onViewReceipt(tx)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.txLeftIcon}>
-                <View style={styles.txMbwayIcon}>
-                  <Text style={styles.txMbwayText}>MB</Text>
-                  <View style={styles.txMbwayDot} />
-                  <Text style={styles.txMbwaySub}>WAY</Text>
+          <>
+            {transactions.slice(0, showAllTransactions ? 4 : 1).map((tx) => (
+              <TouchableOpacity
+                key={tx.id}
+                style={[styles.txCard, !isDark && styles.txCardLight]}
+                onPress={() => onViewReceipt(tx)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.txLeftIcon}>
+                  <View style={styles.txMbwayIcon}>
+                    <Text style={styles.txMbwayText}>MB</Text>
+                    <View style={styles.txMbwayDot} />
+                    <Text style={styles.txMbwaySub}>WAY</Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.txDetails}>
-                <Text style={[styles.txTitle, !isDark && styles.textDark]}>{tx.title}</Text>
-                <Text style={[styles.txMeta, !isDark && styles.textMutedDark]}>
-                  {tx.date} · Ref: {tx.sibsRef}
+                <View style={styles.txDetails}>
+                  <Text style={[styles.txTitle, !isDark && styles.textDark]}>{tx.title}</Text>
+                  <Text style={[styles.txMeta, !isDark && styles.textMutedDark]}>
+                    {tx.date} · Ref: {tx.sibsRef}
+                  </Text>
+                  <View style={[styles.txReceiptPill, !isDark && styles.txReceiptPillLight]}>
+                    <Receipt size={11} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                    <Text style={[styles.txReceiptText, !isDark && styles.txReceiptTextLight]}>Ver Comprovativo</Text>
+                  </View>
+                </View>
+
+                <View style={styles.txRight}>
+                  <Text style={[styles.txAmount, !isDark && styles.txAmountLight]}>{tx.amount.toFixed(2)} €</Text>
+                  <View style={styles.txStatusPill}>
+                    <Text style={styles.txStatusText}>{tx.status}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+
+            {/* Botão Ver Mais / Ver Menos para Histórico */}
+            {transactions.length > 1 && (
+              <TouchableOpacity
+                style={[styles.viewMoreBtn, !isDark && styles.viewMoreBtnLight]}
+                onPress={() => setShowAllTransactions((prev) => !prev)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.viewMoreBtnText, !isDark && styles.viewMoreBtnTextLight]}>
+                  {showAllTransactions ? 'Ver Menos' : 'Ver Mais (Últimas 4 Transações)'}
                 </Text>
-                <View style={[styles.txReceiptPill, !isDark && styles.txReceiptPillLight]}>
-                  <Receipt size={11} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                  <Text style={[styles.txReceiptText, !isDark && styles.txReceiptTextLight]}>Ver Comprovativo</Text>
-                </View>
-              </View>
-
-              <View style={styles.txRight}>
-                <Text style={[styles.txAmount, !isDark && styles.txAmountLight]}>{tx.amount.toFixed(2)} €</Text>
-                <View style={styles.txStatusPill}>
-                  <Text style={styles.txStatusText}>{tx.status}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))
+                {showAllTransactions ? (
+                  <ChevronUp size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                ) : (
+                  <ChevronDown size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                )}
+              </TouchableOpacity>
+            )}
+          </>
         )}
       </View>
 
@@ -704,57 +631,85 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // Rodapé Oficial do Cartão (Sem QR Code)
+  // Rodapé Oficial do Cartão: Pagamento / Estado de Quotas
   cardFooterData: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#0A120E',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  cardFooterLeft: {
+  cardFooterDataPaid: {
+    backgroundColor: 'rgba(0, 135, 78, 0.15)',
+    borderColor: 'rgba(0, 200, 83, 0.35)',
+  },
+  cardQuotaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  cardQuotaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     flex: 1,
   },
-  cardFooterTitle: {
-    color: COLORS.white,
+  cardQuotaTitle: {
+    color: '#FFB74D',
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
-  cardFooterSub: {
+  cardQuotaSub: {
     color: COLORS.textMuted,
-    fontSize: 9,
+    fontSize: 9.5,
   },
-  cardPillBadge: {
+  cardPayBtn: {
+    backgroundColor: '#00874E',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#00B368',
+  },
+  cardPayBtnText: {
+    color: '#FFF',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
+  cardQuotaPaidRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardQuotaPaidInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cardQuotaPaidTitle: {
+    color: '#00C853',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  cardQuotaPaidSub: {
+    color: COLORS.textSecondary,
+    fontSize: 9.5,
+  },
+  cardPillPaid: {
+    backgroundColor: 'rgba(0, 200, 83, 0.2)',
+    borderColor: 'rgba(0, 200, 83, 0.5)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
   },
-  cardPillPending: {
-    backgroundColor: 'rgba(255, 183, 77, 0.15)',
-    borderColor: 'rgba(255, 183, 77, 0.35)',
-  },
-  cardPillPaid: {
-    backgroundColor: 'rgba(0, 179, 104, 0.15)',
-    borderColor: 'rgba(0, 179, 104, 0.35)',
-  },
-  cardPillText: {
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  cardPillTextPending: {
-    color: '#FFB74D',
-  },
   cardPillTextPaid: {
-    color: COLORS.primaryLight,
+    color: '#00C853',
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
 
   // 2. Quotas
@@ -1346,5 +1301,29 @@ const styles = StyleSheet.create({
   supportCardLight: {
     backgroundColor: '#F8FAF9',
     borderColor: 'rgba(0, 135, 78, 0.15)',
+  },
+  viewMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    marginTop: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.25)',
+  },
+  viewMoreBtnLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  viewMoreBtnText: {
+    color: COLORS.primaryLight,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  viewMoreBtnTextLight: {
+    color: '#00874E',
   },
 });
