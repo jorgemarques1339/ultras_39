@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Cores para o tema Black (Dark Verde Rio Ave)
 export const DARK_THEME = {
@@ -80,6 +81,34 @@ export const LIGHT_THEME = {
   cardBorder: 'rgba(0, 135, 78, 0.12)',
 };
 
+const THEME_STORAGE_KEY = '@grupo39_app_theme';
+
+// Utilitário para ler o tema guardado
+const getStoredTheme = async () => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved) return saved;
+    }
+    const val = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+    return val;
+  } catch (e) {
+    return null;
+  }
+};
+
+// Utilitário para persistir o tema escolhido
+const setStoredTheme = async (mode) => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+    }
+    await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
+  } catch (e) {
+    // Ignorar erros de armazenamento
+  }
+};
+
 const ThemeContext = createContext({
   theme: DARK_THEME,
   isDark: true,
@@ -87,10 +116,46 @@ const ThemeContext = createContext({
 });
 
 export function ThemeProvider({ children }) {
-  const [isDark, setIsDark] = useState(true);
+  // Inicialização síncrona se disponível no browser para evitar flicker
+  const [isDark, setIsDark] = useState(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+        if (saved === 'light') return false;
+        if (saved === 'black' || saved === 'dark') return true;
+      }
+    } catch (e) {}
+    return true;
+  });
+
+  // Carregamento assíncrono via AsyncStorage para compatibilidade total iOS/Android
+  useEffect(() => {
+    let isMounted = true;
+    const loadTheme = async () => {
+      try {
+        const saved = await getStoredTheme();
+        if (isMounted && saved) {
+          if (saved === 'light') {
+            setIsDark(false);
+          } else if (saved === 'black' || saved === 'dark') {
+            setIsDark(true);
+          }
+        }
+      } catch (e) {}
+    };
+    loadTheme();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const toggleTheme = () => {
-    setIsDark((prev) => !prev);
+    setIsDark((prev) => {
+      const nextVal = !prev;
+      const nextMode = nextVal ? 'black' : 'light';
+      setStoredTheme(nextMode);
+      return nextVal;
+    });
   };
 
   const theme = isDark ? DARK_THEME : LIGHT_THEME;
