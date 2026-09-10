@@ -16,7 +16,6 @@ import {
   Share2,
   Plus,
   Flame,
-  Music,
   Bus,
   MessageCircle,
   ShoppingBag,
@@ -26,7 +25,7 @@ import {
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
 
-export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants }) {
+export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -35,7 +34,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
   const [isNewPostModalOpen, setIsNewPostModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
-  const [newCategory, setNewCategory] = useState('bancada');
+  const [newCategory, setNewCategory] = useState('opiniao');
   const [expandedPostId, setExpandedPostId] = useState(null);
   const [replyText, setReplyText] = useState('');
 
@@ -73,7 +72,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
     const newPostObj = {
       id: `post-${Date.now()}`,
       categoryId: newCategory,
-      categoryName: catObj ? catObj.title : 'Bancada',
+      categoryName: catObj ? catObj.title : 'Geral',
       author: user.name,
       authorBadge: 'Sócio G39',
       avatar: user.avatar,
@@ -83,7 +82,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
       upvotes: 1,
       hasUpvoted: true,
       commentsCount: 0,
-      tag: catObj?.id === 'bancada' ? 'CÂNTICO' : 'DISCUSSÃO',
+      tag: 'DISCUSSÃO',
       tagColor: COLORS.primaryLight,
       replies: [],
     };
@@ -135,24 +134,15 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
   };
 
   return (
-    <View style={styles.container}>
-      {/* Barra de Filtro de Categorias com Atalho do Cancioneiro */}
-      <View style={styles.categoriesBar}>
+    <View style={[styles.container, !isDark && styles.containerLight]}>
+      {/* Barra de Filtro de Categorias */}
+      <View style={[styles.categoriesBar, !isDark && styles.categoriesBarLight]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesScrollView}
           contentContainerStyle={styles.categoriesContent}
         >
-          {/* Atalho Especial Cancioneiro */}
-          <TouchableOpacity
-            style={styles.chantsShortcutPill}
-            onPress={onOpenChants}
-            activeOpacity={0.75}
-          >
-            <Music size={13} color={COLORS.gold} />
-            <Text style={styles.chantsShortcutPillText}>Cânticos G39 🥁</Text>
-          </TouchableOpacity>
           {FORUM_CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
@@ -160,7 +150,9 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
                 key={cat.id}
                 style={[
                   styles.categoryPill,
+                  !isDark && styles.categoryPillLight,
                   isSelected && styles.categoryPillSelected,
+                  !isDark && isSelected && styles.categoryPillSelectedLight,
                 ]}
                 onPress={() => setSelectedCategory(cat.id)}
                 activeOpacity={0.7}
@@ -169,7 +161,9 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
                 <Text
                   style={[
                     styles.categoryPillText,
+                    !isDark && styles.categoryPillTextLight,
                     isSelected && styles.categoryPillTextSelected,
+                    !isDark && isSelected && styles.categoryPillTextSelectedLight,
                   ]}
                 >
                   {cat.title}
@@ -191,7 +185,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
           const isExpanded = expandedPostId === post.id;
 
           return (
-            <View key={post.id} style={styles.postCard}>
+            <View key={post.id} style={[styles.postCard, !isDark && styles.postCardLight]}>
               {/* Header do Post */}
               <View style={styles.postTopRow}>
                 <View style={styles.authorGroup}>
@@ -202,39 +196,42 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
                   </View>
                   <View>
                     <View style={styles.authorNameRow}>
-                      <Text style={styles.authorName}>{post.author}</Text>
+                      <Text style={[styles.authorName, !isDark && styles.textDark]}>{post.author}</Text>
                       <View style={styles.badgePill}>
                         <Text style={styles.badgePillText}>{post.authorBadge}</Text>
                       </View>
                     </View>
-                    <Text style={styles.postTimeAgo}>{post.timeAgo} · {post.categoryName}</Text>
+                    <Text style={[styles.postTimeAgo, !isDark && styles.textMutedDark]}>{post.timeAgo} · {post.categoryName}</Text>
                   </View>
                 </View>
               </View>
 
               {/* Título & Conteúdo do Tópico */}
-              <Text style={styles.postTitle}>{post.title}</Text>
-              <Text style={styles.postContent}>{post.content}</Text>
+              <Text style={[styles.postTitle, !isDark && styles.textDark]}>{post.title}</Text>
+              <Text style={[styles.postContent, !isDark && styles.postContentLight]}>{post.content}</Text>
 
               {/* Ações: Upvote, Comentários, Partilhar */}
-              <View style={styles.postActionsRow}>
+              <View style={[styles.postActionsRow, !isDark && styles.postActionsRowLight]}>
                 <TouchableOpacity
                   style={[
                     styles.actionButton,
                     post.hasUpvoted && styles.actionButtonActive,
+                    !isDark && post.hasUpvoted && styles.actionButtonActiveLight,
                   ]}
                   onPress={() => handleToggleUpvote(post.id)}
                   activeOpacity={0.7}
                 >
                   <ThumbsUp
                     size={16}
-                    color={post.hasUpvoted ? COLORS.primaryLight : COLORS.textSecondary}
-                    fill={post.hasUpvoted ? COLORS.primaryLight : 'transparent'}
+                    color={post.hasUpvoted ? (isDark ? COLORS.primaryLight : '#00874E') : (isDark ? COLORS.textSecondary : '#5A6E63')}
+                    fill={post.hasUpvoted ? (isDark ? COLORS.primaryLight : '#00874E') : 'transparent'}
                   />
                   <Text
                     style={[
                       styles.actionText,
+                      !isDark && styles.actionTextLight,
                       post.hasUpvoted && styles.actionTextActive,
+                      !isDark && post.hasUpvoted && styles.actionTextActiveLight,
                     ]}
                   >
                     {post.upvotes}
@@ -246,8 +243,8 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
                   onPress={() => setExpandedPostId(isExpanded ? null : post.id)}
                   activeOpacity={0.7}
                 >
-                  <MessageSquare size={16} color={COLORS.textSecondary} />
-                  <Text style={styles.actionText}>
+                  <MessageSquare size={16} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
+                  <Text style={[styles.actionText, !isDark && styles.actionTextLight]}>
                     {post.commentsCount} respostas
                   </Text>
                 </TouchableOpacity>
@@ -257,32 +254,32 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, onOpenChants 
                   onPress={() => alert('Link da publicação copiado para partilha!')}
                   activeOpacity={0.7}
                 >
-                  <Share2 size={16} color={COLORS.textSecondary} />
+                  <Share2 size={16} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
                 </TouchableOpacity>
               </View>
 
               {/* Seção Expandida de Respostas */}
               {isExpanded && (
                 <View style={styles.repliesSection}>
-                  <View style={styles.repliesDivider} />
-                  <Text style={styles.repliesHeading}>Respostas ({post.replies.length})</Text>
+                  <View style={[styles.repliesDivider, !isDark && styles.repliesDividerLight]} />
+                  <Text style={[styles.repliesHeading, !isDark && styles.textDark]}>Respostas ({post.replies.length})</Text>
 
                   {post.replies.map((rep) => (
-                    <View key={rep.id} style={styles.singleReplyBox}>
+                    <View key={rep.id} style={[styles.singleReplyBox, !isDark && styles.singleReplyBoxLight]}>
                       <View style={styles.replyTop}>
-                        <Text style={styles.replyAuthor}>{rep.author}</Text>
-                        <Text style={styles.replyTime}>{rep.time}</Text>
+                        <Text style={[styles.replyAuthor, !isDark && styles.replyAuthorLight]}>{rep.author}</Text>
+                        <Text style={[styles.replyTime, !isDark && styles.textMutedDark]}>{rep.time}</Text>
                       </View>
-                      <Text style={styles.replyBody}>{rep.text}</Text>
+                      <Text style={[styles.replyBody, !isDark && styles.postContentLight]}>{rep.text}</Text>
                     </View>
                   ))}
 
                   {/* Input de Nova Resposta */}
                   <View style={styles.replyInputRow}>
                     <TextInput
-                      style={styles.replyTextInput}
+                      style={[styles.replyTextInput, !isDark && styles.replyTextInputLight]}
                       placeholder="Escreve uma resposta..."
-                      placeholderTextColor={COLORS.textMuted}
+                      placeholderTextColor={isDark ? COLORS.textMuted : '#7A9184'}
                       value={replyText}
                       onChangeText={setReplyText}
                     />
@@ -426,22 +423,6 @@ const styles = StyleSheet.create({
   categoryPillSelected: {
     backgroundColor: 'rgba(0, 135, 78, 0.3)',
     borderColor: COLORS.primaryLight,
-  },
-  chantsShortcutPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.4)',
-  },
-  chantsShortcutPillText: {
-    color: COLORS.gold,
-    fontSize: 12,
-    fontWeight: '800',
   },
   categoryPillText: {
     color: COLORS.textSecondary,
@@ -760,5 +741,67 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: '800',
+  },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  categoriesBarLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  categoryPillLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+  },
+  categoryPillTextLight: {
+    color: '#24382C',
+  },
+  categoryPillSelectedLight: {
+    backgroundColor: '#00874E',
+    borderColor: '#00874E',
+  },
+  categoryPillTextSelectedLight: {
+    color: '#FFFFFF',
+  },
+  postCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 14px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#556A5E',
+  },
+  postContentLight: {
+    color: '#314438',
+  },
+  postActionsRowLight: {
+    borderTopColor: 'rgba(0, 135, 78, 0.1)',
+  },
+  actionTextLight: {
+    color: '#5A6E63',
+  },
+  actionButtonActiveLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  repliesDividerLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  singleReplyBoxLight: {
+    backgroundColor: '#F4F7F5',
+  },
+  replyAuthorLight: {
+    color: '#00874E',
+  },
+  replyTextInputLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+    color: '#0E1712',
   },
 });

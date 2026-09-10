@@ -150,7 +150,6 @@ export const PAST_RESULTS = [
 
 export const FORUM_CATEGORIES = [
   { id: 'all', title: 'Todos os Tópicos', icon: 'Flame' },
-  { id: 'bancada', title: 'Bancada & Cânticos', icon: 'Music' },
   { id: 'deslocacao', title: 'Próxima Deslocação', icon: 'Bus' },
   { id: 'opiniao', title: 'Opinião & Debate', icon: 'MessageCircle' },
   { id: 'mercado', title: 'Mercado do Adepto', icon: 'ShoppingBag' },
@@ -159,8 +158,8 @@ export const FORUM_CATEGORIES = [
 export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-1',
-    categoryId: 'bancada',
-    categoryName: 'Bancada & Cânticos',
+    categoryId: 'opiniao',
+    categoryName: 'Opinião & Debate',
     author: 'Gonçalo Bateria',
     authorBadge: 'Chefe de Bancada',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',

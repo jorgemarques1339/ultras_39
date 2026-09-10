@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { id: 'profile', label: 'Perfil', icon: User },
 ];
 
-export default function LiquidGlassNavBar({ activeTab, onSelectTab }) {
+export default function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -26,10 +26,11 @@ export default function LiquidGlassNavBar({ activeTab, onSelectTab }) {
         style={[
           styles.glassBar,
           isTablet ? styles.glassBarTablet : styles.glassBarPhone,
+          !isDark && styles.glassBarLight,
         ]}
       >
         {/* Subtle Top Gradient Line */}
-        <View style={styles.glowLine} />
+        <View style={[styles.glowLine, !isDark && styles.glowLineLight]} />
 
         {NAV_ITEMS.map((item) => {
           const IconComponent = item.icon;
@@ -147,6 +148,15 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  glassBarLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08), 0 0 14px rgba(0, 135, 78, 0.1)',
+      },
+    }),
+  },
   glowLine: {
     position: 'absolute',
     top: 0,
@@ -154,6 +164,9 @@ const styles = StyleSheet.create({
     right: 20,
     height: 1,
     backgroundColor: 'rgba(0, 179, 104, 0.35)',
+  },
+  glowLineLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.25)',
   },
   navItem: {
     flex: 1,
@@ -199,14 +212,14 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.gold,
+    backgroundColor: '#00B368',
     marginTop: 2,
   },
   badgeContainer: {
     position: 'absolute',
     top: -4,
     right: -8,
-    backgroundColor: COLORS.gold,
+    backgroundColor: '#00B368',
     borderRadius: 8,
     minWidth: 16,
     height: 16,
@@ -215,7 +228,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   badgeText: {
-    color: '#000',
+    color: '#FFF',
     fontSize: 9,
     fontWeight: '800',
   },

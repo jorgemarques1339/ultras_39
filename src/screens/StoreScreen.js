@@ -10,20 +10,15 @@ import {
 } from 'react-native';
 import {
   ShoppingBag,
-  Sparkles,
-  Check,
-  ChevronRight,
-  ShieldCheck,
   Truck,
   Tag,
-  Zap,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { STORE_PRODUCTS } from '../data/mockData';
 
 const CATEGORIES = ['Todos', 'Cachecóis', 'Vestuário', 'Acessórios', 'Autocolantes'];
 
-export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
+export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [selectedSizes, setSelectedSizes] = useState({
     'prod-scarf-26': 'Tamanho Único',
@@ -60,77 +55,50 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, !isDark && styles.containerLight]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
       scrollEventThrottle={16}
     >
-      {/* 1. HERO BANNER DA LOJA OFICIAL */}
-      <View style={styles.heroBanner}>
-        <View style={styles.heroHeaderRow}>
-          <View style={styles.heroBadge}>
-            <Sparkles size={12} color={COLORS.gold} />
-            <Text style={styles.heroBadgeText}>MERCHANDISING OFICIAL G39</Text>
-          </View>
-          <View style={styles.mbwayPill}>
-            <Text style={styles.mbwayPillText}>PAGAMENTO MB WAY</Text>
-          </View>
-        </View>
-
-        <Text style={styles.heroTitle}>Veste o Verde & Branco</Text>
-        <Text style={styles.heroSubtitle}>
-          Artigos exclusivos com desconto de sócio. Encomenda pela app e levanta na
-          sede nos Arcos ou recebe em mão no dia de jogo.
-        </Text>
-
-        <View style={styles.heroFeaturesRow}>
-          <View style={styles.featureItem}>
-            <ShieldCheck size={14} color={COLORS.primaryLight} />
-            <Text style={styles.featureText}>Artigos Oficiais</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Truck size={14} color={COLORS.primaryLight} />
-            <Text style={styles.featureText}>Levantamento na Sede</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Zap size={14} color={COLORS.gold} />
-            <Text style={styles.featureText}>Desconto Sócio G39</Text>
-          </View>
-        </View>
+      {/* 1. FILTROS DE CATEGORIAS EM CHIPS RESPONSIVOS */}
+      <View style={styles.categoriesWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesBar}
+        >
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.categoryChip,
+                  !isDark && styles.categoryChipLight,
+                  isActive && styles.categoryChipActive,
+                ]}
+                onPress={() => setActiveCategory(cat)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    !isDark && styles.categoryChipTextLight,
+                    isActive && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      {/* 2. FILTROS DE CATEGORIAS */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesBar}
-      >
-        {CATEGORIES.map((cat) => {
-          const isActive = activeCategory === cat;
-          return (
-            <TouchableOpacity
-              key={cat}
-              style={[styles.categoryChip, isActive && styles.categoryChipActive]}
-              onPress={() => setActiveCategory(cat)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.categoryChipText,
-                  isActive && styles.categoryChipTextActive,
-                ]}
-              >
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      {/* 3. PRODUTO EM DESTAQUE ESPECIAL (CACHECOL ÉPOCA 2026/2027) */}
+      {/* 2. PRODUTO EM DESTAQUE ESPECIAL (CACHECOL ÉPOCA 2026/2027) */}
       {activeCategory === 'Todos' && STORE_PRODUCTS[0] && (
-        <View style={styles.featuredCard}>
+        <View style={[styles.featuredCard, !isDark && styles.featuredCardLight]}>
           <View style={styles.featuredBadgeRow}>
             <View style={styles.featuredGoldBadge}>
               <Tag size={12} color="#000" />
@@ -145,31 +113,38 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
               style={styles.featuredImg}
             />
             <View style={styles.featuredInfo}>
-              <Text style={styles.featuredCategory}>{STORE_PRODUCTS[0].category}</Text>
-              <Text style={styles.featuredTitle}>{STORE_PRODUCTS[0].title}</Text>
-              <Text style={styles.featuredDesc} numberOfLines={2}>
-                {STORE_PRODUCTS[0].description}
-              </Text>
-
-              <View style={styles.priceRow}>
-                <Text style={styles.featuredPrice}>
-                  {STORE_PRODUCTS[0].price.toFixed(2)} €
+              <View>
+                <Text style={styles.featuredCategory}>{STORE_PRODUCTS[0].category}</Text>
+                <Text style={[styles.featuredTitle, !isDark && styles.textDark]} numberOfLines={2}>
+                  {STORE_PRODUCTS[0].title}
                 </Text>
-                <Text style={styles.originalPrice}>15,00 €</Text>
-                <View style={styles.discountBadge}>
-                  <Text style={styles.discountBadgeText}>-20% SÓCIO</Text>
-                </View>
+                <Text style={[styles.featuredDesc, !isDark && styles.textMutedDark]} numberOfLines={2}>
+                  {STORE_PRODUCTS[0].description}
+                </Text>
               </View>
 
-              <TouchableOpacity
-                style={styles.featuredBuyBtn}
-                onPress={() => handleBuy(STORE_PRODUCTS[0])}
-                activeOpacity={0.85}
-              >
-                <ShoppingBag size={14} color="#FFF" />
-                <Text style={styles.featuredBuyBtnText}>Comprar via MB WAY</Text>
-                <ChevronRight size={14} color="#FFF" />
-              </TouchableOpacity>
+              <View style={styles.featuredBottomAction}>
+                <View style={styles.priceContainerFeatured}>
+                  <View style={styles.priceRowFeatured}>
+                    <Text style={styles.featuredPrice}>
+                      {STORE_PRODUCTS[0].price.toFixed(2)} €
+                    </Text>
+                    <Text style={[styles.originalPrice, !isDark && styles.originalPriceLight]}>15,00 €</Text>
+                    <View style={styles.discountBadge}>
+                      <Text style={styles.discountBadgeText}>-20% SÓCIO</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.cardBuyBtn}
+                  onPress={() => handleBuy(STORE_PRODUCTS[0])}
+                  activeOpacity={0.85}
+                >
+                  <ShoppingBag size={14} color="#FFF" />
+                  <Text style={styles.cardBuyBtnText}>Comprar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -177,10 +152,10 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
 
       {/* 4. GRELHA DE TODOS OS PRODUTOS */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, !isDark && styles.textDark]}>
           {activeCategory === 'Todos' ? 'Todos os Artigos' : activeCategory}
         </Text>
-        <Text style={styles.sectionCount}>
+        <Text style={[styles.sectionCount, !isDark && styles.textMutedDark]}>
           {filteredProducts.length} {filteredProducts.length === 1 ? 'artigo' : 'artigos'}
         </Text>
       </View>
@@ -191,7 +166,7 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
             selectedSizes[product.id] || (product.sizes ? product.sizes[0] : null);
 
           return (
-            <View key={product.id} style={styles.productCard}>
+            <View key={product.id} style={[styles.productCard, !isDark && styles.productCardLight]}>
               {/* Imagem & Badge Superior */}
               <View style={styles.productImgBox}>
                 <Image source={{ uri: product.image }} style={styles.productImg} />
@@ -203,17 +178,17 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
               {/* Informações do Produto */}
               <View style={styles.productBody}>
                 <Text style={styles.productCategory}>{product.category}</Text>
-                <Text style={styles.productTitle} numberOfLines={2}>
+                <Text style={[styles.productTitle, !isDark && styles.textDark]} numberOfLines={2}>
                   {product.title}
                 </Text>
-                <Text style={styles.productDesc} numberOfLines={2}>
+                <Text style={[styles.productDesc, !isDark && styles.textMutedDark]} numberOfLines={2}>
                   {product.description}
                 </Text>
 
                 {/* Seleção de Tamanhos se houver múltiplos */}
                 {product.sizes && product.sizes.length > 1 && (
                   <View style={styles.sizesBox}>
-                    <Text style={styles.sizesLabel}>Tamanho:</Text>
+                    <Text style={[styles.sizesLabel, !isDark && styles.textMutedDark]}>Tamanho:</Text>
                     <View style={styles.sizesRow}>
                       {product.sizes.map((s) => {
                         const isSizeActive = currentSize === s;
@@ -222,6 +197,7 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
                             key={s}
                             style={[
                               styles.sizeChip,
+                              !isDark && styles.sizeChipLight,
                               isSizeActive && styles.sizeChipActive,
                             ]}
                             onPress={() => handleSizeChange(product.id, s)}
@@ -230,6 +206,7 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
                             <Text
                               style={[
                                 styles.sizeChipText,
+                                !isDark && styles.sizeChipTextLight,
                                 isSizeActive && styles.sizeChipTextActive,
                               ]}
                             >
@@ -245,12 +222,12 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
                 {/* Bloco de Preços */}
                 <View style={styles.priceContainer}>
                   <View>
-                    <Text style={styles.priceLabel}>Preço Sócio G39</Text>
+                    <Text style={[styles.priceLabel, !isDark && styles.textMutedDark]}>Preço Sócio G39</Text>
                     <View style={styles.priceRowCard}>
                       <Text style={styles.priceValue}>
                         {product.price.toFixed(2)} €
                       </Text>
-                      <Text style={styles.pricePublic}>
+                      <Text style={[styles.pricePublic, !isDark && styles.pricePublicLight]}>
                         {(product.price + 3.0).toFixed(2)} €
                       </Text>
                     </View>
@@ -272,13 +249,13 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll }) {
       </View>
 
       {/* 5. AVISO DE LEVANTAMENTO & APOIO */}
-      <View style={styles.infoBanner}>
-        <View style={styles.infoIconBox}>
-          <Truck size={18} color={COLORS.primaryLight} />
+      <View style={[styles.infoBanner, !isDark && styles.infoBannerLight]}>
+        <View style={[styles.infoIconBox, !isDark && styles.infoIconBoxLight]}>
+          <Truck size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
         </View>
         <View style={styles.infoContent}>
-          <Text style={styles.infoTitle}>Pontos de Levantamento</Text>
-          <Text style={styles.infoDesc}>
+          <Text style={[styles.infoTitle, !isDark && styles.infoTitleLight]}>Pontos de Levantamento</Text>
+          <Text style={[styles.infoDesc, !isDark && styles.infoDescLight]}>
             Podes levantar a tua encomenda gratuitamente na sede do Grupo 39 no Estádio
             dos Arcos às terças e quintas-feiras (19h30 - 21h30) ou na concentração
             antes dos jogos em casa.
@@ -297,100 +274,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1310',
   },
   contentContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-
-  // Hero Banner
-  heroBanner: {
-    backgroundColor: '#121C16',
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.3)',
-    marginBottom: 14,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 135, 78, 0.15)',
-      },
-    }),
-  },
-  heroHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  heroBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
-  },
-  heroBadgeText: {
-    color: COLORS.gold,
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  mbwayPill: {
-    backgroundColor: 'rgba(0, 179, 104, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.4)',
-  },
-  mbwayPillText: {
-    color: COLORS.primaryLight,
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
-  heroTitle: {
-    color: '#FFF',
-    fontSize: 20,
-    fontWeight: '900',
-    marginBottom: 6,
-  },
-  heroSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  heroFeaturesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#0D1510',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  featureText: {
-    color: COLORS.white,
-    fontSize: 10.5,
-    fontWeight: '600',
+    paddingHorizontal: 14,
+    paddingTop: 10,
   },
 
   // Categorias
+  categoriesWrapper: {
+    marginBottom: 12,
+    marginTop: 2,
+  },
   categoriesBar: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 14,
     paddingVertical: 2,
+    paddingRight: 10,
   },
   categoryChip: {
     backgroundColor: '#16221A',
@@ -454,10 +351,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   featuredImg: {
-    width: 100,
+    width: 95,
     height: 120,
     borderRadius: 12,
     backgroundColor: '#0D1510',
+    resizeMode: 'cover',
   },
   featuredInfo: {
     flex: 1,
@@ -471,7 +369,7 @@ const styles = StyleSheet.create({
   },
   featuredTitle: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '800',
     marginTop: 2,
     marginBottom: 3,
@@ -481,51 +379,44 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     lineHeight: 14,
   },
-  priceRow: {
+  featuredBottomAction: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 6,
-    marginVertical: 6,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  priceContainerFeatured: {
+    flexShrink: 1,
+  },
+  priceRowFeatured: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: 5,
   },
   featuredPrice: {
     color: COLORS.primaryLight,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '900',
   },
   originalPrice: {
     color: COLORS.textMuted,
-    fontSize: 12,
+    fontSize: 11.5,
     textDecorationLine: 'line-through',
   },
   discountBadge: {
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
     paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
   },
   discountBadgeText: {
-    color: COLORS.gold,
+    color: '#00B368',
     fontSize: 9,
-    fontWeight: '800',
-  },
-  featuredBuyBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 4px 12px rgba(0, 135, 78, 0.4)',
-      },
-    }),
-  },
-  featuredBuyBtnText: {
-    color: '#FFF',
-    fontSize: 11.5,
     fontWeight: '800',
   },
 
@@ -649,10 +540,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   priceLabel: {
     color: COLORS.textMuted,
@@ -663,6 +556,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
+    flexWrap: 'wrap',
   },
   priceValue: {
     color: COLORS.primaryLight,
@@ -677,20 +571,22 @@ const styles = StyleSheet.create({
   cardBuyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    justifyContent: 'center',
+    gap: 6,
     backgroundColor: COLORS.primary,
     paddingVertical: 7,
-    paddingHorizontal: 12,
+    paddingHorizontal: 13,
     borderRadius: 8,
+    minHeight: 33,
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 12px rgba(0, 135, 78, 0.3)',
+        boxShadow: '0 3px 10px rgba(0, 135, 78, 0.35)',
       },
     }),
   },
   cardBuyBtnText: {
     color: '#FFF',
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: '800',
   },
 
@@ -726,5 +622,65 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 10.5,
     lineHeight: 15,
+  },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  categoryChipLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+  },
+  categoryChipTextLight: {
+    color: '#24382C',
+  },
+  featuredCardLight: {
+    backgroundColor: '#F8FAF9',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)',
+      },
+    }),
+  },
+  productCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 12px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#556A5E',
+  },
+  sizeChipLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  sizeChipTextLight: {
+    color: '#24382C',
+  },
+  originalPriceLight: {
+    color: '#7A9184',
+  },
+  pricePublicLight: {
+    color: '#7A9184',
+  },
+  infoBannerLight: {
+    backgroundColor: '#F4F9F6',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  infoIconBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  infoTitleLight: {
+    color: '#00874E',
+  },
+  infoDescLight: {
+    color: '#344D3F',
   },
 });

@@ -36,6 +36,7 @@ export default function HomeScreen({
   onScroll,
   onOpenChants,
   onOpenStore,
+  isDark = true,
 }) {
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
@@ -82,36 +83,38 @@ export default function HomeScreen({
   return (
     <ScrollView
       ref={mainScrollRef}
-      style={styles.container}
+      style={[styles.container, !isDark && styles.containerLight]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
       scrollEventThrottle={16}
     >
-      {/* ATALHO PRINCIPAL: CÂNTICOS G39 (TEXTO TOTALMENTE CENTRALIZADO) */}
+      {/* ATALHO PRINCIPAL: CÂNTICOS G39 COM GRANDE DESTAQUE */}
       <View style={styles.chantsCenterWrapper}>
         <TouchableOpacity
-          style={styles.chantsCenteredBtn}
+          style={[styles.chantsCenteredBtn, !isDark && styles.chantsCenteredBtnLight]}
           onPress={onOpenChants}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
           <View style={styles.shortcutIconBgMusic}>
-            <Music size={18} color={COLORS.gold} />
+            <Music size={20} color="#FFF" />
           </View>
           <View style={styles.chantsTextBoxCentered}>
             <View style={styles.shortcutHeaderRowCentered}>
-              <Text style={styles.shortcutTitleCentered}>Canticos G39</Text>
+              <Text style={[styles.shortcutTitleCentered, !isDark && styles.shortcutTitleCenteredLight]}>Canticos G39</Text>
               <View style={styles.shortcutBadgeGold}>
                 <Text style={styles.shortcutBadgeText}>ÁUDIO & BATERIA</Text>
               </View>
             </View>
-            <Text style={styles.shortcutDescCentered}>Letras e ritmo oficial de bancada</Text>
+            <Text style={[styles.shortcutDescCentered, !isDark && styles.shortcutDescCenteredLight]}>Letras e ritmo oficial de bancada</Text>
           </View>
-          <ChevronRight size={16} color={COLORS.textMuted} />
+          <View style={styles.chantsArrowCircle}>
+            <ChevronRight size={16} color="#FFF" />
+          </View>
         </TouchableOpacity>
       </View>
 
-      {/* 2 BOTÕES POR DEBAIXO: DESLOCAÇÕES (SEMPRE A PULSAR) & CALENDÁRIO */}
+      {/* 2 BOTÕES POR DEBAIXO: AUTOCARRO (SEMPRE A PULSAR) & CALENDÁRIO */}
       <View style={styles.subShortcutsRow}>
         <Animated.View
           style={[
@@ -120,41 +123,41 @@ export default function HomeScreen({
           ]}
         >
           <TouchableOpacity
-            style={styles.subShortcutCardPulsing}
+            style={[styles.subShortcutCardPulsing, !isDark && styles.subShortcutCardPulsingLight]}
             onPress={() => setDeslocacaoModalVisible(true)}
             activeOpacity={0.8}
           >
             <View style={styles.subShortcutIconBgBus}>
-              <Bus size={15} color={COLORS.gold} />
+              <Bus size={15} color={COLORS.primaryLight} />
             </View>
             <View style={styles.busTextRow}>
-              <Text style={styles.subShortcutTextPulsing}>Deslocações</Text>
+              <Text style={[styles.subShortcutTextPulsing, !isDark && styles.subShortcutTextPulsingLight]}>Autocarro</Text>
               <View style={styles.livePulseDot} />
             </View>
-            <ChevronRight size={13} color={COLORS.gold} />
+            <ChevronRight size={13} color={COLORS.primaryLight} />
           </TouchableOpacity>
         </Animated.View>
 
         <TouchableOpacity
-          style={styles.subShortcutCard}
+          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
           onPress={() => onNavigateTab('calendar')}
           activeOpacity={0.8}
         >
           <View style={styles.subShortcutIconBgCalendar}>
             <Calendar size={15} color={COLORS.primaryLight} />
           </View>
-          <Text style={styles.subShortcutText}>Calendário</Text>
-          <ChevronRight size={13} color={COLORS.textMuted} />
+          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Calendário</Text>
+          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
         </TouchableOpacity>
       </View>
 
       {/* 2. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
-      <View style={styles.heroCard}>
+      <View style={[styles.heroCard, !isDark && styles.heroCardLight]}>
         {/* Header do Confronto */}
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
-            <Text style={styles.compName}>LIGA PORTUGAL BETCLIC</Text>
-            <Text style={styles.compRound}>6.ª Jornada</Text>
+            <Text style={[styles.compName, !isDark && styles.compNameLight]}>LIGA PORTUGAL BETCLIC</Text>
+            <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>6.ª Jornada</Text>
           </View>
         </View>
 
@@ -163,25 +166,25 @@ export default function HomeScreen({
           {/* Rio Ave FC */}
           <View style={styles.teamColumn}>
             <ClubBadge name={NEXT_MATCH.homeTeam.name} size="md" style={{ marginBottom: 4 }} />
-            <Text style={styles.teamName}>{NEXT_MATCH.homeTeam.name}</Text>
-            <Text style={styles.teamRole}>Anfitrião</Text>
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{NEXT_MATCH.homeTeam.name}</Text>
+            <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Anfitrião</Text>
           </View>
 
           {/* VS & Detalhes */}
           <View style={styles.vsColumn}>
-            <Text style={styles.vsText}>VS</Text>
-            <View style={styles.stadiumTag}>
-              <MapPin size={10} color={COLORS.gold} />
-              <Text style={styles.stadiumTagText}>{NEXT_MATCH.stadium}</Text>
+            <Text style={[styles.vsText, !isDark && styles.vsTextLight]}>VS</Text>
+            <View style={[styles.stadiumTag, !isDark && styles.stadiumTagLight]}>
+              <MapPin size={10} color={COLORS.primaryLight} />
+              <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]}>{NEXT_MATCH.stadium}</Text>
             </View>
-            <Text style={styles.matchTime}>{NEXT_MATCH.dateFormatted}</Text>
+            <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>{NEXT_MATCH.dateFormatted}</Text>
           </View>
 
           {/* Adversário Real */}
           <View style={styles.teamColumn}>
             <ClubBadge name={NEXT_MATCH.awayTeam.name} size="md" style={{ marginBottom: 4 }} />
-            <Text style={styles.teamName}>{NEXT_MATCH.awayTeam.name}</Text>
-            <Text style={styles.teamRole}>Visitante</Text>
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{NEXT_MATCH.awayTeam.name}</Text>
+            <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
 
@@ -294,31 +297,31 @@ export default function HomeScreen({
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleWithIcon}>
           <Radio size={18} color={COLORS.primaryLight} />
-          <Text style={styles.sectionTitle}>Notícias</Text>
+          <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>Notícias</Text>
         </View>
       </View>
 
       {/* Comunicado 1: Concentração e Apoio no Jogo */}
-      <View style={styles.communiqueCard}>
+      <View style={[styles.communiqueCard, !isDark && styles.communiqueCardLight]}>
         <View style={styles.communiqueIcon}>
-          <Users size={20} color={COLORS.gold} />
+          <Users size={20} color={COLORS.primaryLight} />
         </View>
         <View style={styles.communiqueContent}>
-          <Text style={styles.communiqueTitle}>Apoio Máximo: Rio Ave FC vs Estrela da Amadora</Text>
-          <Text style={styles.communiqueDesc}>
+          <Text style={[styles.communiqueTitle, !isDark && styles.communiqueTitleLight]}>Apoio Máximo: Rio Ave FC vs Estrela da Amadora</Text>
+          <Text style={[styles.communiqueDesc, !isDark && styles.communiqueDescLight]}>
             Segunda-feira, 14 de Setembro às 20h15 nos Arcos. Concentração do Grupo 39 na Porta 4 da Bancada Poente a partir das 19h15 para recepção ao autocarro da equipa.
           </Text>
         </View>
       </View>
 
       {/* Comunicado 2: Quotas e Informações */}
-      <View style={styles.communiqueCard}>
+      <View style={[styles.communiqueCard, !isDark && styles.communiqueCardLight]}>
         <View style={styles.communiqueIcon}>
           <Award size={20} color={COLORS.primaryLight} />
         </View>
         <View style={styles.communiqueContent}>
-          <Text style={styles.communiqueTitle}>Campanha de Quotas Época 2026/2027</Text>
-          <Text style={styles.communiqueDesc}>
+          <Text style={[styles.communiqueTitle, !isDark && styles.communiqueTitleLight]}>Campanha de Quotas Época 2026/2027</Text>
+          <Text style={[styles.communiqueDesc, !isDark && styles.communiqueDescLight]}>
             Garante o teu selo de associado ativo e prioridade máxima na bilhética oficial nos Arcos. Regularização disponível na aba de Perfil com liquidação direta via MB WAY.
           </Text>
         </View>
@@ -463,7 +466,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   vsText: {
-    color: COLORS.gold,
+    color: '#FFF',
     fontSize: 13,
     fontWeight: '900',
     marginBottom: 2,
@@ -606,10 +609,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
+    borderColor: 'rgba(0, 179, 104, 0.4)',
   },
   quickBookBusText: {
-    color: COLORS.gold,
+    color: COLORS.primaryLight,
     fontSize: 12,
     fontWeight: '700',
     flex: 1,
@@ -630,7 +633,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -652,22 +655,25 @@ const styles = StyleSheet.create({
   // Atalhos Rápidos da Claque
   chantsCenterWrapper: {
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   chantsCenteredBtn: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#121C16',
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.25)',
-    gap: 10,
+    backgroundColor: '#13281E',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: '#00B368',
+    gap: 12,
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 4px 20px rgba(0, 179, 104, 0.25), 0 0 12px rgba(0, 135, 78, 0.2)',
+      },
+      default: {
+        elevation: 6,
       },
     }),
   },
@@ -685,14 +691,15 @@ const styles = StyleSheet.create({
   },
   shortcutTitleCentered: {
     color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 14.5,
+    fontWeight: '900',
     textAlign: 'center',
+    letterSpacing: 0.3,
   },
   shortcutDescCentered: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    marginTop: 1.5,
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
     textAlign: 'center',
   },
   subShortcutsRow: {
@@ -712,11 +719,11 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     paddingHorizontal: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.gold,
+    borderColor: '#00B368',
     gap: 8,
     ...Platform.select({
       web: {
-        boxShadow: '0 0 14px rgba(242, 182, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 0 14px rgba(0, 179, 104, 0.45), 0 4px 12px rgba(0, 0, 0, 0.4)',
       },
     }),
   },
@@ -736,7 +743,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: COLORS.gold,
+    backgroundColor: '#00B368',
   },
   subShortcutCard: {
     flex: 1,
@@ -754,7 +761,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -773,24 +780,43 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   shortcutIconBgMusic: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#00874E',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#00B368',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 179, 104, 0.4)',
+      },
+    }),
+  },
+  chantsArrowCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0, 179, 104, 0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.45)',
   },
   shortcutBadgeGold: {
-    backgroundColor: 'rgba(242, 182, 0, 0.2)',
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
+    backgroundColor: 'rgba(0, 179, 104, 0.22)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.4)',
   },
   shortcutBadgeText: {
-    color: COLORS.gold,
-    fontSize: 7.5,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    color: '#00B368',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.4,
   },
 
   // Modo Dia de Jogo (Matchday Live Hub)
@@ -1003,5 +1029,100 @@ const styles = StyleSheet.create({
     color: COLORS.gold,
     fontSize: 10,
     fontWeight: '800',
+  },
+
+  // Variantes para Modo Claro (Light Theme)
+  containerLight: {
+    backgroundColor: '#F4F7F5',
+  },
+  chantsCenteredBtnLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.45)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 18px rgba(0, 135, 78, 0.12), 0 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+    }),
+  },
+  shortcutTitleCenteredLight: {
+    color: '#14201A',
+  },
+  shortcutDescCenteredLight: {
+    color: '#556960',
+  },
+  subShortcutCardPulsingLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#00874E',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 14px rgba(0, 135, 78, 0.3), 0 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+    }),
+  },
+  subShortcutTextPulsingLight: {
+    color: '#14201A',
+  },
+  subShortcutCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  subShortcutTextLight: {
+    color: '#14201A',
+  },
+  heroCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+      },
+    }),
+  },
+  sectionTitleLight: {
+    color: '#14201A',
+  },
+  communiqueCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  communiqueTitleLight: {
+    color: '#14201A',
+  },
+  communiqueDescLight: {
+    color: '#556960',
+  },
+  compNameLight: {
+    color: '#14201A',
+  },
+  compRoundLight: {
+    color: '#556960',
+  },
+  teamNameLight: {
+    color: '#14201A',
+  },
+  teamRoleLight: {
+    color: '#7E9187',
+  },
+  vsTextLight: {
+    color: '#00874E',
+  },
+  stadiumTagLight: {
+    backgroundColor: '#EDF5F0',
+  },
+  stadiumTagTextLight: {
+    color: '#14201A',
+  },
+  matchTimeLight: {
+    color: '#556960',
   },
 });

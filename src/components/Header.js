@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { Bell } from 'lucide-react-native';
+import { Bell, Sun, Moon } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-export default function Header({ onOpenNotifications, visible = true }) {
+export default function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTheme }) {
   const anim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export default function Header({ onOpenNotifications, visible = true }) {
   });
 
   return (
-    <Animated.View style={[styles.headerAnimatedWrapper, { height, opacity, transform: [{ translateY }] }]}>
-      <View style={styles.headerContainer}>
+    <Animated.View style={[styles.headerAnimatedWrapper, { height, opacity, transform: [{ translateY }] }, !isDark && styles.headerAnimatedWrapperLight]}>
+      <View style={[styles.headerContainer, !isDark && styles.headerContainerLight]}>
         <View style={styles.leftBrand}>
           {/* Emblema Grupo 39 & Rio Ave FC */}
           <View style={styles.emblemWrapper}>
@@ -44,21 +44,39 @@ export default function Header({ onOpenNotifications, visible = true }) {
           </View>
 
           <View style={styles.brandTitleRow}>
-            <Text style={styles.brandMainTitle}>GRUPO 39</Text>
+            <Text style={[styles.brandMainTitle, !isDark && styles.brandMainTitleLight]}>GRUPO 39</Text>
             <View style={styles.officialPill}>
               <Text style={styles.officialPillText}>OFICIAL</Text>
             </View>
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.notifButton}
-          onPress={onOpenNotifications}
-          activeOpacity={0.7}
-        >
-          <Bell size={18} color={COLORS.textSecondary} />
-          <View style={styles.notifDot} />
-        </TouchableOpacity>
+        {/* Grupo de Ações à Direita: Alternar Tema & Notificações */}
+        <View style={styles.rightActionsRow}>
+          {/* Botão Alternador de Tema: Light / Black */}
+          <TouchableOpacity
+            style={[styles.themeToggleButton, !isDark && styles.themeToggleButtonLight]}
+            onPress={onToggleTheme}
+            activeOpacity={0.75}
+            accessibilityLabel={isDark ? "Mudar para modo Light" : "Mudar para modo Black"}
+          >
+            {isDark ? (
+              <Sun size={17} color="#00B368" />
+            ) : (
+              <Moon size={17} color="#00874E" />
+            )}
+          </TouchableOpacity>
+
+          {/* Sino de Notificações */}
+          <TouchableOpacity
+            style={[styles.notifButton, !isDark && styles.notifButtonLight]}
+            onPress={onOpenNotifications}
+            activeOpacity={0.7}
+          >
+            <Bell size={18} color={isDark ? COLORS.textSecondary : '#4A5D53'} />
+            <View style={styles.notifDot} />
+          </TouchableOpacity>
+        </View>
       </View>
     </Animated.View>
   );
@@ -117,7 +135,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   rioAveLetters: {
-    color: COLORS.gold,
+    color: '#00B368',
     fontSize: 7,
     fontWeight: '900',
   },
@@ -133,15 +151,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   officialPill: {
-    backgroundColor: 'rgba(242, 182, 0, 0.18)',
+    backgroundColor: 'rgba(0, 179, 104, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.4)',
+    borderColor: 'rgba(0, 179, 104, 0.45)',
     paddingHorizontal: 5,
     paddingVertical: 1.5,
     borderRadius: 5,
   },
   officialPillText: {
-    color: COLORS.gold,
+    color: '#00B368',
     fontSize: 8.5,
     fontWeight: '800',
   },
@@ -164,5 +182,38 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 3.5,
     backgroundColor: COLORS.primaryLight,
+  },
+  rightActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  themeToggleButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(0, 179, 104, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeToggleButtonLight: {
+    backgroundColor: '#EDF5F0',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  headerAnimatedWrapperLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  headerContainerLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  brandMainTitleLight: {
+    color: '#14201A',
+  },
+  notifButtonLight: {
+    backgroundColor: '#F0F4F2',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
 });

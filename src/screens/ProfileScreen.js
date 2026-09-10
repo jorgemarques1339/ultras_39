@@ -33,6 +33,7 @@ export default function ProfileScreen({
   onViewReceipt,
   onScroll,
   onOpenWalletPass,
+  isDark = true,
 }) {
   const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
@@ -67,7 +68,7 @@ export default function ProfileScreen({
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, !isDark && styles.containerLight]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
@@ -75,7 +76,7 @@ export default function ProfileScreen({
     >
       {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (SOMENTE DADOS) */}
       <View style={styles.cardSection}>
-        <Text style={styles.sectionHeaderTitle}>Cartão Digital de Sócio</Text>
+        <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Cartão Digital de Sócio</Text>
 
         <View
           style={[
@@ -201,7 +202,7 @@ export default function ProfileScreen({
         {/* NOVO: BOTÕES OFICIAIS APPLE WALLET & GOOGLE WALLET */}
         <View style={styles.walletBtnContainer}>
           <TouchableOpacity
-            style={styles.walletActionBtn}
+            style={[styles.walletActionBtn, !isDark && styles.walletActionBtnLight]}
             onPress={onOpenWalletPass}
             activeOpacity={0.85}
           >
@@ -210,11 +211,11 @@ export default function ProfileScreen({
                 <Text style={styles.appleLogoGlyph}></Text>
               </View>
               <View>
-                <Text style={styles.walletBtnMain}>Guardar na Carteira Digital</Text>
-                <Text style={styles.walletBtnSub}>Apple Wallet & Google Wallet (Torniquetes Offline)</Text>
+                <Text style={[styles.walletBtnMain, !isDark && styles.textDark]}>Guardar na Carteira Digital</Text>
+                <Text style={[styles.walletBtnSub, !isDark && styles.textMutedDark]}>Apple Wallet & Google Wallet (Torniquetes Offline)</Text>
               </View>
             </View>
-            <Download size={16} color={COLORS.gold} />
+            <Download size={16} color={isDark ? COLORS.gold : '#00874E'} />
           </TouchableOpacity>
         </View>
       </View>
@@ -223,11 +224,11 @@ export default function ProfileScreen({
       <View style={styles.loyaltySection}>
         <View style={styles.loyaltyHeaderRow}>
           <View style={styles.loyaltyTitleGroup}>
-            <Award size={16} color={COLORS.gold} />
-            <Text style={styles.sectionHeaderTitle}>Fidelidade de Bancada</Text>
+            <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
+            <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Fidelidade de Bancada</Text>
           </View>
-          <View style={styles.loyaltyPointsBadge}>
-            <Text style={styles.loyaltyPointsText}>{hasCheckedIn ? '15 Presenças' : '14 Presenças'}</Text>
+          <View style={[styles.loyaltyPointsBadge, !isDark && styles.loyaltyPointsBadgeLight]}>
+            <Text style={[styles.loyaltyPointsText, !isDark && styles.loyaltyPointsTextLight]}>{hasCheckedIn ? '15 Presenças' : '14 Presenças'}</Text>
           </View>
         </View>
 
@@ -255,28 +256,38 @@ export default function ProfileScreen({
           {achievements.map((ach) => (
             <View
               key={ach.id}
-              style={[styles.achievementCard, ach.unlocked && styles.achievementCardUnlocked]}
+              style={[
+                styles.achievementCard,
+                !isDark && styles.achievementCardLight,
+                ach.unlocked && styles.achievementCardUnlocked,
+                !isDark && ach.unlocked && styles.achievementCardUnlockedLight,
+              ]}
             >
               <View style={styles.achievementTop}>
-                <View style={[styles.achievementIconBox, ach.unlocked && styles.achievementIconBoxUnlocked]}>
+                <View style={[
+                  styles.achievementIconBox,
+                  !isDark && styles.achievementIconBoxLight,
+                  ach.unlocked && styles.achievementIconBoxUnlocked,
+                  !isDark && ach.unlocked && styles.achievementIconBoxUnlockedLight,
+                ]}>
                   {ach.unlocked ? (
-                    <Award size={16} color={COLORS.gold} />
+                    <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
                   ) : (
-                    <ShieldCheck size={16} color={COLORS.textMuted} />
+                    <ShieldCheck size={16} color={isDark ? COLORS.textMuted : '#8FA89B'} />
                   )}
                 </View>
-                <View style={[styles.achBadgePill, ach.unlocked ? styles.achBadgePillUnlocked : styles.achBadgePillLocked]}>
-                  <Text style={[styles.achBadgeText, ach.unlocked ? styles.achBadgeTextUnlocked : styles.achBadgeTextLocked]}>
+                <View style={[styles.achBadgePill, ach.unlocked ? (isDark ? styles.achBadgePillUnlocked : styles.achBadgePillUnlockedLight) : (isDark ? styles.achBadgePillLocked : styles.achBadgePillLockedLight)]}>
+                  <Text style={[styles.achBadgeText, ach.unlocked ? (isDark ? styles.achBadgeTextUnlocked : styles.achBadgeTextUnlockedLight) : (isDark ? styles.achBadgeTextLocked : styles.achBadgeTextLockedLight)]}>
                     {ach.unlocked ? 'DESBLOQUEADO' : 'EM CURSO'}
                   </Text>
                 </View>
               </View>
 
-              <Text style={styles.achTitle}>{ach.title}</Text>
-              <Text style={styles.achDesc}>{ach.description}</Text>
+              <Text style={[styles.achTitle, !isDark && styles.textDark]}>{ach.title}</Text>
+              <Text style={[styles.achDesc, !isDark && styles.textMutedDark]}>{ach.description}</Text>
 
               <View style={styles.achFooter}>
-                <Text style={styles.achProgress}>{ach.progress}</Text>
+                <Text style={[styles.achProgress, !isDark && styles.achProgressLight]}>{ach.progress}</Text>
                 <Text style={styles.achReward}>🎁 {ach.reward}</Text>
               </View>
             </View>
@@ -287,22 +298,24 @@ export default function ProfileScreen({
       {/* 2. GESTÃO DE QUOTAS (PAGAMENTO ANUAL 12,50 €) */}
       <View style={styles.quotaSection}>
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionHeaderTitle}>Gestão de Quota Anual de Sócio</Text>
+          <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Gestão de Quota Anual de Sócio</Text>
           <View
             style={[
               styles.quotaStatusBadge,
               isQuotaPending ? styles.statusPendingBadge : styles.statusPaidBadge,
+              !isDark && (isQuotaPending ? styles.statusPendingBadgeLight : styles.statusPaidBadgeLight),
             ]}
           >
             {isQuotaPending ? (
               <AlertTriangle size={13} color="#FF9800" />
             ) : (
-              <CheckCircle2 size={13} color={COLORS.primaryLight} />
+              <CheckCircle2 size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
             )}
             <Text
               style={[
                 styles.quotaStatusText,
                 isQuotaPending ? styles.statusPendingText : styles.statusPaidText,
+                !isDark && (isQuotaPending ? styles.statusPendingTextLight : styles.statusPaidTextLight),
               ]}
             >
               {isQuotaPending ? 'Quota Anual Pendente' : 'Quota Anual em Dia'}
@@ -310,7 +323,7 @@ export default function ProfileScreen({
           </View>
         </View>
 
-        <View style={styles.quotaCard}>
+        <View style={[styles.quotaCard, !isDark && styles.quotaCardLight]}>
           {isQuotaPending ? (
             <View>
               <View style={styles.quotaAlertRow}>
@@ -318,18 +331,18 @@ export default function ProfileScreen({
                   <AlertTriangle size={24} color="#FF9800" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.quotaAlertTitle}>
+                  <Text style={[styles.quotaAlertTitle, !isDark && styles.quotaAlertTitleLight]}>
                     Regularização de Quota Anual
                   </Text>
-                  <Text style={styles.quotaAlertDesc}>
-                    A quota anual da <Text style={{ color: COLORS.white, fontWeight: '700' }}>{user.quotaPendingPeriod || user.quotaPendingMonth || 'Época 2026/2027'}</Text> está por liquidar. Mantém os teus direitos de voto e desconto nos bilhetes.
+                  <Text style={[styles.quotaAlertDesc, !isDark && styles.quotaAlertDescLight]}>
+                    A quota anual da <Text style={{ color: isDark ? COLORS.white : '#0E1712', fontWeight: '700' }}>{user.quotaPendingPeriod || user.quotaPendingMonth || 'Época 2026/2027'}</Text> está por liquidar. Mantém os teus direitos de voto e desconto nos bilhetes.
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.quotaPriceBreakdown}>
-                <Text style={styles.quotaPriceLabel}>Valor Anual da Quota:</Text>
-                <Text style={styles.quotaPriceValue}>12,50 €</Text>
+              <View style={[styles.quotaPriceBreakdown, !isDark && styles.quotaPriceBreakdownLight]}>
+                <Text style={[styles.quotaPriceLabel, !isDark && styles.textMutedDark]}>Valor Anual da Quota:</Text>
+                <Text style={[styles.quotaPriceValue, !isDark && styles.textDark]}>12,50 €</Text>
               </View>
 
               {/* Botão de Pagamento MB WAY */}
@@ -358,19 +371,19 @@ export default function ProfileScreen({
           ) : (
             <View>
               <View style={styles.quotaSuccessRow}>
-                <CheckCircle2 size={24} color={COLORS.primaryLight} />
+                <CheckCircle2 size={24} color={isDark ? COLORS.primaryLight : '#00874E'} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.quotaSuccessTitle}>
+                  <Text style={[styles.quotaSuccessTitle, !isDark && styles.textDark]}>
                     Parabéns! Época 2026/2027 Regularizada
                   </Text>
-                  <Text style={styles.quotaSuccessDesc}>
+                  <Text style={[styles.quotaSuccessDesc, !isDark && styles.textMutedDark]}>
                     A tua quota anual está regularizada. O teu cartão digital de sócio está ativo para acesso livre ao Estádio dos Arcos e descontos na loja da claque.
                   </Text>
                 </View>
               </View>
 
               <TouchableOpacity
-                style={styles.advanceQuotaBtn}
+                style={[styles.advanceQuotaBtn, !isDark && styles.advanceQuotaBtnLight]}
                 onPress={() =>
                   onPayQuota({
                     title: 'Antecipação Quota Anual · Época 2027/2028',
@@ -381,10 +394,10 @@ export default function ProfileScreen({
                 }
                 activeOpacity={0.8}
               >
-                <Text style={styles.advanceQuotaBtnText}>
+                <Text style={[styles.advanceQuotaBtnText, !isDark && styles.advanceQuotaBtnTextLight]}>
                   Adiantar Próxima Época via MB WAY (12,50 €)
                 </Text>
-                <ChevronRight size={14} color={COLORS.gold} />
+                <ChevronRight size={14} color={isDark ? COLORS.gold : '#00874E'} />
               </TouchableOpacity>
             </View>
           )}
@@ -395,23 +408,23 @@ export default function ProfileScreen({
       <View style={styles.transactionsSection}>
         <View style={styles.sectionHeaderRow}>
           <View style={styles.iconHeadingRow}>
-            <History size={16} color={COLORS.gold} />
-            <Text style={styles.sectionHeaderTitle} numberOfLines={1}>
+            <History size={16} color={isDark ? COLORS.gold : '#00874E'} />
+            <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]} numberOfLines={1}>
               Histórico MB WAY
             </Text>
           </View>
-          <Text style={styles.txCountBadge}>{transactions.length} mov.</Text>
+          <Text style={[styles.txCountBadge, !isDark && styles.textMutedDark]}>{transactions.length} mov.</Text>
         </View>
 
         {transactions.length === 0 ? (
-          <View style={styles.emptyTxBox}>
-            <Text style={styles.emptyTxText}>Nenhum pagamento efetuado ainda.</Text>
+          <View style={[styles.emptyTxBox, !isDark && styles.emptyTxBoxLight]}>
+            <Text style={[styles.emptyTxText, !isDark && styles.textMutedDark]}>Nenhum pagamento efetuado ainda.</Text>
           </View>
         ) : (
           transactions.map((tx) => (
             <TouchableOpacity
               key={tx.id}
-              style={styles.txCard}
+              style={[styles.txCard, !isDark && styles.txCardLight]}
               onPress={() => onViewReceipt(tx)}
               activeOpacity={0.7}
             >
@@ -424,18 +437,18 @@ export default function ProfileScreen({
               </View>
 
               <View style={styles.txDetails}>
-                <Text style={styles.txTitle}>{tx.title}</Text>
-                <Text style={styles.txMeta}>
+                <Text style={[styles.txTitle, !isDark && styles.textDark]}>{tx.title}</Text>
+                <Text style={[styles.txMeta, !isDark && styles.textMutedDark]}>
                   {tx.date} · Ref: {tx.sibsRef}
                 </Text>
-                <View style={styles.txReceiptPill}>
-                  <Receipt size={11} color={COLORS.primaryLight} />
-                  <Text style={styles.txReceiptText}>Ver Comprovativo</Text>
+                <View style={[styles.txReceiptPill, !isDark && styles.txReceiptPillLight]}>
+                  <Receipt size={11} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                  <Text style={[styles.txReceiptText, !isDark && styles.txReceiptTextLight]}>Ver Comprovativo</Text>
                 </View>
               </View>
 
               <View style={styles.txRight}>
-                <Text style={styles.txAmount}>{tx.amount.toFixed(2)} €</Text>
+                <Text style={[styles.txAmount, !isDark && styles.txAmountLight]}>{tx.amount.toFixed(2)} €</Text>
                 <View style={styles.txStatusPill}>
                   <Text style={styles.txStatusText}>{tx.status}</Text>
                 </View>
@@ -447,17 +460,17 @@ export default function ProfileScreen({
 
       {/* 4. DADOS DO PERFIL & APOIO AO SÓCIO */}
       <View style={styles.supportSection}>
-        <Text style={styles.sectionHeaderTitle}>Apoio ao Sócio do Grupo 39</Text>
-        <View style={styles.supportCard}>
+        <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Apoio ao Sócio do Grupo 39</Text>
+        <View style={[styles.supportCard, !isDark && styles.supportCardLight]}>
           <View style={styles.supportRow}>
-            <Phone size={16} color={COLORS.gold} />
-            <Text style={styles.supportLabel}>Linha Direta WhatsApp Claque:</Text>
-            <Text style={styles.supportVal}>+351 912 345 678</Text>
+            <Phone size={16} color={isDark ? COLORS.gold : '#00874E'} />
+            <Text style={[styles.supportLabel, !isDark && styles.textMutedDark]}>Linha Direta WhatsApp Claque:</Text>
+            <Text style={[styles.supportVal, !isDark && styles.textDark]}>+351 912 345 678</Text>
           </View>
           <View style={styles.supportRow}>
-            <Calendar size={16} color={COLORS.primaryLight} />
-            <Text style={styles.supportLabel}>Horário da Sede nos Arcos:</Text>
-            <Text style={styles.supportVal}>Ter a Sex: 17h - 20h</Text>
+            <Calendar size={16} color={isDark ? COLORS.primaryLight : '#00874E'} />
+            <Text style={[styles.supportLabel, !isDark && styles.textMutedDark]}>Horário da Sede nos Arcos:</Text>
+            <Text style={[styles.supportVal, !isDark && styles.textDark]}>Ter a Sex: 17h - 20h</Text>
           </View>
         </View>
       </View>
@@ -575,15 +588,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
+    borderColor: 'rgba(0, 179, 104, 0.35)',
   },
   cardCategoryText: {
-    color: COLORS.gold,
+    color: '#00B368',
     fontSize: 10,
     fontWeight: '800',
   },
@@ -604,7 +617,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.gold,
+    borderColor: '#00B368',
   },
   memberPhotoInitial: {
     color: '#FFF',
@@ -1215,5 +1228,123 @@ const styles = StyleSheet.create({
     color: COLORS.gold,
     fontSize: 10,
     fontWeight: '700',
+  },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#556A5E',
+  },
+  walletActionBtnLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  loyaltyPointsBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  loyaltyPointsTextLight: {
+    color: '#00874E',
+  },
+  achievementCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.12)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  achievementCardUnlockedLight: {
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+    backgroundColor: '#F8FAF9',
+  },
+  achievementIconBoxLight: {
+    backgroundColor: '#F0F4F2',
+  },
+  achievementIconBoxUnlockedLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  achBadgePillUnlockedLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  achBadgePillLockedLight: {
+    backgroundColor: '#EAEFEA',
+  },
+  achBadgeTextUnlockedLight: {
+    color: '#00874E',
+  },
+  achBadgeTextLockedLight: {
+    color: '#7A9184',
+  },
+  achProgressLight: {
+    color: '#00874E',
+  },
+  quotaCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  statusPendingBadgeLight: {
+    backgroundColor: 'rgba(255, 152, 0, 0.12)',
+    borderColor: 'rgba(255, 152, 0, 0.3)',
+  },
+  statusPendingTextLight: {
+    color: '#D97706',
+  },
+  statusPaidBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+  },
+  statusPaidTextLight: {
+    color: '#00874E',
+  },
+  quotaAlertTitleLight: {
+    color: '#D97706',
+  },
+  quotaAlertDescLight: {
+    color: '#4B5563',
+  },
+  quotaPriceBreakdownLight: {
+    borderTopColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  advanceQuotaBtnLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  advanceQuotaBtnTextLight: {
+    color: '#00874E',
+  },
+  emptyTxBoxLight: {
+    backgroundColor: '#F4F7F5',
+  },
+  txCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  txReceiptPillLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.08)',
+  },
+  txReceiptTextLight: {
+    color: '#00874E',
+  },
+  txAmountLight: {
+    color: '#00874E',
+  },
+  supportCardLight: {
+    backgroundColor: '#F8FAF9',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
   },
 });

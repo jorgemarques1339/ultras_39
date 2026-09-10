@@ -26,11 +26,14 @@ import {
   NEXT_MATCH,
 } from './src/data/mockData';
 import { COLORS } from './src/theme/colors';
+import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 
-export default function App() {
+function MainApp() {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
   const containerMaxWidth = isTablet ? (width >= 1024 ? 760 : 660) : '100%';
+
+  const { theme, isDark, toggleTheme } = useAppTheme();
 
   const [activeTab, setActiveTab] = useState('home');
   const [user, setUser] = useState(INITIAL_USER);
@@ -112,18 +115,29 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D1310" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.bgDark }]}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.bgDark}
+      />
 
-      <View style={[styles.appContainer, { maxWidth: containerMaxWidth }]}>
-        {/* Cabeçalho Superior Retrátil com Animação Fluida */}
+      <View
+        style={[
+          styles.appContainer,
+          { maxWidth: containerMaxWidth, backgroundColor: theme.bgDark },
+          !isDark && styles.appContainerLight,
+        ]}
+      >
+        {/* Cabeçalho Superior Retrátil com Animação Fluida & Alternador de Tema */}
         <Header
           onOpenNotifications={() => setNotificationsVisible(true)}
           visible={isHeaderVisible}
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
         />
 
         {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll */}
-        <View style={styles.screenArea}>
+        <View style={[styles.screenArea, !isDark && styles.screenAreaLight]}>
           {activeTab === 'home' && (
             <HomeScreen
               user={user}
@@ -132,6 +146,7 @@ export default function App() {
               onScroll={handleScroll}
               onOpenChants={() => setChantsModalVisible(true)}
               onOpenStore={() => handleSelectTab('store')}
+              isDark={isDark}
             />
           )}
 
@@ -140,7 +155,7 @@ export default function App() {
               user={user}
               onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
-              onOpenChants={() => setChantsModalVisible(true)}
+              isDark={isDark}
             />
           )}
 
@@ -149,6 +164,7 @@ export default function App() {
               user={user}
               onCheckoutItem={handleBuyTicket}
               onScroll={handleScroll}
+              isDark={isDark}
             />
           )}
 
@@ -157,6 +173,7 @@ export default function App() {
               onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
               onBack={() => handleSelectTab('home')}
+              isDark={isDark}
             />
           )}
 
@@ -168,6 +185,7 @@ export default function App() {
               onViewReceipt={handleViewReceipt}
               onScroll={handleScroll}
               onOpenWalletPass={() => setWalletPassModalVisible(true)}
+              isDark={isDark}
             />
           )}
         </View>
@@ -176,6 +194,7 @@ export default function App() {
         <LiquidGlassNavBar
           activeTab={activeTab}
           onSelectTab={handleSelectTab}
+          isDark={isDark}
         />
 
         {/* Módulo Especial: Modal de Checkout MB WAY */}
@@ -245,6 +264,14 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <ThemeProvider>
+      <MainApp />
+    </ThemeProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -270,9 +297,24 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  safeAreaLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  appContainerLight: {
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 40px rgba(0, 0, 0, 0.08)',
+        borderColor: 'rgba(0, 135, 78, 0.15)',
+      },
+    }),
+  },
   screenArea: {
     flex: 1,
     position: 'relative',
     overflow: 'hidden',
+  },
+  screenAreaLight: {
+    backgroundColor: '#FFFFFF',
   },
 });

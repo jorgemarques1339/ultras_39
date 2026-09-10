@@ -21,40 +21,47 @@ import { COLORS } from '../theme/colors';
 import { CALENDAR_MATCHES, PAST_RESULTS } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
+export default function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, !isDark && styles.containerLight]}>
       {/* Botão de Retorno (se acedido via atalho da Home) */}
       {onBack && (
-        <View style={styles.backNavRow}>
+        <View style={[styles.backNavRow, !isDark && styles.backNavRowLight]}>
           <TouchableOpacity
             style={styles.backNavBtn}
             onPress={onBack}
             activeOpacity={0.7}
           >
-            <ArrowLeft size={16} color={COLORS.primaryLight} />
-            <Text style={styles.backNavText}>Voltar ao Início</Text>
+            <ArrowLeft size={16} color={isDark ? COLORS.primaryLight : '#00874E'} />
+            <Text style={[styles.backNavText, !isDark && { color: '#00874E' }]}>Voltar ao Início</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Tabs Superiores */}
-      <View style={styles.topTabsBar}>
+      <View style={[styles.topTabsBar, !isDark && styles.topTabsBarLight]}>
         <TouchableOpacity
-          style={[styles.tabBtn, activeTab === 'upcoming' && styles.tabBtnActive]}
+          style={[
+            styles.tabBtn,
+            !isDark && styles.tabBtnLight,
+            activeTab === 'upcoming' && styles.tabBtnActive,
+            !isDark && activeTab === 'upcoming' && styles.tabBtnActiveLight,
+          ]}
           onPress={() => setActiveTab('upcoming')}
           activeOpacity={0.8}
         >
           <CalendarIcon
             size={16}
-            color={activeTab === 'upcoming' ? COLORS.primaryLight : COLORS.textSecondary}
+            color={activeTab === 'upcoming' ? (isDark ? COLORS.primaryLight : '#00874E') : (isDark ? COLORS.textSecondary : '#5A6E63')}
           />
           <Text
             style={[
               styles.tabBtnText,
+              !isDark && styles.tabBtnTextLight,
               activeTab === 'upcoming' && styles.tabBtnTextActive,
+              !isDark && activeTab === 'upcoming' && styles.tabBtnTextActiveLight,
             ]}
           >
             Próximos Jogos
@@ -62,18 +69,25 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabBtn, activeTab === 'results' && styles.tabBtnActive]}
+          style={[
+            styles.tabBtn,
+            !isDark && styles.tabBtnLight,
+            activeTab === 'results' && styles.tabBtnActive,
+            !isDark && activeTab === 'results' && styles.tabBtnActiveLight,
+          ]}
           onPress={() => setActiveTab('results')}
           activeOpacity={0.8}
         >
           <Trophy
             size={16}
-            color={activeTab === 'results' ? COLORS.gold : COLORS.textSecondary}
+            color={activeTab === 'results' ? (isDark ? COLORS.gold : '#00874E') : (isDark ? COLORS.textSecondary : '#5A6E63')}
           />
           <Text
             style={[
               styles.tabBtnText,
+              !isDark && styles.tabBtnTextLight,
               activeTab === 'results' && styles.tabBtnTextActive,
+              !isDark && activeTab === 'results' && styles.tabBtnTextActiveLight,
             ]}
           >
             Resultados Anteriores
@@ -91,9 +105,9 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
         {activeTab === 'upcoming' && (
           <View>
             {CALENDAR_MATCHES.map((match) => (
-              <View key={match.id} style={styles.matchCard}>
+              <View key={match.id} style={[styles.matchCard, !isDark && styles.matchCardLight]}>
                 <View style={styles.matchHeader}>
-                  <Text style={styles.compTitle}>
+                  <Text style={[styles.compTitle, !isDark && styles.textMutedDark]}>
                     {match.competition} · {match.round}
                   </Text>
                   <View
@@ -120,6 +134,7 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                     <Text
                       style={[
                         styles.teamTitle,
+                        !isDark && styles.textDark,
                         match.home.includes('Rio Ave') && styles.teamRioAve,
                       ]}
                       numberOfLines={1}
@@ -128,8 +143,8 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                     </Text>
                   </View>
 
-                  <View style={styles.vsBadge}>
-                    <Text style={styles.vsBadgeText}>VS</Text>
+                  <View style={[styles.vsBadge, !isDark && styles.vsBadgeLight]}>
+                    <Text style={[styles.vsBadgeText, !isDark && styles.textMutedDark]}>VS</Text>
                   </View>
 
                   <View style={[styles.teamSide, styles.teamSideAway]}>
@@ -137,6 +152,7 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                       style={[
                         styles.teamTitle,
                         styles.teamTitleAway,
+                        !isDark && styles.textDark,
                         match.away.includes('Rio Ave') && styles.teamRioAve,
                       ]}
                       numberOfLines={1}
@@ -148,14 +164,14 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                 </View>
 
                 {/* Info Estádio & Data */}
-                <View style={styles.matchDetailsRow}>
+                <View style={[styles.matchDetailsRow, !isDark && styles.matchDetailsRowLight]}>
                   <View style={styles.detailItem}>
-                    <Clock size={13} color={COLORS.gold} />
-                    <Text style={styles.detailText}>{match.date}</Text>
+                    <Clock size={13} color={isDark ? COLORS.gold : '#00874E'} />
+                    <Text style={[styles.detailText, !isDark && styles.textMutedDark]}>{match.date}</Text>
                   </View>
                   <View style={styles.detailItem}>
-                    <MapPin size={13} color={COLORS.primaryLight} />
-                    <Text style={styles.detailText} numberOfLines={1}>
+                    <MapPin size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                    <Text style={[styles.detailText, !isDark && styles.textMutedDark]} numberOfLines={1}>
                       {match.stadium}
                     </Text>
                   </View>
@@ -209,12 +225,12 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
             ))}
 
             {/* CARD INFORMATIVO: LOCALIZAÇÃO DO ESTÁDIO DOS ARCOS */}
-            <View style={styles.stadiumInfoCard}>
+            <View style={[styles.stadiumInfoCard, !isDark && styles.stadiumInfoCardLight]}>
               <View style={styles.stadiumInfoHeader}>
-                <MapPin size={18} color={COLORS.primaryLight} />
-                <Text style={styles.stadiumInfoTitle}>Estádio dos Arcos (Vila do Conde)</Text>
+                <MapPin size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                <Text style={[styles.stadiumInfoTitle, !isDark && styles.textDark]}>Estádio dos Arcos (Vila do Conde)</Text>
               </View>
-              <Text style={styles.stadiumInfoDesc}>
+              <Text style={[styles.stadiumInfoDesc, !isDark && styles.textMutedDark]}>
                 Avenida Bento de Freitas, 4480-811 Vila do Conde. Ponto de concentração do Grupo 39 na Porta 4 (Bancada Poente) e sede náutica no Cais da Alfândega.
               </Text>
               <TouchableOpacity
@@ -222,7 +238,7 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                 onPress={() => alert('Coordenadas GPS 41.3533° N, 8.7455° W abertas no mapa!')}
                 activeOpacity={0.8}
               >
-                <Navigation size={14} color={COLORS.gold} />
+                <Navigation size={14} color={isDark ? COLORS.gold : '#00874E'} />
                 <Text style={styles.gpsButtonText}>Abrir Rota GPS para o Estádio</Text>
               </TouchableOpacity>
             </View>
@@ -233,10 +249,10 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
         {activeTab === 'results' && (
           <View>
             {PAST_RESULTS.map((res) => (
-              <View key={res.id} style={styles.resultCard}>
+              <View key={res.id} style={[styles.resultCard, !isDark && styles.matchCardLight]}>
                 <View style={styles.resultTopBar}>
-                  <Text style={styles.resultComp}>{res.competition}</Text>
-                  <Text style={styles.resultDate}>{res.date}</Text>
+                  <Text style={[styles.resultComp, !isDark && styles.textMutedDark]}>{res.competition}</Text>
+                  <Text style={[styles.resultDate, !isDark && styles.textMutedDark]}>{res.date}</Text>
                 </View>
 
                 {/* Placar com Símbolos Oficiais */}
@@ -246,6 +262,7 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                     <Text
                       style={[
                         styles.scoreTeamName,
+                        !isDark && styles.textDark,
                         res.home.includes('Rio Ave') && styles.teamRioAve,
                       ]}
                       numberOfLines={1}
@@ -265,6 +282,7 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack }) {
                       style={[
                         styles.scoreTeamName,
                         styles.scoreTeamNameAway,
+                        !isDark && styles.textDark,
                         res.away.includes('Rio Ave') && styles.teamRioAve,
                       ]}
                       numberOfLines={1}
@@ -479,8 +497,8 @@ const styles = StyleSheet.create({
     borderColor: '#00B368',
   },
   busButton: {
-    backgroundColor: '#B58500',
-    borderColor: '#F2B600',
+    backgroundColor: '#005D35',
+    borderColor: '#00B368',
   },
   ticketButtonText: {
     color: '#FFF',
@@ -523,10 +541,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
+    borderColor: 'rgba(0, 179, 104, 0.35)',
   },
   gpsButtonText: {
-    color: COLORS.gold,
+    color: COLORS.primaryLight,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -616,5 +634,60 @@ const styles = StyleSheet.create({
   stadiumNote: {
     color: COLORS.textMuted,
     fontSize: 11,
+  },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  backNavRowLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  topTabsBarLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  tabBtnLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+  },
+  tabBtnTextLight: {
+    color: '#24382C',
+  },
+  tabBtnActiveLight: {
+    backgroundColor: '#00874E',
+    borderColor: '#00874E',
+  },
+  tabBtnTextActiveLight: {
+    color: '#FFFFFF',
+  },
+  matchCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 14px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#556A5E',
+  },
+  vsBadgeLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  matchDetailsRowLight: {
+    backgroundColor: '#F8FAF9',
+  },
+  stadiumInfoCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 14px rgba(0, 0, 0, 0.04)',
+      },
+    }),
   },
 });
