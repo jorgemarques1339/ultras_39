@@ -26,6 +26,8 @@ import {
   ChevronUp,
   Check,
   Nfc,
+  LogOut,
+  LogIn,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
@@ -73,15 +75,15 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
         <View style={styles.memberPhotoWrapper}>
           <View style={styles.memberPhoto}>
             <Text style={styles.memberPhotoInitial}>
-              {user.name.charAt(0)}
+              {user?.name?.charAt(0) || 'S'}
             </Text>
           </View>
           <View style={styles.memberPhotoRing} />
         </View>
 
         <View style={styles.memberInfoCol}>
-          <Text style={styles.memberName}>{user.name}</Text>
-          <Text style={styles.memberRole}>Membro Oficial G39</Text>
+          <Text style={styles.memberName}>{user?.name || 'Sócio Grupo 39'}</Text>
+          <Text style={styles.memberRole}>{user?.memberCategory || 'Membro Oficial G39'}</Text>
         </View>
       </View>
 
@@ -90,7 +92,7 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
         <View style={styles.cardDataRow}>
           <View style={styles.cardDataCol}>
             <Text style={styles.dataLabel}>N.º SÓCIO G39</Text>
-            <Text style={styles.dataVal}>#{user.memberNumber}</Text>
+            <Text style={styles.dataVal}>#{user?.memberNumber || '039'}</Text>
           </View>
 
           <View style={styles.cardDataDivider} />
@@ -106,7 +108,7 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
         <View style={styles.cardDataRow}>
           <View style={styles.cardDataCol}>
             <Text style={styles.dataLabel}>FILIAÇÃO</Text>
-            <Text style={styles.dataVal}>Desde {user.memberSince}</Text>
+            <Text style={styles.dataVal}>Desde {user?.memberSince || '2026'}</Text>
           </View>
 
           <View style={styles.cardDataDivider} />
@@ -133,7 +135,7 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
                 onPayQuota({
                   title: 'Quota Anual Grupo 39 · Época 2026/2027',
                   category: 'Quota Anual de Sócio',
-                  amount: 12.50,
+                  amount: 12.00,
                   type: 'quota',
                 })
               }
@@ -162,6 +164,9 @@ function ProfileScreen({
   onOpenWalletPass,
   isDark = true,
   onOpenPwaInstall,
+  isLoggedIn = true,
+  onOpenAuth,
+  onLogout,
 }) {
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
@@ -182,7 +187,7 @@ function ProfileScreen({
     );
   }, []);
 
-  const isQuotaPending = user.quotaStatus === 'pendente';
+  const isQuotaPending = user?.quotaStatus === 'pendente';
 
   return (
     <ScrollView
@@ -195,6 +200,28 @@ function ProfileScreen({
       removeClippedSubviews={Platform.OS !== 'web'}
       overScrollMode="never"
     >
+      {!isLoggedIn ? (
+        <View style={[styles.guestCard, !isDark && styles.guestCardLight]}>
+          <View style={styles.guestIconBox}>
+            <ShieldCheck size={32} color="#00B368" />
+          </View>
+          <Text style={[styles.guestTitle, !isDark && styles.textDark]}>
+            Área de Sócio & Perfil do Adepto
+          </Text>
+          <Text style={[styles.guestDesc, !isDark && styles.textMutedDark]}>
+            Inicia sessão com a tua conta para acederes ao cartão digital de bancada, histórico oficial de pagamentos MB WAY, crachás de presença e prioridade em deslocações.
+          </Text>
+          <TouchableOpacity
+            style={styles.guestLoginBtn}
+            onPress={onOpenAuth}
+            activeOpacity={0.85}
+          >
+            <LogIn size={16} color="#FFF" />
+            <Text style={styles.guestLoginBtnText}>Iniciar Sessão / Criar Conta</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
       {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (SOMENTE DADOS) */}
       <View style={styles.cardSection}>
         <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Cartão Digital</Text>
@@ -434,6 +461,20 @@ function ProfileScreen({
           </View>
           <ChevronRight size={16} color={isDark ? COLORS.textMuted : '#7E9187'} />
         </TouchableOpacity>
+      )}
+
+      {/* Botão de Terminar Sessão (Logout) */}
+      {onLogout && (
+        <TouchableOpacity
+          style={[styles.logoutBtn, !isDark && styles.logoutBtnLight]}
+          onPress={onLogout}
+          activeOpacity={0.8}
+        >
+          <LogOut size={16} color="#FF5252" />
+          <Text style={styles.logoutBtnText}>Terminar Sessão</Text>
+        </TouchableOpacity>
+      )}
+      </>
       )}
 
       {/* Modal de Check-In NFC */}
@@ -1401,6 +1442,78 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 11,
     marginTop: 1,
+  },
+  guestCard: {
+    backgroundColor: '#111D16',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    padding: 24,
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 16,
+  },
+  guestCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
+  },
+  guestIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0, 179, 104, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFF',
+    textAlign: 'center',
+  },
+  guestDesc: {
+    fontSize: 13,
+    color: '#9CAFA4',
+    textAlign: 'center',
+    lineHeight: 19,
+  },
+  guestLoginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#00B368',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginTop: 8,
+    width: '100%',
+  },
+  guestLoginBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 82, 82, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 82, 82, 0.3)',
+    borderRadius: 14,
+    paddingVertical: 12,
+    marginTop: 14,
+  },
+  logoutBtnLight: {
+    backgroundColor: '#FFF2F2',
+    borderColor: 'rgba(255, 82, 82, 0.35)',
+  },
+  logoutBtnText: {
+    color: '#FF5252',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });
 

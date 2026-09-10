@@ -57,7 +57,7 @@ function SejaSocioModal({
       onJoinMember({
         title: 'Quota Anual Grupo 39 · Época 2026/2027',
         category: 'Quota de Sócio Efetivo',
-        amount: 12.50,
+        amount: 12.00,
         type: 'quota',
       });
     } else if (onNavigateTab) {
@@ -120,7 +120,7 @@ function SejaSocioModal({
                   <Text style={styles.badgeGreenText}>CAMPANHA 2026/2027</Text>
                 </View>
                 <Text style={[styles.heroPriceText, !isDark && styles.heroPriceTextLight]}>
-                  12,50 € / Época
+                  12,00 € / Época
                 </Text>
               </View>
 
@@ -168,7 +168,7 @@ function SejaSocioModal({
             >
               <View style={styles.joinBtnRow}>
                 <ShieldCheck size={18} color="#FFF" />
-                <Text style={styles.joinBtnText}>Aderir / Regularizar Quota (12,50 €)</Text>
+                <Text style={styles.joinBtnText}>Aderir / Regularizar Quota (12,00 €)</Text>
               </View>
               <ChevronRight size={16} color="#FFF" />
             </TouchableOpacity>

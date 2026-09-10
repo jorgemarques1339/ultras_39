@@ -26,7 +26,7 @@ import { STORE_PRODUCTS } from '../data/mockData';
 
 const CATEGORIES = ['Todos', 'Cachecóis', 'Vestuário', 'Acessórios', 'Autocolantes'];
 
-function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
+function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true, isLoggedIn = false, onOpenAuth }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -66,17 +66,21 @@ function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
 
   const handleBuy = useCallback((product, chosenSize) => {
     const size = chosenSize || selectedSizes[product.id] || (product.sizes ? product.sizes[0] : 'Único');
+    const pubPrice = product.publicPrice != null ? product.publicPrice : (product.price + 3.0);
+    const finalAmount = isLoggedIn ? product.price : pubPrice;
+    const discountAmount = isLoggedIn ? Math.max(0, pubPrice - product.price) : 0;
+
     if (onCheckoutItem) {
       onCheckoutItem({
         title: `${product.title} (${size})`,
-        category: `Loja Oficial G39 · ${product.category}`,
-        amount: product.price,
-        originalPrice: product.price + 3.0,
-        discount: 3.0,
+        category: `Loja Oficial G39 · ${product.category} (${isLoggedIn ? 'Sócio' : 'Não Sócio'})`,
+        amount: finalAmount,
+        originalPrice: pubPrice,
+        discount: discountAmount,
         type: 'store',
       });
     }
-  }, [selectedSizes, onCheckoutItem]);
+  }, [selectedSizes, onCheckoutItem, isLoggedIn]);
 
   const handleBuyFromModal = useCallback(() => {
     if (!detailProduct) return;
@@ -141,6 +145,35 @@ function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
         </ScrollView>
       </View>
 
+      {/* AVISO DE PREÇOS NÃO SÓCIO (QUANDO SEM LOGIN) */}
+      {!isLoggedIn && (
+        <View style={[styles.guestStoreNotice, !isDark && styles.guestStoreNoticeLight]}>
+          <View style={styles.guestStoreNoticeContent}>
+            <View style={styles.guestStoreBadgeRow}>
+              <View style={styles.guestStoreBadge}>
+                <Text style={styles.guestStoreBadgeText}>PREÇO NÃO SÓCIO</Text>
+              </View>
+            </View>
+            <Text style={[styles.guestStoreNoticeTitle, !isDark && styles.textDark]}>
+              A visualizar preços sem desconto de sócio
+            </Text>
+            <Text style={[styles.guestStoreNoticeDesc, !isDark && styles.textMutedDark]}>
+              Inicia sessão com a tua conta para desbloquear os preços exclusivos de sócio.
+            </Text>
+          </View>
+          {onOpenAuth && (
+            <TouchableOpacity
+              style={styles.guestStoreLoginBtn}
+              onPress={() => onOpenAuth('login')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.guestStoreLoginBtnText}>Entrar</Text>
+              <ChevronRight size={14} color="#FFF" />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* 2. PRODUTO EM DESTAQUE ESPECIAL (AO CLICAR ABRE O MODAL DETALHADO) */}
       {activeCategory === 'Todos' && STORE_PRODUCTS[0] && (
         <TouchableOpacity
@@ -177,15 +210,31 @@ function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
 
               <View style={styles.featuredBottomAction}>
                 <View style={styles.priceContainerFeatured}>
-                  <View style={styles.priceRowFeatured}>
-                    <Text style={styles.featuredPrice}>
-                      {STORE_PRODUCTS[0].price.toFixed(2)} €
-                    </Text>
-                    <Text style={[styles.originalPrice, !isDark && styles.originalPriceLight]}>15,00 €</Text>
-                    <View style={styles.discountBadge}>
-                      <Text style={styles.discountBadgeText}>-20% SÓCIO</Text>
+                  {isLoggedIn ? (
+                    <View style={styles.priceRowFeatured}>
+                      <Text style={styles.featuredPrice}>
+                        {STORE_PRODUCTS[0].price.toFixed(2)} €
+                      </Text>
+                      <Text style={[styles.originalPrice, !isDark && styles.originalPriceLight]}>
+                        {(STORE_PRODUCTS[0].publicPrice || 15.0).toFixed(2)} €
+                      </Text>
+                      <View style={styles.discountBadge}>
+                        <Text style={styles.discountBadgeText}>-20% SÓCIO</Text>
+                      </View>
                     </View>
-                  </View>
+                  ) : (
+                    <View>
+                      <Text style={[styles.guestPriceLabel, !isDark && styles.textMutedDark]}>Preço Não Sócio</Text>
+                      <View style={styles.priceRowFeatured}>
+                        <Text style={styles.featuredPrice}>
+                          {(STORE_PRODUCTS[0].publicPrice || 15.0).toFixed(2)} €
+                        </Text>
+                        <View style={styles.guestPill}>
+                          <Text style={styles.guestPillText}>SEM DESCONTO</Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
                 </View>
 
                 <TouchableOpacity
@@ -289,15 +338,28 @@ function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
                 {/* Bloco de Preços */}
                 <View style={styles.priceContainer}>
                   <View>
-                    <Text style={[styles.priceLabel, !isDark && styles.textMutedDark]}>Preço Sócio G39</Text>
-                    <View style={styles.priceRowCard}>
-                      <Text style={styles.priceValue}>
-                        {product.price.toFixed(2)} €
-                      </Text>
-                      <Text style={[styles.pricePublic, !isDark && styles.pricePublicLight]}>
-                        {(product.price + 3.0).toFixed(2)} €
-                      </Text>
-                    </View>
+                    {isLoggedIn ? (
+                      <>
+                        <Text style={[styles.priceLabel, !isDark && styles.textMutedDark]}>Preço Sócio G39</Text>
+                        <View style={styles.priceRowCard}>
+                          <Text style={styles.priceValue}>
+                            {product.price.toFixed(2)} €
+                          </Text>
+                          <Text style={[styles.pricePublic, !isDark && styles.pricePublicLight]}>
+                            {(product.publicPrice || product.price + 3.0).toFixed(2)} €
+                          </Text>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <Text style={[styles.priceLabel, !isDark && styles.textMutedDark]}>Preço Não Sócio</Text>
+                        <View style={styles.priceRowCard}>
+                          <Text style={styles.priceValue}>
+                            {(product.publicPrice || product.price + 3.0).toFixed(2)} €
+                          </Text>
+                        </View>
+                      </>
+                    )}
                   </View>
 
                   <TouchableOpacity
@@ -515,24 +577,55 @@ function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
                       </View>
                     )}
 
-                    {/* Bloco de Valor e Desconto de Sócio */}
+                    {/* Bloco de Valor e Desconto */}
                     <View style={[styles.modalPriceCard, !isDark && styles.modalPriceCardLight]}>
-                      <View>
-                        <Text style={[styles.modalPriceLabel, !isDark && styles.textMutedDark]}>
-                          Valor Especial Sócio G39
-                        </Text>
-                        <View style={styles.modalPriceRow}>
-                          <Text style={styles.modalPriceValue}>
-                            {detailProduct.price.toFixed(2)} €
+                      {isLoggedIn ? (
+                        <View>
+                          <Text style={[styles.modalPriceLabel, !isDark && styles.textMutedDark]}>
+                            Valor Especial Sócio G39
                           </Text>
-                          <Text style={[styles.modalPricePublic, !isDark && styles.pricePublicLight]}>
-                            {(detailProduct.price + 3.0).toFixed(2)} €
-                          </Text>
-                          <View style={styles.modalDiscountPill}>
-                            <Text style={styles.modalDiscountPillText}>-20% SÓCIO</Text>
+                          <View style={styles.modalPriceRow}>
+                            <Text style={styles.modalPriceValue}>
+                              {detailProduct.price.toFixed(2)} €
+                            </Text>
+                            <Text style={[styles.modalPricePublic, !isDark && styles.pricePublicLight]}>
+                              {(detailProduct.publicPrice || detailProduct.price + 3.0).toFixed(2)} €
+                            </Text>
+                            <View style={styles.modalDiscountPill}>
+                              <Text style={styles.modalDiscountPillText}>-20% SÓCIO</Text>
+                            </View>
                           </View>
                         </View>
-                      </View>
+                      ) : (
+                        <View>
+                          <Text style={[styles.modalPriceLabel, !isDark && styles.textMutedDark]}>
+                            Preço Não Sócio (Sem Desconto)
+                          </Text>
+                          <View style={styles.modalPriceRow}>
+                            <Text style={styles.modalPriceValue}>
+                              {(detailProduct.publicPrice || detailProduct.price + 3.0).toFixed(2)} €
+                            </Text>
+                            <View style={styles.guestPill}>
+                              <Text style={styles.guestPillText}>SEM DESCONTO</Text>
+                            </View>
+                          </View>
+                          {onOpenAuth && (
+                            <TouchableOpacity
+                              style={styles.modalLoginInvite}
+                              onPress={() => {
+                                setDetailProduct(null);
+                                onOpenAuth('login');
+                              }}
+                              activeOpacity={0.8}
+                            >
+                              <Sparkles size={13} color={COLORS.primaryLight} />
+                              <Text style={styles.modalLoginInviteText}>
+                                És sócio? Entra para pagar {detailProduct.price.toFixed(2)} €
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      )}
                     </View>
 
                     {/* Botão de Compra com MB WAY */}
@@ -545,7 +638,9 @@ function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
                         <Text style={styles.mbWayLogoTxt}>MB</Text>
                       </View>
                       <Text style={styles.modalBuyBtnText}>
-                        Comprar via MB WAY ({detailProduct.price.toFixed(2)} €)
+                        Comprar via MB WAY ({
+                          (isLoggedIn ? detailProduct.price : (detailProduct.publicPrice || detailProduct.price + 3.0)).toFixed(2)
+                        } €)
                       </Text>
                       <ChevronRight size={18} color="#FFF" />
                     </TouchableOpacity>
@@ -1394,6 +1489,101 @@ const styles = StyleSheet.create({
   },
   sizeChipTextLight: {
     color: '#4B6154',
+  },
+  guestStoreNotice: {
+    backgroundColor: '#131D17',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.25)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  guestStoreNoticeLight: {
+    backgroundColor: '#FFFDF5',
+    borderColor: 'rgba(242, 182, 0, 0.35)',
+  },
+  guestStoreNoticeContent: {
+    flex: 1,
+  },
+  guestStoreBadgeRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  guestStoreBadge: {
+    backgroundColor: 'rgba(242, 182, 0, 0.16)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.35)',
+  },
+  guestStoreBadgeText: {
+    color: '#F2B600',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  guestStoreNoticeTitle: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  guestStoreNoticeDesc: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    lineHeight: 15,
+  },
+  guestStoreLoginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  guestStoreLoginBtnText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  guestPriceLabel: {
+    color: COLORS.textMuted,
+    fontSize: 9.5,
+    fontWeight: '600',
+    marginBottom: 1,
+  },
+  guestPill: {
+    backgroundColor: 'rgba(150, 150, 150, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(150, 150, 150, 0.25)',
+  },
+  guestPillText: {
+    color: '#A0AEC0',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  modalLoginInvite: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalLoginInviteText: {
+    color: COLORS.primaryLight,
+    fontSize: 11.5,
+    fontWeight: '700',
   },
 });
 

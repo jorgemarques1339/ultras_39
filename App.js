@@ -16,6 +16,7 @@ import WalletPassModal from './src/components/WalletPassModal';
 import ChantsModal from './src/components/ChantsModal';
 import StoreModal from './src/components/StoreModal';
 import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
+import AuthModal from './src/components/AuthModal';
 import HomeScreen from './src/screens/HomeScreen';
 import ForumScreen from './src/screens/ForumScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
@@ -28,6 +29,7 @@ import {
 } from './src/data/mockData';
 import { COLORS } from './src/theme/colors';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 function MainApp() {
   const { width } = useWindowDimensions();
@@ -35,16 +37,26 @@ function MainApp() {
   const containerMaxWidth = isTablet ? (width >= 1024 ? 760 : 660) : '100%';
 
   const { theme, isDark, toggleTheme } = useAppTheme();
+  const {
+    user,
+    isLoggedIn,
+    authModalVisible,
+    openAuthModal,
+    closeAuthModal,
+    logout,
+    updateUser,
+  } = useAuth();
 
   const [activeTab, setActiveTab] = useState('home');
-  const [user, setUser] = useState(INITIAL_USER);
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
 
-  // Visibilidade do Header ao fazer Scroll com Throttling Otimizado
+  // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (apenas nas restantes páginas; na Home e Fórum permanece sempre visível)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
 
   const handleScroll = useCallback((event) => {
+    if (activeTab === 'home' || activeTab === 'forum') return;
+
     const currentY = event.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
 
@@ -56,13 +68,24 @@ function MainApp() {
       }
       lastScrollY.current = currentY;
     }
-  }, []);
+  }, [activeTab]);
 
   const handleSelectTab = useCallback((tab) => {
+    // Páginas de livre acesso sem login: Início e Loja.
+    // Fórum e Perfil requerem autenticação do adepto/sócio.
+    if (!isLoggedIn && (tab === 'forum' || tab === 'profile')) {
+      openAuthModal();
+      return;
+    }
     setIsHeaderVisible(true);
     lastScrollY.current = 0;
     setActiveTab(tab);
-  }, []);
+  }, [isLoggedIn, openAuthModal]);
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+    setActiveTab('home');
+  }, [logout]);
 
   // Modais
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
@@ -79,19 +102,23 @@ function MainApp() {
   const handleBuyTicket = useCallback((itemData) => {
     setCheckoutData({
       ...itemData,
-      phone: user.phone,
+      phone: user?.phone || '912 345 678',
     });
     setCheckoutModalVisible(true);
-  }, [user.phone]);
+  }, [user?.phone]);
 
   // Iniciar fluxo de regularização de quota
   const handlePayQuota = useCallback((itemData) => {
+    if (!isLoggedIn) {
+      openAuthModal();
+      return;
+    }
     setCheckoutData({
       ...itemData,
-      phone: user.phone,
+      phone: user?.phone || '912 345 678',
     });
     setCheckoutModalVisible(true);
-  }, [user.phone]);
+  }, [isLoggedIn, openAuthModal, user?.phone]);
 
   // Callback de sucesso no pagamento MB WAY
   const handlePaymentSuccess = useCallback((newTx) => {
@@ -99,14 +126,13 @@ function MainApp() {
 
     // Se o pagamento for de quota, atualizar estado do cartão digital do sócio
     if (newTx.type === 'quota') {
-      setUser((prev) => ({
-        ...prev,
+      updateUser({
         quotaStatus: 'em_dia',
         quotaPendingPeriod: 'Época 2026/2027 Regularizada',
         quotaPendingMonth: 'Época 2026/2027 Regularizada',
-      }));
+      });
     }
-  }, []);
+  }, [updateUser]);
 
   // Ver recibo/comprovativo oficial
   const handleViewReceipt = useCallback((tx) => {
@@ -130,12 +156,15 @@ function MainApp() {
           !isDark && !isTablet && styles.appContainerMobileLight,
         ]}
       >
-        {/* Cabeçalho Superior Retrátil com Animação Fluida & Alternador de Tema */}
+        {/* Cabeçalho Superior Retrátil com Animação Fluida & Alternador de Tema (Fixo na Página Inicial e Fórum) */}
         <Header
           onOpenNotifications={() => setNotificationsVisible(true)}
-          visible={isHeaderVisible}
+          visible={(activeTab === 'home' || activeTab === 'forum') ? true : isHeaderVisible}
           isDark={isDark}
           onToggleTheme={toggleTheme}
+          isLoggedIn={isLoggedIn}
+          onOpenAuth={openAuthModal}
+          onNavigateProfile={() => handleSelectTab('profile')}
         />
 
         {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll e Keep-Alive de Performance */}
@@ -145,11 +174,13 @@ function MainApp() {
               user={user}
               onBuyTicket={handleBuyTicket}
               onNavigateTab={handleSelectTab}
-              onScroll={handleScroll}
+              onScroll={undefined}
               onOpenChants={() => setChantsModalVisible(true)}
               onOpenStore={() => handleSelectTab('store')}
               isDark={isDark}
               onOpenPwaInstall={() => setPwaModalVisible(true)}
+              isLoggedIn={isLoggedIn}
+              onOpenAuth={openAuthModal}
             />
           </View>
 
@@ -157,7 +188,7 @@ function MainApp() {
             <ForumScreen
               user={user}
               onBuyTicket={handleBuyTicket}
-              onScroll={handleScroll}
+              onScroll={undefined}
               isDark={isDark}
             />
           </View>
@@ -168,6 +199,8 @@ function MainApp() {
               onCheckoutItem={handleBuyTicket}
               onScroll={handleScroll}
               isDark={isDark}
+              isLoggedIn={isLoggedIn}
+              onOpenAuth={openAuthModal}
             />
           </View>
 
@@ -190,6 +223,9 @@ function MainApp() {
               onOpenWalletPass={() => setWalletPassModalVisible(true)}
               isDark={isDark}
               onOpenPwaInstall={() => setPwaModalVisible(true)}
+              isLoggedIn={isLoggedIn}
+              onOpenAuth={openAuthModal}
+              onLogout={handleLogout}
             />
           </View>
         </View>
@@ -216,6 +252,13 @@ function MainApp() {
           visible={receiptModalVisible}
           onClose={() => setReceiptModalVisible(false)}
           transaction={selectedReceipt}
+          isDark={isDark}
+        />
+
+        {/* Modal de Autenticação / Perfil do Adepto */}
+        <AuthModal
+          visible={authModalVisible}
+          onClose={closeAuthModal}
           isDark={isDark}
         />
 
@@ -257,9 +300,9 @@ function MainApp() {
           onSelectAction={(action) => {
             if (action === 'pay_quota') {
               handlePayQuota({
-                title: `Quota Anual Grupo 39 · ${user.quotaPendingPeriod || user.quotaPendingMonth || 'Época 2026/2027'}`,
+                title: `Quota Anual Grupo 39 · ${user?.quotaPendingPeriod || user?.quotaPendingMonth || 'Época 2026/2027'}`,
                 category: 'Quota Anual de Sócio',
-                amount: user.quotaAmount || 12.50,
+                amount: user?.quotaAmount || 12.00,
                 type: 'quota',
               });
             } else if (action === 'buy_ticket') {
@@ -284,7 +327,9 @@ function MainApp() {
 export default function App() {
   return (
     <ThemeProvider>
-      <MainApp />
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

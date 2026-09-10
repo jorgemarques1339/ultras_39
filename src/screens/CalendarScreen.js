@@ -209,9 +209,9 @@ function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
                         onBuyTicket({
                           title: `Pack Deslocação + Bilhete ${match.home} vs ${match.away}`,
                           category: 'Deslocação Oficial Grupo 39',
-                          amount: match.busPrice || 15.0,
-                          originalPrice: (match.busPrice || 15.0) + 5,
-                          discount: 5,
+                          amount: match.busPrice || 7.50,
+                          originalPrice: (match.busPrice || 7.50) + 7.50,
+                          discount: 7.50,
                           type: 'bus',
                         })
                       }
@@ -219,7 +219,7 @@ function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
                     >
                       <Navigation size={15} color="#FFF" />
                       <Text style={styles.ticketButtonText}>
-                        Caravana Autocarro MB WAY ({(match.busPrice || 15.0).toFixed(2)} €)
+                        Caravana Autocarro MB WAY ({(match.busPrice || 7.50).toFixed(2)} €)
                       </Text>
                     </TouchableOpacity>
                   )}

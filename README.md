@@ -8,7 +8,7 @@
 
 * 💳 **Checkout Nativo MB WAY & SIBS:**
   * Compra de bilhetes e lugares em autocarros para deslocações.
-  * Pagamento anual de quotas de sócio (12,50 € / Época 2026/2027) com emissão imediata de comprovativo oficial SIBS.
+  * Pagamento anual de quotas de sócio (12,00 € / Época 2026/2027) com emissão imediata de comprovativo oficial SIBS.
 * 🪪 **Cartão Digital de Sócio (Wallet UI):**
   * Apresentação limpa dos dados oficiais do associado (N.º Sócio `#039-1984`, setor Bancada Poente, telefone e validade da época).
   * Estado de regularização dinâmico em tempo real.

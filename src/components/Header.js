@@ -1,9 +1,17 @@
 import React, { useRef, useEffect, memo } from 'react';
-import { View, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
-import { Bell, Sun, Moon } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
+import { Bell, Sun, Moon, LogIn, User } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTheme }) {
+function Header({
+  onOpenNotifications,
+  visible = true,
+  isDark = true,
+  onToggleTheme,
+  isLoggedIn = false,
+  onOpenAuth,
+  onNavigateProfile,
+}) {
   const anim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -38,8 +46,32 @@ function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTh
       ]}
     >
       <View style={[styles.headerContainer, !isDark && styles.headerContainerLight]}>
-        {/* Espaço à esquerda para manter equilíbrio com as ações da direita */}
-        <View style={styles.leftSpacer} />
+        {/* Espaço à esquerda: Botão de Login / Estado de Sócio */}
+        <View style={styles.leftActionsContainer}>
+          {!isLoggedIn ? (
+            <TouchableOpacity
+              style={[styles.headerLoginBtn, !isDark && styles.headerLoginBtnLight]}
+              onPress={onOpenAuth}
+              activeOpacity={0.8}
+            >
+              <LogIn size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+              <Text style={[styles.headerLoginBtnText, !isDark && styles.headerLoginBtnTextLight]}>
+                Entrar
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.headerMemberBadge, !isDark && styles.headerMemberBadgeLight]}
+              onPress={onNavigateProfile}
+              activeOpacity={0.8}
+            >
+              <View style={styles.headerMemberDot} />
+              <Text style={[styles.headerMemberText, !isDark && styles.headerMemberTextLight]}>
+                Sócio
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Logótipo Oficial Perfeitamente Centrado no Header */}
         <View style={styles.centerBrand} pointerEvents="none">
@@ -100,6 +132,65 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
     position: 'relative',
+  },
+  leftActionsContainer: {
+    minWidth: 76,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  headerLoginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 179, 104, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.35)',
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    borderRadius: 20,
+  },
+  headerLoginBtnLight: {
+    backgroundColor: '#EDF6F1',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  headerLoginBtnText: {
+    color: COLORS.primaryLight,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  headerLoginBtnTextLight: {
+    color: '#00874E',
+  },
+  headerMemberBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.4)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+  },
+  headerMemberBadgeLight: {
+    backgroundColor: '#E8F5EE',
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+  },
+  headerMemberDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00E676',
+  },
+  headerMemberText: {
+    color: '#FFF',
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  headerMemberTextLight: {
+    color: '#0E1712',
   },
   leftSpacer: {
     width: 76,

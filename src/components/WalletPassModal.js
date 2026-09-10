@@ -23,6 +23,8 @@ import {
 import { COLORS } from '../theme/colors';
 
 export default function WalletPassModal({ visible, onClose, user, isDark = true }) {
+  if (!visible || !user) return null;
+
   const [walletType, setWalletType] = useState('apple'); // 'apple' | 'google'
   const [isSaved, setIsSaved] = useState(false);
   const [isExporting, setIsExporting] = useState(false);

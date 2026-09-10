@@ -61,7 +61,7 @@ export default function NotificationsModal({ visible, onClose, onSelectAction, i
       type: 'payment',
       icon: CreditCard,
       title: 'Quota Anual 2026/2027 a Pagamento',
-      desc: 'Evita filas na sede. Regulariza a quota anual (12,50 €) via MB WAY em segundos.',
+      desc: 'Evita filas na sede. Regulariza a quota anual (12,00 €) via MB WAY em segundos.',
       time: 'Há 1 hora',
       unread: true,
       action: 'pay_quota',

@@ -20,16 +20,20 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true }) {
+function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true, isLoggedIn = false, onOpenAuth }) {
+  const ticketAmount = isLoggedIn ? 7.50 : 10.00;
+  const originalPrice = 15.00;
+  const discount = originalPrice - ticketAmount;
+
   const handleReserve = () => {
     onClose();
     if (onBuyTicket) {
       onBuyTicket({
         title: 'Pack Deslocação Alverca (Autocarro + Bilhete Visitante)',
         category: 'Deslocação Grupo 39',
-        amount: 15.0,
-        originalPrice: 20.0,
-        discount: 5.0,
+        amount: ticketAmount,
+        originalPrice: originalPrice,
+        discount: discount,
         type: 'bus',
       });
     }
@@ -94,8 +98,31 @@ function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true }) {
               <Text style={[styles.matchDesc, !isDark && styles.matchDescLight]}>
                 Inscrições abertas na sede e pela app! Saída do Estádio dos Arcos às
                 11h30. O pack inclui viagem ida/volta em autocarro de turismo + bilhete no
-                setor visitante por apenas 15,00 €.
+                setor visitante por apenas {isLoggedIn ? '7,50 € (preço exclusivo para Sócios)' : '10,00 € (preço público geral)'}.
               </Text>
+
+              {/* Banner Exclusivo de Sócio se não estiver logado */}
+              {!isLoggedIn && onOpenAuth && (
+                <TouchableOpacity
+                  style={[styles.memberPromoBanner, !isDark && styles.memberPromoBannerLight]}
+                  onPress={() => {
+                    onClose();
+                    onOpenAuth();
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Sparkles size={14} color="#00B368" />
+                  <View style={styles.memberPromoCol}>
+                    <Text style={[styles.memberPromoTitle, !isDark && styles.textDark]}>
+                      És sócio do Grupo 39?
+                    </Text>
+                    <Text style={[styles.memberPromoDesc, !isDark && styles.textMutedDark]}>
+                      Inicia sessão e reserva por apenas <Text style={styles.memberPromoHighlight}>7,50 €</Text>!
+                    </Text>
+                  </View>
+                  <ChevronRight size={14} color="#00B368" />
+                </TouchableOpacity>
+              )}
 
               {/* Itinerário & Detalhes da Viagem */}
               <View style={[styles.itineraryBox, !isDark && styles.itineraryBoxLight]}>
@@ -156,13 +183,15 @@ function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true }) {
                   </Text>
                   <View style={styles.priceRow}>
                     <Text style={[styles.priceHighlight, !isDark && styles.priceHighlightLight]}>
-                      15,00 €
+                      {ticketAmount.toFixed(2).replace('.', ',')} €
                     </Text>
                     <Text style={[styles.pricePublic, !isDark && styles.textMutedDark]}>
-                      20,00 €
+                      {originalPrice.toFixed(2).replace('.', ',')} €
                     </Text>
-                    <View style={styles.memberTag}>
-                      <Text style={styles.memberTagText}>SÓCIO G39</Text>
+                    <View style={[styles.memberTag, !isLoggedIn && styles.publicTag]}>
+                      <Text style={[styles.memberTagText, !isLoggedIn && styles.publicTagText]}>
+                        {isLoggedIn ? 'SÓCIO G39' : 'PÚBLICO GERAL'}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -174,7 +203,9 @@ function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true }) {
                 onPress={handleReserve}
                 activeOpacity={0.85}
               >
-                <Text style={styles.bookButtonText}>Reservar Lugar via MB WAY (15,00 €)</Text>
+                <Text style={styles.bookButtonText}>
+                  Reservar Lugar via MB WAY ({ticketAmount.toFixed(2).replace('.', ',')} €)
+                </Text>
                 <ChevronRight size={16} color="#FFF" />
               </TouchableOpacity>
             </View>
@@ -408,16 +439,56 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   memberTag: {
-    backgroundColor: 'rgba(0, 179, 104, 0.15)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    backgroundColor: 'rgba(0, 179, 104, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.35)',
+    borderColor: 'rgba(0, 179, 104, 0.45)',
   },
   memberTagText: {
     color: COLORS.primaryLight,
-    fontSize: 9,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  publicTag: {
+    backgroundColor: 'rgba(242, 182, 0, 0.2)',
+    borderColor: 'rgba(242, 182, 0, 0.45)',
+  },
+  publicTagText: {
+    color: '#F2B600',
+  },
+  memberPromoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(0, 179, 104, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+  },
+  memberPromoBannerLight: {
+    backgroundColor: '#EDF8F2',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  memberPromoCol: {
+    flex: 1,
+  },
+  memberPromoTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  memberPromoDesc: {
+    fontSize: 11,
+    color: '#A0B8AA',
+    marginTop: 1,
+  },
+  memberPromoHighlight: {
+    color: '#00E676',
     fontWeight: '800',
   },
   bookButton: {

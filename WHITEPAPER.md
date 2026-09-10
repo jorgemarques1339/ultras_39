@@ -12,7 +12,7 @@
 A aplicação mobile do **Grupo 39** foi concebida e desenvolvida para ser a plataforma digital central dos sócios e adeptos da claque oficial do **Rio Ave Futebol Clube**. Reunindo tecnologia moderna de referência internacional com a identidade bairrista e apaixonada de Vila do Conde, o ecossistema digital elimina burocracias no apoio à equipa, simplificando:
 
 1. **Bilhética e Apoio nos Arcos:** Aquisição instantânea de bilhetes para a Bancada Poente em dias de jogo da Liga Portugal Betclic.
-2. **Quota Anual de Sócio (12,50 €):** Pagamento eletrónico simplificado via **MB WAY** com emissão imediata do comprovativo oficial da SIBS.
+2. **Quota Anual de Sócio (12,00 €):** Pagamento eletrónico simplificado via **MB WAY** com emissão imediata do comprovativo oficial da SIBS.
 3. **Cartão Digital de Sócio & Torniquetes:** Identificação com reflexo holográfico 3D e exportação para **Apple Wallet** e **Google Wallet** com código de torniquete offline.
 4. **Envolvimento Comunitário e Bancada:** Feed do Fórum, Cancioneiro oficial com letras sincronizadas, Modo Dia de Jogo com marcador ao vivo e Loja Oficial de Merchandising.
 
@@ -102,9 +102,9 @@ A aplicação mobile do **Grupo 39** foi concebida e desenvolvida para ser a pla
        * 🚌 *Guerreiro das Deslocações* (Caravana a Alverca)
        * 💳 *Sócio de Ouro* (Quota anual liquidada)
        * 🗣️ *Voz da Bancada* (Participação na comunidade e cânticos)
-  4. **Gestão de Quota Anual de Sócio (12,50 €):**
+  4. **Gestão de Quota Anual de Sócio (12,00 €):**
      * Cobrança anual única referente à época ativa (2026/2027).
-     * Botão direto `Liquidar Quota Anual via MB WAY (12,50 €)`.
+     * Botão direto `Liquidar Quota Anual via MB WAY (12,00 €)`.
      * Ao pagar, o cartão transita instantaneamente para verde com o selo regularizado.
   5. **Histórico de Movimentos & Recibos SIBS:**
      * Registo cronológico de todas as compras de bilhetes, quotas e artigos.

@@ -672,7 +672,7 @@ function JogosModal({
                               onBuyTicket({
                                 title: `Caravana Grupo 39 · ${m.awayTeam} vs ${m.homeTeam}`,
                                 category: 'Deslocação Oficial G39',
-                                amount: 15.0,
+                                amount: 7.50,
                                 type: 'caravan',
                               });
                             }

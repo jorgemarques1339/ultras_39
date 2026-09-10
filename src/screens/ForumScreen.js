@@ -123,9 +123,9 @@ function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
       id: `post-${Date.now()}`,
       categoryId: newCategory,
       categoryName: catObj ? catObj.title : 'Geral',
-      author: user.name,
-      authorBadge: 'Sócio G39',
-      avatar: user.avatar,
+      author: user?.name || 'Adepto G39',
+      authorBadge: user?.memberCategory || 'Sócio G39',
+      avatar: user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
       timeAgo: 'Agora mesmo',
       title: newTitle,
       content: newContent,
@@ -146,7 +146,7 @@ function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
     if (!selectedCategory) {
       setSelectedCategory(newCategory);
     }
-  }, [newTitle, newContent, newCategory, user.name, user.avatar, selectedCategory]);
+  }, [newTitle, newContent, newCategory, user?.name, user?.avatar, selectedCategory]);
 
   // Adicionar resposta memoizado
   const handleAddReply = useCallback((postId) => {
@@ -157,7 +157,7 @@ function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
         if (post.id === postId) {
           const newReply = {
             id: `rep-${Date.now()}`,
-            author: user.name,
+            author: user?.name || 'Adepto G39',
             text: replyText,
             time: 'Agora mesmo',
           };
@@ -171,7 +171,7 @@ function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
       })
     );
     setReplyText('');
-  }, [replyText, user.name]);
+  }, [replyText, user?.name]);
 
   const getCategoryIcon = (id, size = 18) => {
     switch (id) {
