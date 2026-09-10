@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
   View,
   Text,
@@ -24,14 +24,22 @@ import {
   Sparkles,
   AlertCircle,
   Phone,
+  MessageSquare,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
-function AuthModal({ visible, onClose, isDark = true, initialTab = 'login' }) {
+function AuthModal({
+  visible,
+  onClose,
+  isDark = true,
+  initialTab = 'login',
+  customMessage,
+  onAuthSuccess,
+}) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
-  const { login, register } = useAuth();
+  const { login, register, authModalOptions } = useAuth();
 
   const [activeTab, setActiveTab] = useState(initialTab); // 'login' | 'register'
   const [email, setEmail] = useState('');
@@ -41,6 +49,19 @@ function AuthModal({ visible, onClose, isDark = true, initialTab = 'login' }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const messageToShow = customMessage || authModalOptions?.message;
+
+  useEffect(() => {
+    if (visible) {
+      if (authModalOptions?.initialTab) {
+        setActiveTab(authModalOptions.initialTab);
+      } else if (initialTab) {
+        setActiveTab(initialTab);
+      }
+      setErrorMsg('');
+    }
+  }, [visible, authModalOptions?.initialTab, initialTab]);
 
   const handleFillDemo = () => {
     setEmail('exemplo@gmail.com');
@@ -60,6 +81,7 @@ function AuthModal({ visible, onClose, isDark = true, initialTab = 'login' }) {
     if (!res.success) {
       setErrorMsg(res.error || 'Credenciais inválidas.');
     } else {
+      if (onAuthSuccess) onAuthSuccess();
       if (onClose) onClose();
     }
   };
@@ -76,6 +98,7 @@ function AuthModal({ visible, onClose, isDark = true, initialTab = 'login' }) {
     if (!res.success) {
       setErrorMsg(res.error || 'Erro ao criar conta.');
     } else {
+      if (onAuthSuccess) onAuthSuccess();
       if (onClose) onClose();
     }
   };
@@ -122,6 +145,18 @@ function AuthModal({ visible, onClose, isDark = true, initialTab = 'login' }) {
               <X size={18} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
           </View>
+
+          {/* Aviso Contextual Específico (ex: Acesso ao Fórum) */}
+          {!!messageToShow && (
+            <View style={[styles.contextNotice, !isDark && styles.contextNoticeLight]}>
+              <View style={[styles.contextNoticeIcon, !isDark && styles.contextNoticeIconLight]}>
+                <MessageSquare size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
+              </View>
+              <Text style={[styles.contextNoticeText, !isDark && styles.contextNoticeTextLight]}>
+                {messageToShow}
+              </Text>
+            </View>
+          )}
 
           {/* Seletor de Abas (Login / Registar) */}
           <View style={[styles.tabBar, !isDark && styles.tabBarLight]}>
@@ -661,6 +696,45 @@ const styles = StyleSheet.create({
   },
   textMutedDark: {
     color: '#5A6E63',
+  },
+  contextNotice: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(0, 179, 104, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.28)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  contextNoticeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.08)',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  contextNoticeIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contextNoticeIconLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  contextNoticeText: {
+    flex: 1,
+    fontSize: 12.5,
+    lineHeight: 17,
+    fontWeight: '700',
+    color: COLORS.primaryLight,
+  },
+  contextNoticeTextLight: {
+    color: '#006B3E',
   },
 });
 

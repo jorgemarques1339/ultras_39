@@ -1,16 +1,16 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
-import { Home, MessageSquare, ShoppingBag, User } from 'lucide-react-native';
+import { Home, MessageSquare, ShoppingBag, User, Lock } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 const NAV_ITEMS = [
   { id: 'home', icon: Home, label: 'Início' },
-  { id: 'forum', icon: MessageSquare, label: 'Fórum', badge: '2' },
   { id: 'store', icon: ShoppingBag, label: 'Loja' },
+  { id: 'forum', icon: MessageSquare, label: 'Fórum', badge: '2' },
   { id: 'profile', icon: User, label: 'Perfil' },
 ];
 
-function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
+function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn = false }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -35,6 +35,7 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
         {NAV_ITEMS.map((item) => {
           const IconComponent = item.icon;
           const isActive = activeTab === item.id;
+          const isItemLocked = (item.id === 'forum' || item.id === 'profile') && !isLoggedIn;
 
           return (
             <TouchableOpacity
@@ -45,18 +46,23 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
               hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
-              accessibilityLabel={item.label}
+              accessibilityLabel={isItemLocked ? `${item.label} (Requer início de sessão)` : item.label}
             >
               <View
                 style={[
                   styles.iconCapsule,
                   isActive && (isDark ? styles.iconCapsuleActiveDark : styles.iconCapsuleActiveLight),
+                  isItemLocked && (isDark ? styles.iconCapsuleLockedDark : styles.iconCapsuleLockedLight),
                 ]}
               >
                 <IconComponent
                   size={22}
                   color={
-                    isActive
+                    isItemLocked
+                      ? isDark
+                        ? '#6B7280' // Cor cinzenta evidente no modo escuro
+                        : '#9CA3AF' // Cor cinzenta evidente no modo claro
+                      : isActive
                       ? COLORS.primaryLight
                       : isDark
                       ? 'rgba(255, 255, 255, 0.58)'
@@ -65,9 +71,19 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
                   strokeWidth={isActive ? 2.4 : 1.9}
                 />
 
-                {item.badge && (
-                  <View style={[styles.badgeContainer, !isDark && styles.badgeContainerLight]}>
-                    <Text style={styles.badgeText}>{item.badge}</Text>
+                {(item.badge || isItemLocked) && (
+                  <View
+                    style={[
+                      styles.badgeContainer,
+                      !isDark && styles.badgeContainerLight,
+                      isItemLocked && (isDark ? styles.badgeContainerLockedDark : styles.badgeContainerLockedLight),
+                    ]}
+                  >
+                    {isItemLocked ? (
+                      <Lock size={8} color="#FFFFFF" strokeWidth={2.5} />
+                    ) : (
+                      <Text style={styles.badgeText}>{item.badge}</Text>
+                    )}
                   </View>
                 )}
 
@@ -193,6 +209,18 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  iconCapsuleLockedDark: {
+    opacity: 0.65,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  iconCapsuleLockedLight: {
+    opacity: 0.65,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+  },
   activeDot: {
     position: 'absolute',
     bottom: 3,
@@ -221,6 +249,14 @@ const styles = StyleSheet.create({
     borderColor: '#0C1410',
   },
   badgeContainerLight: {
+    borderColor: '#FFFFFF',
+  },
+  badgeContainerLockedDark: {
+    backgroundColor: '#4B5563',
+    borderColor: '#0C1410',
+  },
+  badgeContainerLockedLight: {
+    backgroundColor: '#9CA3AF',
     borderColor: '#FFFFFF',
   },
   badgeText: {

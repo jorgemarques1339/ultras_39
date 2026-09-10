@@ -77,6 +77,10 @@ function HomeScreen({
   isLoggedIn = false,
   onOpenAuth,
 }) {
+  const { width, height } = useWindowDimensions();
+  const isTablet = width >= 650;
+  const isSmallScreen = height < 740;
+
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
@@ -168,19 +172,17 @@ function HomeScreen({
   }, []);
 
   return (
-    <ScrollView
-      ref={mainScrollRef}
-      style={[styles.container, !isDark && styles.containerLight]}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-      onScroll={onScroll}
-      scrollEventThrottle={16}
-      keyboardShouldPersistTaps="handled"
-      removeClippedSubviews={Platform.OS !== 'web'}
-      overScrollMode="never"
+    <View
+      style={[
+        styles.container,
+        !isDark && styles.containerLight,
+        {
+          paddingBottom: isTablet ? 90 : (isSmallScreen ? 76 : 84),
+        },
+      ]}
     >
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
-      <View style={[styles.heroCard, !isDark && styles.heroCardLight]}>
+      <View style={[styles.heroCard, !isDark && styles.heroCardLight, isSmallScreen && styles.heroCardSmall]}>
         {/* Header do Confronto */}
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
@@ -196,11 +198,11 @@ function HomeScreen({
             <ClubBadge
               name={nextMatch.homeTeam.name}
               logo={nextMatch.homeTeam.logo}
-              size="md"
+              size={isSmallScreen ? "sm" : "md"}
               isDark={isDark}
-              style={{ marginBottom: 4 }}
+              style={{ marginBottom: 2 }}
             />
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{nextMatch.homeTeam.name}</Text>
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={1}>{nextMatch.homeTeam.name}</Text>
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Anfitrião</Text>
           </View>
 
@@ -209,7 +211,7 @@ function HomeScreen({
             <Text style={[styles.vsText, !isDark && styles.vsTextLight]}>VS</Text>
             <View style={[styles.stadiumTag, !isDark && styles.stadiumTagLight]}>
               <MapPin size={10} color={COLORS.primaryLight} />
-              <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]}>{nextMatch.stadium}</Text>
+              <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]} numberOfLines={1}>{nextMatch.stadium}</Text>
             </View>
             <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>{nextMatch.dateFormatted}</Text>
           </View>
@@ -219,11 +221,11 @@ function HomeScreen({
             <ClubBadge
               name={nextMatch.awayTeam.name}
               logo={nextMatch.awayTeam.logo}
-              size="md"
+              size={isSmallScreen ? "sm" : "md"}
               isDark={isDark}
-              style={{ marginBottom: 4 }}
+              style={{ marginBottom: 2 }}
             />
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{nextMatch.awayTeam.name}</Text>
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={1}>{nextMatch.awayTeam.name}</Text>
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
@@ -334,9 +336,9 @@ function HomeScreen({
       )}
 
       {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 */}
-      <View style={styles.chantsCenterWrapper}>
+      <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
         <TouchableOpacity
-          style={[styles.chantsCenteredBtn, !isDark && styles.chantsCenteredBtnLight]}
+          style={[styles.chantsCenteredBtn, !isDark && styles.chantsCenteredBtnLight, isSmallScreen && styles.chantsCenteredBtnSmall]}
           onPress={onOpenChants}
           activeOpacity={0.85}
         >
@@ -360,121 +362,142 @@ function HomeScreen({
       </View>
 
       {/* 3. SECÇÃO: ACESSOS RÁPIDOS */}
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleWithIcon}>
-          <Sparkles size={18} color={COLORS.primaryLight} />
-          <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>Acessos Rápidos</Text>
+      <View style={styles.shortcutsSection}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleWithIcon}>
+            <Sparkles size={16} color={COLORS.primaryLight} />
+            <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>
+              Acessos Rápidos
+            </Text>
+          </View>
         </View>
-      </View>
 
-      {/* BOTÕES: AUTOCARRO (REGRA 3 DIAS P/ GUESTS / SEMPRE ATIVO P/ SÓCIOS) & CALENDÁRIO */}
-      <View style={styles.subShortcutsRow}>
-        {canAccessDeslocacao ? (
-          <Animated.View
-            style={[
-              styles.animatedBusWrapper,
-              { transform: [{ scale: pulseAnim }] },
-            ]}
-          >
+        {/* GRELHA UNIFICADA E COMPACTA */}
+        <View style={styles.shortcutsGridContainer}>
+          {/* BOTÕES: AUTOCARRO & JOGOS */}
+          <View style={styles.subShortcutsRow}>
+            {canAccessDeslocacao ? (
+              <Animated.View
+                style={[
+                  styles.animatedBusWrapper,
+                  { transform: [{ scale: pulseAnim }] },
+                ]}
+              >
+                <TouchableOpacity
+                  style={[styles.subShortcutCardPulsing, !isDark && styles.subShortcutCardPulsingLight]}
+                  onPress={() => setDeslocacaoModalVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.subShortcutIconBgBus}>
+                    <Bus size={15} color={COLORS.primaryLight} />
+                  </View>
+                  <View style={styles.busTextRow}>
+                    <Text style={[styles.subShortcutTextPulsing, !isDark && styles.subShortcutTextPulsingLight]} numberOfLines={1}>
+                      Deslocação
+                    </Text>
+                    <View style={styles.livePulseDot} />
+                  </View>
+                  <ChevronRight size={13} color={COLORS.primaryLight} />
+                </TouchableOpacity>
+              </Animated.View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.subShortcutCardLocked, !isDark && styles.subShortcutCardLockedLight]}
+                onPress={() => setDeslocacaoNoticeVisible(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.subShortcutIconBgLocked}>
+                  <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
+                </View>
+                <View style={styles.busTextRowLocked}>
+                  <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                    Deslocação
+                  </Text>
+                  <Text style={styles.lockedBadgeText} numberOfLines={1}>
+                    {isSmallScreen ? '11 Set · 10€' : 'Abre 11 Set · 10€'}
+                  </Text>
+                </View>
+                <ChevronRight size={13} color={isDark ? '#7E9187' : '#5A6E63'} />
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
-              style={[styles.subShortcutCardPulsing, !isDark && styles.subShortcutCardPulsingLight]}
-              onPress={() => setDeslocacaoModalVisible(true)}
+              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+              onPress={() => setJogosModalVisible(true)}
               activeOpacity={0.8}
             >
-              <View style={styles.subShortcutIconBgBus}>
-                <Bus size={15} color={COLORS.primaryLight} />
+              <View style={styles.subShortcutIconBgCalendar}>
+                <SoccerBallIcon size={16} color={COLORS.primaryLight} />
               </View>
-              <View style={styles.busTextRow}>
-                <Text style={[styles.subShortcutTextPulsing, !isDark && styles.subShortcutTextPulsingLight]}>Deslocação</Text>
-                <View style={styles.livePulseDot} />
-              </View>
-              <ChevronRight size={13} color={COLORS.primaryLight} />
-            </TouchableOpacity>
-          </Animated.View>
-        ) : (
-          <TouchableOpacity
-            style={[styles.subShortcutCardLocked, !isDark && styles.subShortcutCardLockedLight]}
-            onPress={() => setDeslocacaoNoticeVisible(true)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.subShortcutIconBgLocked}>
-              <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
-            </View>
-            <View style={styles.busTextRowLocked}>
-              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>
-                Deslocação
+              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                Jogos
               </Text>
-              <Text style={styles.lockedBadgeText}>Abre 11 Set · 10€</Text>
-            </View>
-            <ChevronRight size={13} color={isDark ? '#7E9187' : '#5A6E63'} />
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => setJogosModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.subShortcutIconBgCalendar}>
-            <SoccerBallIcon size={16} color={COLORS.primaryLight} />
+              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+            </TouchableOpacity>
           </View>
-          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Jogos</Text>
-          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-        </TouchableOpacity>
-      </View>
 
-      {/* 2 BOTÕES POR DEBAIXO: TABELA & SEJA SÓCIO */}
-      <View style={styles.subShortcutsRow}>
-        <TouchableOpacity
-          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => setTabelaModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.subShortcutIconBgCalendar}>
-            <Table size={16} color={COLORS.primaryLight} />
-          </View>
-          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Tabela</Text>
-          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-        </TouchableOpacity>
+          {/* 2 BOTÕES POR DEBAIXO: TABELA & SEJA SÓCIO */}
+          <View style={styles.subShortcutsRow}>
+            <TouchableOpacity
+              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+              onPress={() => setTabelaModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.subShortcutIconBgCalendar}>
+                <Table size={16} color={COLORS.primaryLight} />
+              </View>
+              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                Tabela
+              </Text>
+              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => setSocioModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.subShortcutIconBgCalendar}>
-            <IdCard size={16} color={COLORS.primaryLight} />
+            <TouchableOpacity
+              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+              onPress={() => setSocioModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.subShortcutIconBgCalendar}>
+                <IdCard size={16} color={COLORS.primaryLight} />
+              </View>
+              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                Seja Sócio
+              </Text>
+              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+            </TouchableOpacity>
           </View>
-          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Seja Sócio</Text>
-          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-        </TouchableOpacity>
-      </View>
 
-      {/* 3ª LINHA: BOTÕES GALERIA & EVENTOS (MESMO FORMATO ELEGANTE) */}
-      <View style={styles.subShortcutsRow}>
-        <TouchableOpacity
-          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => setGaleriaModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.subShortcutIconBgCamera}>
-            <Camera size={16} color={COLORS.primaryLight} />
-          </View>
-          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Galeria</Text>
-          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-        </TouchableOpacity>
+          {/* 3ª LINHA: BOTÕES GALERIA & EVENTOS */}
+          <View style={styles.subShortcutsRow}>
+            <TouchableOpacity
+              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+              onPress={() => setGaleriaModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.subShortcutIconBgCamera}>
+                <Camera size={16} color={COLORS.primaryLight} />
+              </View>
+              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                Galeria
+              </Text>
+              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => setEventosModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.subShortcutIconBgCalendar}>
-            <CalendarIcon size={16} color={COLORS.primaryLight} />
+            <TouchableOpacity
+              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+              onPress={() => setEventosModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.subShortcutIconBgCalendar}>
+                <CalendarIcon size={16} color={COLORS.primaryLight} />
+              </View>
+              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                Eventos
+              </Text>
+              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+            </TouchableOpacity>
           </View>
-          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Eventos</Text>
-          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* Modal Dedicado da Deslocação Oficial */}
@@ -606,9 +629,7 @@ function HomeScreen({
         isDark={isDark}
       />
 
-      {/* Espaço para a barra flutuante */}
-      <View style={{ height: 140 }} />
-    </ScrollView>
+    </View>
   );
 }
 
@@ -617,31 +638,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0D1310',
     overflow: 'hidden',
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    justifyContent: 'flex-start',
+    ...Platform.select({
+      web: {
+        overflow: 'hidden',
+        overflowY: 'hidden',
+        height: '100%',
+        maxHeight: '100%',
+        userSelect: 'none',
+        touchAction: 'none',
+      },
+    }),
   },
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
+  containerLight: {
+    backgroundColor: '#F5F8F6',
   },
 
   // Hero Match Card
   heroCard: {
     backgroundColor: '#14201A',
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: 12,
+    paddingVertical: 9,
     paddingHorizontal: 12,
-    marginBottom: 12,
+    marginBottom: 6,
+    flexShrink: 0,
     ...Platform.select({
       web: {
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 135, 78, 0.1)',
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.35), 0 0 14px rgba(0, 135, 78, 0.1)',
       },
     }),
+  },
+  heroCardSmall: {
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    marginBottom: 4,
   },
   heroTopBar: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   compInfo: {
     alignItems: 'center',
@@ -927,7 +966,11 @@ const styles = StyleSheet.create({
   // Atalhos Rápidos da Claque
   chantsCenterWrapper: {
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+    flexShrink: 0,
+  },
+  chantsCenterWrapperSmall: {
+    marginBottom: 4,
   },
   chantsCenteredBtn: {
     width: '100%',
@@ -935,7 +978,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#00874E',
     borderRadius: 13,
-    paddingVertical: 7.5,
+    paddingVertical: 6.5,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: '#00B368',
@@ -949,10 +992,14 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  chantsCenteredBtnSmall: {
+    paddingVertical: 5.5,
+    gap: 8,
+  },
   chantsLogoWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     alignItems: 'center',
@@ -961,9 +1008,9 @@ const styles = StyleSheet.create({
     borderColor: '#00B368',
   },
   chantsLogoImage: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   chantsTextBoxCentered: {
     flex: 1,
@@ -979,21 +1026,36 @@ const styles = StyleSheet.create({
   },
   shortcutTitleCentered: {
     color: '#FFF',
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: '900',
     textAlign: 'center',
     letterSpacing: 0.3,
   },
   shortcutDescCentered: {
     color: 'rgba(255, 255, 255, 0.85)',
-    fontSize: 10.5,
+    fontSize: 10,
     marginTop: 1,
     textAlign: 'center',
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  shortcutsSection: {
+    width: '100%',
+    marginTop: 2,
+  },
+  shortcutsGridContainer: {
+    gap: 8,
+    width: '100%',
+  },
   subShortcutsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
+    gap: 8,
+    width: '100%',
   },
   animatedBusWrapper: {
     flex: 1,
@@ -1005,28 +1067,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#162419',
     borderRadius: 12,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
     borderWidth: 1.5,
     borderColor: '#00B368',
     gap: 8,
     ...Platform.select({
       web: {
-        boxShadow: '0 0 14px rgba(0, 179, 104, 0.45), 0 4px 12px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 0 12px rgba(0, 179, 104, 0.35)',
       },
     }),
+  },
+  subShortcutCardPulsingLight: {
+    backgroundColor: '#EDF9F2',
+    borderColor: '#00B368',
   },
   busTextRow: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   subShortcutTextPulsing: {
     color: '#FFF',
     fontSize: 12,
     fontWeight: '900',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
+  },
+  subShortcutTextPulsingLight: {
+    color: '#00874E',
   },
   livePulseDot: {
     width: 6,
@@ -1040,8 +1109,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#131A15',
     borderRadius: 12,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
     borderWidth: 1,
     borderColor: 'rgba(242, 182, 0, 0.35)',
     gap: 8,
@@ -1051,21 +1120,22 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(242, 182, 0, 0.4)',
   },
   subShortcutIconBgLocked: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     backgroundColor: 'rgba(242, 182, 0, 0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   busTextRowLocked: {
     flex: 1,
+    justifyContent: 'center',
   },
   lockedBadgeText: {
     color: '#F2B600',
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    marginTop: 1,
+    marginTop: 0.5,
   },
   // Notice Modal
   noticeOverlay: {
@@ -1189,32 +1259,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#111A14',
     borderRadius: 12,
-    paddingVertical: 9,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 8,
   },
+  subShortcutCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.12)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+      },
+    }),
+  },
   subShortcutIconBgBus: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     backgroundColor: 'rgba(0, 179, 104, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   subShortcutIconBgCalendar: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   subShortcutIconBgCamera: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 7,
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1224,6 +1303,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 12,
     fontWeight: '800',
+  },
+  subShortcutTextLight: {
+    color: '#15241C',
   },
   shortcutIconBgMusic: {
     width: 42,

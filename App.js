@@ -17,6 +17,7 @@ import ChantsModal from './src/components/ChantsModal';
 import StoreModal from './src/components/StoreModal';
 import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
 import AuthModal from './src/components/AuthModal';
+import ForumLoginPromptModal from './src/components/ForumLoginPromptModal';
 import HomeScreen from './src/screens/HomeScreen';
 import ForumScreen from './src/screens/ForumScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
@@ -49,6 +50,9 @@ function MainApp() {
 
   const [activeTab, setActiveTab] = useState('home');
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [accessPromptVisible, setAccessPromptVisible] = useState(false);
+  const [accessPromptType, setAccessPromptType] = useState('forum');
+  const [pendingTabAfterLogin, setPendingTabAfterLogin] = useState(null);
 
   // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (apenas nas restantes páginas; na Home e Fórum permanece sempre visível)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -74,13 +78,21 @@ function MainApp() {
     // Páginas de livre acesso sem login: Início e Loja.
     // Fórum e Perfil requerem autenticação do adepto/sócio.
     if (!isLoggedIn && (tab === 'forum' || tab === 'profile')) {
-      openAuthModal();
+      setAccessPromptType(tab);
+      setAccessPromptVisible(true);
       return;
     }
     setIsHeaderVisible(true);
     lastScrollY.current = 0;
     setActiveTab(tab);
-  }, [isLoggedIn, openAuthModal]);
+  }, [isLoggedIn]);
+
+  const handleAuthSuccess = useCallback(() => {
+    if (pendingTabAfterLogin) {
+      setActiveTab(pendingTabAfterLogin);
+      setPendingTabAfterLogin(null);
+    }
+  }, [pendingTabAfterLogin]);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -235,6 +247,7 @@ function MainApp() {
           activeTab={activeTab}
           onSelectTab={handleSelectTab}
           isDark={isDark}
+          isLoggedIn={isLoggedIn}
         />
 
         {/* Módulo Especial: Modal de Checkout MB WAY */}
@@ -258,7 +271,41 @@ function MainApp() {
         {/* Modal de Autenticação / Perfil do Adepto */}
         <AuthModal
           visible={authModalVisible}
-          onClose={closeAuthModal}
+          onClose={() => {
+            closeAuthModal();
+            setPendingTabAfterLogin(null);
+          }}
+          isDark={isDark}
+          onAuthSuccess={handleAuthSuccess}
+        />
+
+        {/* Modal de Aviso para Fazer Login (Fórum ou Perfil da Claque) */}
+        <ForumLoginPromptModal
+          visible={accessPromptVisible}
+          type={accessPromptType}
+          onClose={() => setAccessPromptVisible(false)}
+          onOpenLogin={() => {
+            setAccessPromptVisible(false);
+            setPendingTabAfterLogin(accessPromptType);
+            openAuthModal({
+              initialTab: 'login',
+              message:
+                accessPromptType === 'profile'
+                  ? 'Inicia sessão para acederes ao teu Cartão Digital de Sócio e Perfil.'
+                  : 'Inicia sessão para que possas participar no Fórum da Claque.',
+            });
+          }}
+          onOpenRegister={() => {
+            setAccessPromptVisible(false);
+            setPendingTabAfterLogin(accessPromptType);
+            openAuthModal({
+              initialTab: 'register',
+              message:
+                accessPromptType === 'profile'
+                  ? 'Cria a tua conta para teres acesso ao teu Cartão Digital de Sócio e Perfil.'
+                  : 'Cria a tua conta para que possas participar no Fórum da Claque.',
+            });
+          }}
           isDark={isDark}
         />
 

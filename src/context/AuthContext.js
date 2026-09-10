@@ -16,6 +16,7 @@ const AuthContext = createContext({
   isLoggedIn: false,
   isLoading: true,
   authModalVisible: false,
+  authModalOptions: {},
   openAuthModal: () => {},
   closeAuthModal: () => {},
   login: async () => ({ success: true }),
@@ -29,6 +30,7 @@ export function AuthProvider({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [authModalVisible, setAuthModalVisible] = useState(false);
+  const [authModalOptions, setAuthModalOptions] = useState({});
 
   // Carregar sessão persistida ao iniciar a app
   useEffect(() => {
@@ -54,12 +56,20 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const openAuthModal = useCallback(() => {
+  const openAuthModal = useCallback((options) => {
+    if (typeof options === 'string') {
+      setAuthModalOptions({ initialTab: options });
+    } else if (options && typeof options === 'object') {
+      setAuthModalOptions(options);
+    } else {
+      setAuthModalOptions({});
+    }
     setAuthModalVisible(true);
   }, []);
 
   const closeAuthModal = useCallback(() => {
     setAuthModalVisible(false);
+    setAuthModalOptions({});
   }, []);
 
   const login = useCallback(async (email, password) => {
@@ -159,6 +169,7 @@ export function AuthProvider({ children }) {
         isLoggedIn,
         isLoading,
         authModalVisible,
+        authModalOptions,
         openAuthModal,
         closeAuthModal,
         login,
