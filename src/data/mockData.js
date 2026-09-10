@@ -151,9 +151,9 @@ export const PAST_RESULTS = [
 export const FORUM_CATEGORIES = [
   {
     id: 'bancada',
-    title: 'Comunicado Grupo 39',
+    title: 'Importante',
     desc: 'Comunicações oficiais da claque, convocatórias da Bancada Poente, iniciativas e avisos importantes.',
-    icon: 'Flame',
+    icon: 'Megaphone',
     topicsCount: 12,
     postsCount: 86,
     lastPost: {
@@ -164,7 +164,7 @@ export const FORUM_CATEGORIES = [
   },
   {
     id: 'deslocacao',
-    title: 'Deslocações & Caravanas',
+    title: 'Deslocações',
     desc: 'Autocarros organizados, bilhética fora de portas, pontos de concentração e viagens da caravana verde e branca.',
     icon: 'Bus',
     topicsCount: 8,
@@ -177,7 +177,7 @@ export const FORUM_CATEGORIES = [
   },
   {
     id: 'opiniao',
-    title: 'Debate & Opinião Rioavista',
+    title: 'Debate & Opinião',
     desc: 'Análise aos jogos da Liga Portugal, momento da equipa principal, táticas, arbitragens e debate geral.',
     icon: 'MessageCircle',
     topicsCount: 19,
@@ -207,7 +207,7 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-1',
     categoryId: 'bancada',
-    categoryName: 'Comunicado Grupo 39',
+    categoryName: 'Importante',
     author: 'Gonçalo Bateria',
     authorBadge: 'Chefe de Bancada',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
@@ -237,7 +237,7 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-5',
     categoryId: 'bancada',
-    categoryName: 'Comunicado Grupo 39',
+    categoryName: 'Importante',
     author: 'Mário Caixa',
     authorBadge: 'Líder Bateria',
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
@@ -254,7 +254,7 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-2',
     categoryId: 'deslocacao',
-    categoryName: 'Deslocações & Caravanas',
+    categoryName: 'Deslocações',
     author: 'Tiago Arcos',
     authorBadge: 'Comissão Deslocações',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
@@ -278,7 +278,7 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-6',
     categoryId: 'deslocacao',
-    categoryName: 'Deslocações & Caravanas',
+    categoryName: 'Deslocações',
     author: 'Pedro Caravana',
     authorBadge: 'Sócio 045',
     avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=150&q=80',
@@ -295,7 +295,7 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-3',
     categoryId: 'opiniao',
-    categoryName: 'Debate & Opinião Rioavista',
+    categoryName: 'Debate & Opinião',
     author: 'Mestre Vilacondense',
     authorBadge: 'Sócio 124',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80',
@@ -312,7 +312,7 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-7',
     categoryId: 'opiniao',
-    categoryName: 'Debate & Opinião Rioavista',
+    categoryName: 'Debate & Opinião',
     author: 'Vitor VerdeBranco',
     authorBadge: 'Sócio 380',
     avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80',

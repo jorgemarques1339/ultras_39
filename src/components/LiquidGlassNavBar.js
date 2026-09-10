@@ -4,10 +4,10 @@ import { Home, MessageSquare, ShoppingBag, User } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 const NAV_ITEMS = [
-  { id: 'home', label: 'Início', icon: Home },
-  { id: 'forum', label: 'Fórum', icon: MessageSquare, badge: '2' },
-  { id: 'store', label: 'Loja', icon: ShoppingBag },
-  { id: 'profile', label: 'Perfil', icon: User },
+  { id: 'home', icon: Home, label: 'Início' },
+  { id: 'forum', icon: MessageSquare, label: 'Fórum', badge: '2' },
+  { id: 'store', icon: ShoppingBag, label: 'Loja' },
+  { id: 'profile', icon: User, label: 'Perfil' },
 ];
 
 export default function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
@@ -29,8 +29,8 @@ export default function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = tru
           !isDark && styles.glassBarLight,
         ]}
       >
-        {/* Subtle Top Gradient Line */}
-        <View style={[styles.glowLine, !isDark && styles.glowLineLight]} />
+        {/* Apple Specular Highlight Line (Reflexo de Vidro Líquido Superior) */}
+        <View style={[styles.specularHighlight, !isDark && styles.specularHighlightLight]} />
 
         {NAV_ITEMS.map((item) => {
           const IconComponent = item.icon;
@@ -39,37 +39,43 @@ export default function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = tru
           return (
             <TouchableOpacity
               key={item.id}
-              activeOpacity={0.7}
+              activeOpacity={0.75}
               onPress={() => onSelectTab(item.id)}
-              style={[styles.navItem, isActive && styles.navItemActive]}
+              style={styles.navItem}
+              hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={item.label}
             >
-              {/* Active Glow Pill Background */}
-              {isActive && <View style={styles.activePillGlow} />}
-
-              <View style={styles.iconWrapper}>
+              <View
+                style={[
+                  styles.iconCapsule,
+                  isActive && (isDark ? styles.iconCapsuleActiveDark : styles.iconCapsuleActiveLight),
+                ]}
+              >
                 <IconComponent
-                  size={20}
-                  color={isActive ? COLORS.primaryLight : COLORS.textSecondary}
-                  strokeWidth={isActive ? 2.5 : 1.8}
+                  size={22}
+                  color={
+                    isActive
+                      ? COLORS.primaryLight
+                      : isDark
+                      ? 'rgba(255, 255, 255, 0.58)'
+                      : '#5A6E63'
+                  }
+                  strokeWidth={isActive ? 2.4 : 1.9}
                 />
-                {item.badge && !isActive && (
-                  <View style={styles.badgeContainer}>
+
+                {item.badge && (
+                  <View style={[styles.badgeContainer, !isDark && styles.badgeContainerLight]}>
                     <Text style={styles.badgeText}>{item.badge}</Text>
                   </View>
                 )}
+
+                {/* Apple Micro-indicador Luminoso Ativo */}
+                {isActive && (
+                  <View style={styles.activeDot} />
+                )}
               </View>
-
-              <Text
-                style={[
-                  styles.navLabel,
-                  isActive ? styles.navLabelActive : styles.navLabelInactive,
-                ]}
-                numberOfLines={1}
-              >
-                {item.label}
-              </Text>
-
-              {isActive && <View style={styles.activeDot} />}
             </TouchableOpacity>
           );
         })}
@@ -87,138 +93,123 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   outerContainerPhone: {
-    bottom: 0,
-    paddingHorizontal: 0,
+    bottom: Platform.OS === 'ios' ? 22 : 16,
+    paddingHorizontal: 18,
   },
   outerContainerTablet: {
-    bottom: 20,
-    paddingHorizontal: 16,
+    bottom: 22,
+    paddingHorizontal: 20,
   },
   glassBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    width: '100%',
-    backgroundColor: 'rgba(11, 18, 14, 0.94)',
+    borderRadius: 36,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    backgroundColor: 'rgba(12, 20, 16, 0.72)',
+    height: 62,
+    position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
       web: {
         pointerEvents: 'auto',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
+        backdropFilter: 'blur(28px) saturate(210%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(210%)',
+        boxShadow:
+          '0 16px 36px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 1px 1px 0 rgba(255, 255, 255, 0.25) inset, 0 0 24px rgba(0, 179, 104, 0.14)',
       },
       default: {
-        elevation: 16,
+        elevation: 18,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.45,
+        shadowRadius: 18,
       },
     }),
   },
   glassBarPhone: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderTopWidth: 1.5,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    borderColor: 'rgba(0, 179, 104, 0.35)',
-    paddingTop: 8,
-    paddingBottom: Platform.OS === 'web' ? 14 : 18,
+    width: '100%',
+    maxWidth: 360,
     paddingHorizontal: 6,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 -8px 28px rgba(0, 0, 0, 0.75), 0 -1px 12px rgba(0, 135, 78, 0.2)',
-      },
-    }),
   },
   glassBarTablet: {
-    maxWidth: 520,
-    height: 68,
-    borderRadius: 36,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    paddingHorizontal: 8,
-    ...Platform.select({
-      web: {
-        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 135, 78, 0.15)',
-      },
-    }),
+    width: 440,
+    maxWidth: '90%',
+    paddingHorizontal: 12,
   },
   glassBarLight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
-    borderColor: 'rgba(0, 135, 78, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.76)',
+    borderColor: 'rgba(255, 255, 255, 0.85)',
     ...Platform.select({
       web: {
-        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08), 0 0 14px rgba(0, 135, 78, 0.1)',
+        boxShadow:
+          '0 14px 34px -4px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.7) inset, 0 1px 2px 0 rgba(255, 255, 255, 0.95) inset, 0 0 20px rgba(0, 135, 78, 0.08)',
       },
     }),
   },
-  glowLine: {
+  specularHighlight: {
     position: 'absolute',
     top: 0,
-    left: 20,
-    right: 20,
+    left: 24,
+    right: 24,
     height: 1,
-    backgroundColor: 'rgba(0, 179, 104, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
   },
-  glowLineLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.25)',
+  specularHighlightLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   navItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    borderRadius: 24,
-    position: 'relative',
+    height: '100%',
   },
-  navItemActive: {
-    // subtle elevate
-  },
-  activePillGlow: {
-    position: 'absolute',
-    top: 4,
-    bottom: 4,
-    left: 6,
-    right: 6,
-    backgroundColor: 'rgba(0, 135, 78, 0.18)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.28)',
-  },
-  iconWrapper: {
-    position: 'relative',
+  iconCapsule: {
+    width: 52,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 3,
+    position: 'relative',
   },
-  navLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+  iconCapsuleActiveDark: {
+    backgroundColor: 'rgba(0, 179, 104, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.38)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 16px rgba(0, 179, 104, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+      },
+    }),
   },
-  navLabelActive: {
-    color: COLORS.primaryLight,
-    fontWeight: '700',
-  },
-  navLabelInactive: {
-    color: COLORS.textSecondary,
+  iconCapsuleActiveLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 135, 78, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+      },
+    }),
   },
   activeDot: {
+    position: 'absolute',
+    bottom: 3,
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#00B368',
-    marginTop: 2,
+    backgroundColor: COLORS.primaryLight,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 6px #00B368',
+      },
+    }),
   },
   badgeContainer: {
     position: 'absolute',
-    top: -4,
-    right: -8,
+    top: 3,
+    right: 6,
     backgroundColor: '#00B368',
     borderRadius: 8,
     minWidth: 16,
@@ -226,10 +217,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#0C1410',
+  },
+  badgeContainerLight: {
+    borderColor: '#FFFFFF',
   },
   badgeText: {
     color: '#FFF',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '900',
   },
 });

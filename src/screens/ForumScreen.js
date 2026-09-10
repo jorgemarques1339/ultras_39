@@ -29,6 +29,7 @@ import {
   Sparkles,
   Clock,
   FolderKanban,
+  Megaphone,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
@@ -171,7 +172,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
   const getCategoryIcon = (id, size = 18) => {
     switch (id) {
       case 'bancada':
-        return <Flame size={size} color={COLORS.primaryLight} />;
+        return <Megaphone size={size} color={COLORS.primaryLight} />;
       case 'deslocacao':
         return <Bus size={size} color={COLORS.gold} />;
       case 'opiniao':
@@ -179,7 +180,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
       case 'mercado':
         return <ShoppingBag size={size} color="#FF7043" />;
       default:
-        return <Flame size={size} color={COLORS.primaryLight} />;
+        return <Megaphone size={size} color={COLORS.primaryLight} />;
     }
   };
 
@@ -346,11 +347,13 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
         >
           <View style={[styles.modalOverlay, isTablet && styles.modalOverlayTablet]}>
             <View style={[styles.newPostContainer, isTablet && styles.newPostContainerTablet]}>
+              {!isTablet && <View style={styles.modalDragHandle} />}
               <View style={styles.modalHeader}>
                 <Text style={styles.modalHeaderTitle}>Publicar no Fórum G39</Text>
                 <TouchableOpacity
                   onPress={() => setIsNewPostModalOpen(false)}
                   style={styles.closeModalBtn}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   <X size={20} color={COLORS.textSecondary} />
                 </TouchableOpacity>
@@ -526,9 +529,9 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
                         {post.author.charAt(0)}
                       </Text>
                     </View>
-                    <View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
                       <View style={styles.authorNameRow}>
-                        <Text style={[styles.authorName, !isDark && styles.textDark]}>
+                        <Text style={[styles.authorName, !isDark && styles.textDark]} numberOfLines={1}>
                           {post.author}
                         </Text>
                         <View style={styles.badgePill}>
@@ -577,6 +580,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
                     ]}
                     onPress={() => handleToggleUpvote(post.id)}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                   >
                     <ThumbsUp
                       size={15}
@@ -607,6 +611,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
                     style={styles.actionButton}
                     onPress={() => setExpandedPostId(isExpanded ? null : post.id)}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                   >
                     <MessageSquare size={15} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
                     <Text style={[styles.actionText, !isDark && styles.actionTextLight]}>
@@ -618,6 +623,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
                     style={styles.actionButton}
                     onPress={() => alert('Link do tópico copiado para partilha!')}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                   >
                     <Share2 size={15} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
                   </TouchableOpacity>
@@ -693,11 +699,13 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
       >
         <View style={[styles.modalOverlay, isTablet && styles.modalOverlayTablet]}>
           <View style={[styles.newPostContainer, isTablet && styles.newPostContainerTablet]}>
+            {!isTablet && <View style={styles.modalDragHandle} />}
             <View style={styles.modalHeader}>
               <Text style={styles.modalHeaderTitle}>Publicar no Fórum G39</Text>
               <TouchableOpacity
                 onPress={() => setIsNewPostModalOpen(false)}
                 style={styles.closeModalBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <X size={20} color={COLORS.textSecondary} />
               </TouchableOpacity>
@@ -999,6 +1007,7 @@ const styles = StyleSheet.create({
   categoryTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
     marginBottom: 3,
   },
@@ -1019,12 +1028,13 @@ const styles = StyleSheet.create({
   categoryStatsBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     paddingVertical: 6,
     paddingHorizontal: 10,
     backgroundColor: '#0F1812',
     borderRadius: 8,
     marginBottom: 8,
+    flexWrap: 'wrap',
   },
   statPill: {
     flexDirection: 'row',
@@ -1078,8 +1088,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
+    minHeight: 52,
     backgroundColor: '#111A15',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
@@ -1089,9 +1100,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 5.5,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minHeight: 38,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.3)',
   },
@@ -1104,7 +1116,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    maxWidth: 200,
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginLeft: 8,
   },
   breadcrumbRoot: {
     color: COLORS.textMuted,
@@ -1115,18 +1129,19 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 11.5,
     fontWeight: '700',
+    maxWidth: 130,
   },
   feedContent: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingHorizontal: 14,
+    paddingTop: 12,
   },
   activeCategoryHero: {
     backgroundColor: '#14201A',
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.25)',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   activeCategoryHeroTop: {
     flexDirection: 'row',
@@ -1234,11 +1249,11 @@ const styles = StyleSheet.create({
   // Post Card
   postCard: {
     backgroundColor: '#14201A',
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 16,
-    marginBottom: 14,
+    padding: 14,
+    marginBottom: 12,
   },
   postTopRow: {
     flexDirection: 'row',
@@ -1319,7 +1334,7 @@ const styles = StyleSheet.create({
   postActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
@@ -1327,10 +1342,11 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 4,
+    gap: 5,
+    paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
+    minHeight: 36,
   },
   actionButtonActive: {
     backgroundColor: 'rgba(0, 135, 78, 0.2)',
@@ -1397,13 +1413,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
     color: COLORS.white,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 12,
+    paddingVertical: 9,
+    fontSize: 13,
+    minHeight: 40,
   },
   replySendBtn: {
     backgroundColor: '#00874E',
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1416,9 +1433,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: '#00B368',
     elevation: 6,
@@ -1429,7 +1446,8 @@ const styles = StyleSheet.create({
     }),
   },
   fabButtonPhone: {
-    bottom: 80,
+    bottom: 84,
+    right: 14,
   },
   fabText: {
     color: '#FFF',
@@ -1447,6 +1465,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
+  modalDragHandle: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+  },
   newPostContainer: {
     width: '100%',
     maxWidth: 520,
@@ -1455,7 +1482,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
-    maxHeight: '85%',
+    maxHeight: '88%',
   },
   newPostContainerTablet: {
     borderRadius: 24,
@@ -1499,9 +1526,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#18241E',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderRadius: 18,
+    minHeight: 34,
+    justifyContent: 'center',
   },
   pickerPillActive: {
     backgroundColor: 'rgba(0, 135, 78, 0.3)',
@@ -1524,7 +1553,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    fontSize: 13,
+    fontSize: 14,
     marginBottom: 16,
   },
   textArea: {
