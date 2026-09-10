@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -44,7 +44,13 @@ const BENEFITS = [
   },
 ];
 
-export default function SejaSocioModal({ visible, onClose, onJoinMember, onNavigateTab }) {
+function SejaSocioModal({
+  visible,
+  onClose,
+  onJoinMember,
+  onNavigateTab,
+  isDark = true,
+}) {
   const handleJoin = () => {
     onClose();
     if (onJoinMember) {
@@ -74,53 +80,80 @@ export default function SejaSocioModal({ visible, onClose, onJoinMember, onNavig
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, !isDark && styles.containerLight]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, !isDark && styles.headerLight]}>
             <View style={styles.headerLeft}>
-              <View style={styles.headerIconBox}>
-                <IdCard size={18} color={COLORS.primaryLight} />
+              <View style={[styles.headerIconBox, !isDark && styles.headerIconBoxLight]}>
+                <IdCard size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
               </View>
               <View>
-                <Text style={styles.headerTitle}>Seja Sócio do Grupo 39</Text>
-                <Text style={styles.headerSubtitle}>Junta-te à Maior Força Vilacondense</Text>
+                <Text style={[styles.headerTitle, !isDark && styles.textDark]}>
+                  Seja Sócio do Grupo 39
+                </Text>
+                <Text style={[styles.headerSubtitle, !isDark && styles.headerSubtitleLight]}>
+                  Junta-te à Maior Força Vilacondense
+                </Text>
               </View>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-              <X size={20} color={COLORS.textSecondary} />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[styles.closeBtn, !isDark && styles.closeBtnLight]}
+              activeOpacity={0.7}
+            >
+              <X size={20} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollBody}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
+          >
             {/* Banner Destaque */}
-            <View style={styles.heroCard}>
+            <View style={[styles.heroCard, !isDark && styles.heroCardLight]}>
               <View style={styles.badgeRow}>
                 <View style={styles.badgeGreen}>
                   <Sparkles size={11} color="#FFF" />
                   <Text style={styles.badgeGreenText}>CAMPANHA 2026/2027</Text>
                 </View>
-                <Text style={styles.heroPriceText}>12,50 € / Época</Text>
+                <Text style={[styles.heroPriceText, !isDark && styles.heroPriceTextLight]}>
+                  12,50 € / Época
+                </Text>
               </View>
 
-              <Text style={styles.heroTitle}>A Força do Rio Ave FC na Bancada Poente</Text>
-              <Text style={styles.heroDesc}>
+              <Text style={[styles.heroTitle, !isDark && styles.textDark]}>
+                A Força do Rio Ave FC na Bancada Poente
+              </Text>
+              <Text style={[styles.heroDesc, !isDark && styles.heroDescLight]}>
                 Garante o teu estatuto de associado oficial do Grupo 39, apoia o Rio Ave em qualquer estádio e desfruta de regalias exclusivas ao longo de toda a época desportiva.
               </Text>
             </View>
 
             {/* Vantagens */}
-            <Text style={styles.sectionLabel}>VANTAGENS EXCLUSIVAS DE SÓCIO</Text>
+            <Text style={[styles.sectionLabel, !isDark && styles.textMutedDark]}>
+              VANTAGENS EXCLUSIVAS DE SÓCIO
+            </Text>
             <View style={styles.benefitsList}>
               {BENEFITS.map((item, index) => {
                 const IconComp = item.icon;
                 return (
-                  <View key={index} style={styles.benefitCard}>
-                    <View style={styles.benefitIconBox}>
-                      <IconComp size={16} color={COLORS.primaryLight} />
+                  <View
+                    key={index}
+                    style={[styles.benefitCard, !isDark && styles.benefitCardLight]}
+                  >
+                    <View style={[styles.benefitIconBox, !isDark && styles.benefitIconBoxLight]}>
+                      <IconComp size={16} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <View style={styles.benefitContent}>
-                      <Text style={styles.benefitTitle}>{item.title}</Text>
-                      <Text style={styles.benefitDesc}>{item.desc}</Text>
+                      <Text style={[styles.benefitTitle, !isDark && styles.textDark]}>
+                        {item.title}
+                      </Text>
+                      <Text style={[styles.benefitDesc, !isDark && styles.benefitDescLight]}>
+                        {item.desc}
+                      </Text>
                     </View>
                   </View>
                 );
@@ -141,12 +174,14 @@ export default function SejaSocioModal({ visible, onClose, onJoinMember, onNavig
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.profileBtn}
+              style={[styles.profileBtn, !isDark && styles.profileBtnLight]}
               onPress={handleGoProfile}
               activeOpacity={0.8}
             >
-              <Text style={styles.profileBtnText}>Já és Sócio? Ver Cartão Digital</Text>
-              <ChevronRight size={14} color={COLORS.textSecondary} />
+              <Text style={[styles.profileBtnText, !isDark && styles.textDark]}>
+                Já és Sócio? Ver Cartão Digital
+              </Text>
+              <ChevronRight size={14} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
 
             <View style={{ height: 20 }} />
@@ -177,6 +212,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 179, 104, 0.3)',
     overflow: 'hidden',
   },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -8px 30px rgba(0, 0, 0, 0.12)',
+      },
+    }),
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -185,6 +229,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  headerLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -201,6 +249,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerIconBoxLight: {
+    backgroundColor: '#EDF5F0',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
   headerTitle: {
     color: '#FFF',
     fontSize: 16,
@@ -212,6 +264,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 1,
   },
+  headerSubtitleLight: {
+    color: '#00874E',
+  },
   closeBtn: {
     width: 32,
     height: 32,
@@ -219,6 +274,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  closeBtnLight: {
+    backgroundColor: '#F0F4F2',
   },
   scrollBody: {
     paddingHorizontal: 16,
@@ -231,6 +289,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.3)',
     marginBottom: 16,
+  },
+  heroCardLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.16)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      },
+    }),
   },
   badgeRow: {
     flexDirection: 'row',
@@ -254,9 +321,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   heroPriceText: {
-    color: COLORS.gold,
+    color: COLORS.primaryLight,
     fontSize: 13,
     fontWeight: '900',
+  },
+  heroPriceTextLight: {
+    color: '#00874E',
   },
   heroTitle: {
     color: '#FFF',
@@ -268,6 +338,9 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 11.5,
     lineHeight: 16,
+  },
+  heroDescLight: {
+    color: '#475C50',
   },
   sectionLabel: {
     color: COLORS.textMuted,
@@ -290,6 +363,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.06)',
     gap: 10,
   },
+  benefitCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 6px rgba(0, 0, 0, 0.03)',
+      },
+    }),
+  },
   benefitIconBox: {
     width: 32,
     height: 32,
@@ -297,6 +379,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  benefitIconBoxLight: {
+    backgroundColor: '#EDF5F0',
   },
   benefitContent: {
     flex: 1,
@@ -311,6 +396,9 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     marginTop: 2,
     lineHeight: 14,
+  },
+  benefitDescLight: {
+    color: '#556A5E',
   },
   joinBtn: {
     flexDirection: 'row',
@@ -350,9 +438,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
+  profileBtnLight: {
+    backgroundColor: '#F2F6F4',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
   profileBtnText: {
     color: COLORS.textSecondary,
     fontSize: 11.5,
     fontWeight: '600',
   },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#556A5E',
+  },
 });
+
+export default memo(SejaSocioModal);

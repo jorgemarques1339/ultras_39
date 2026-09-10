@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,65 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Modal,
+  useWindowDimensions,
 } from 'react-native';
 import {
   ShoppingBag,
   Truck,
   Tag,
+  X,
+  Sparkles,
+  ShieldCheck,
+  ChevronRight,
+  Check,
+  Eye,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { STORE_PRODUCTS } from '../data/mockData';
 
 const CATEGORIES = ['Todos', 'Cachecóis', 'Vestuário', 'Acessórios', 'Autocolantes'];
 
-export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
+function StoreScreen({ user, onCheckoutItem, onScroll, isDark = true }) {
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 650;
+
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [selectedSizes, setSelectedSizes] = useState({
-    'prod-scarf-26': 'Tamanho Único',
+    'prod-scarf-26': 'Tamanho Único (140x18cm)',
     'prod-tshirt-vdc': 'L',
-    'prod-cap-g39': 'Ajustável',
-    'prod-stickers-pack': '10 Sortidos',
+    'prod-cap-g39': 'Ajustável (Snapback)',
+    'prod-stickers-pack': '10 Unidades Sortidas',
   });
 
-  const handleSizeChange = (productId, size) => {
+  // Estado do Modal de Detalhes do Produto
+  const [detailProduct, setDetailProduct] = useState(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [modalSize, setModalSize] = useState(null);
+
+  const handleOpenProduct = useCallback((product) => {
+    setDetailProduct(product);
+    setActivePhotoIndex(0);
+    const initialSize = selectedSizes[product.id] || (product.sizes ? product.sizes[0] : 'Único');
+    setModalSize(initialSize);
+  }, [selectedSizes]);
+
+  const handleSizeChange = useCallback((productId, size) => {
     setSelectedSizes((prev) => ({
       ...prev,
       [productId]: size,
     }));
-  };
+  }, []);
 
-  const handleBuy = (product) => {
-    const size = selectedSizes[product.id] || (product.sizes ? product.sizes[0] : 'Único');
+  const handleModalSizeSelect = useCallback((size) => {
+    setModalSize(size);
+    if (detailProduct) {
+      handleSizeChange(detailProduct.id, size);
+    }
+  }, [detailProduct, handleSizeChange]);
+
+  const handleBuy = useCallback((product, chosenSize) => {
+    const size = chosenSize || selectedSizes[product.id] || (product.sizes ? product.sizes[0] : 'Único');
     if (onCheckoutItem) {
       onCheckoutItem({
         title: `${product.title} (${size})`,
@@ -46,12 +76,21 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
         type: 'store',
       });
     }
-  };
+  }, [selectedSizes, onCheckoutItem]);
 
-  const filteredProducts =
-    activeCategory === 'Todos'
+  const handleBuyFromModal = useCallback(() => {
+    if (!detailProduct) return;
+    const prod = detailProduct;
+    const size = modalSize || selectedSizes[prod.id] || (prod.sizes ? prod.sizes[0] : 'Único');
+    setDetailProduct(null);
+    handleBuy(prod, size);
+  }, [detailProduct, modalSize, selectedSizes, handleBuy]);
+
+  const filteredProducts = useMemo(() => {
+    return activeCategory === 'Todos'
       ? STORE_PRODUCTS
       : STORE_PRODUCTS.filter((p) => p.category === activeCategory);
+  }, [activeCategory]);
 
   return (
     <ScrollView
@@ -60,6 +99,9 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
       scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
+      removeClippedSubviews={Platform.OS !== 'web'}
+      overScrollMode="never"
     >
       {/* 1. FILTROS DE CATEGORIAS EM CHIPS RESPONSIVOS */}
       <View style={styles.categoriesWrapper}>
@@ -67,6 +109,9 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesBar}
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={Platform.OS !== 'web'}
+          overScrollMode="never"
         >
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat;
@@ -96,15 +141,22 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
         </ScrollView>
       </View>
 
-      {/* 2. PRODUTO EM DESTAQUE ESPECIAL (CACHECOL ÉPOCA 2026/2027) */}
+      {/* 2. PRODUTO EM DESTAQUE ESPECIAL (AO CLICAR ABRE O MODAL DETALHADO) */}
       {activeCategory === 'Todos' && STORE_PRODUCTS[0] && (
-        <View style={[styles.featuredCard, !isDark && styles.featuredCardLight]}>
+        <TouchableOpacity
+          style={[styles.featuredCard, !isDark && styles.featuredCardLight]}
+          onPress={() => handleOpenProduct(STORE_PRODUCTS[0])}
+          activeOpacity={0.88}
+        >
           <View style={styles.featuredBadgeRow}>
             <View style={styles.featuredGoldBadge}>
               <Tag size={12} color="#000" />
               <Text style={styles.featuredGoldBadgeText}>ARTIGO DA SEMANA</Text>
             </View>
-            <Text style={styles.featuredStockText}>🟢 Em Stock na Sede</Text>
+            <View style={styles.viewDetailsTag}>
+              <Eye size={12} color={COLORS.primaryLight} />
+              <Text style={styles.featuredStockText}>Ver Detalhes</Text>
+            </View>
           </View>
 
           <View style={styles.featuredContentRow}>
@@ -138,7 +190,10 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
 
                 <TouchableOpacity
                   style={styles.cardBuyBtn}
-                  onPress={() => handleBuy(STORE_PRODUCTS[0])}
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    handleOpenProduct(STORE_PRODUCTS[0]);
+                  }}
                   activeOpacity={0.85}
                 >
                   <ShoppingBag size={14} color="#FFF" />
@@ -147,10 +202,10 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
               </View>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       )}
 
-      {/* 4. GRELHA DE TODOS OS PRODUTOS */}
+      {/* 3. GRELHA DE PRODUTOS (AO CLICAR ABRE O MODAL DO PRODUTO) */}
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, !isDark && styles.textDark]}>
           {activeCategory === 'Todos' ? 'Todos os Artigos' : activeCategory}
@@ -166,12 +221,21 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
             selectedSizes[product.id] || (product.sizes ? product.sizes[0] : null);
 
           return (
-            <View key={product.id} style={[styles.productCard, !isDark && styles.productCardLight]}>
+            <TouchableOpacity
+              key={product.id}
+              style={[styles.productCard, !isDark && styles.productCardLight]}
+              onPress={() => handleOpenProduct(product)}
+              activeOpacity={0.88}
+            >
               {/* Imagem & Badge Superior */}
               <View style={styles.productImgBox}>
                 <Image source={{ uri: product.image }} style={styles.productImg} />
                 <View style={styles.productBadgeOverlay}>
                   <Text style={styles.productBadgeOverlayText}>{product.badge}</Text>
+                </View>
+                <View style={styles.productClickHint}>
+                  <Eye size={11} color="#FFF" />
+                  <Text style={styles.productClickHintText}>Ver Fotos</Text>
                 </View>
               </View>
 
@@ -200,7 +264,10 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
                               !isDark && styles.sizeChipLight,
                               isSizeActive && styles.sizeChipActive,
                             ]}
-                            onPress={() => handleSizeChange(product.id, s)}
+                            onPress={(e) => {
+                              e.stopPropagation?.();
+                              handleSizeChange(product.id, s);
+                            }}
                             activeOpacity={0.7}
                           >
                             <Text
@@ -235,7 +302,10 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
 
                   <TouchableOpacity
                     style={styles.cardBuyBtn}
-                    onPress={() => handleBuy(product)}
+                    onPress={(e) => {
+                      e.stopPropagation?.();
+                      handleOpenProduct(product);
+                    }}
                     activeOpacity={0.85}
                   >
                     <ShoppingBag size={14} color="#FFF" />
@@ -243,12 +313,12 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
                   </TouchableOpacity>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* 5. AVISO DE LEVANTAMENTO & APOIO */}
+      {/* 4. AVISO DE LEVANTAMENTO & APOIO */}
       <View style={[styles.infoBanner, !isDark && styles.infoBannerLight]}>
         <View style={[styles.infoIconBox, !isDark && styles.infoIconBoxLight]}>
           <Truck size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
@@ -263,7 +333,237 @@ export default function StoreScreen({ user, onCheckoutItem, onScroll, isDark = t
         </View>
       </View>
 
-      <View style={{ height: 100 }} />
+      <View style={{ height: 110 }} />
+
+      {/* ========================================================================= */}
+      {/* 5. MODAL DEDICADA DE DETALHES DO PRODUTO (ESTILO DESLOCAÇÕES)           */}
+      {/* ========================================================================= */}
+      <Modal
+        visible={!!detailProduct}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setDetailProduct(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalContainer,
+              isTablet && styles.modalContainerTablet,
+              !isDark && styles.modalContainerLight,
+            ]}
+          >
+            {/* Barra de Arraste Mobile */}
+            <View style={styles.modalDragHandle} />
+
+            {/* Cabeçalho do Modal */}
+            <View style={[styles.modalHeader, !isDark && styles.modalHeaderLight]}>
+              <View style={styles.modalHeaderLeft}>
+                <View style={[styles.modalHeaderIconBox, !isDark && styles.modalHeaderIconBoxLight]}>
+                  <ShoppingBag size={18} color={COLORS.gold} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.modalHeaderTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                    {detailProduct?.title || 'Detalhes do Artigo'}
+                  </Text>
+                  <Text style={[styles.modalHeaderSubtitle, !isDark && styles.textMutedDark]}>
+                    Loja Oficial Grupo 39 · {detailProduct?.category}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => setDetailProduct(null)}
+                style={styles.modalCloseBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                activeOpacity={0.7}
+              >
+                <X size={20} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={Platform.OS !== 'web'}
+              overScrollMode="never"
+            >
+              {detailProduct && (
+                <>
+                  {/* Bloco de Galeria de Fotos */}
+                  <View style={styles.galleryContainer}>
+                    <View style={styles.mainImageWrapper}>
+                      <Image
+                        source={{
+                          uri:
+                            detailProduct.images && detailProduct.images[activePhotoIndex]
+                              ? detailProduct.images[activePhotoIndex]
+                              : detailProduct.image,
+                        }}
+                        style={styles.modalMainImg}
+                        resizeMode="cover"
+                      />
+
+                      {/* Badges Flutuantes sobre a Foto */}
+                      <View style={styles.modalBadgeRow}>
+                        <View style={styles.modalTagBadge}>
+                          <Sparkles size={11} color="#000" />
+                          <Text style={styles.modalTagBadgeText}>{detailProduct.badge}</Text>
+                        </View>
+                        <View style={styles.modalStockBadge}>
+                          <ShieldCheck size={12} color={COLORS.primaryLight} />
+                          <Text style={styles.modalStockBadgeText}>Em Stock na Sede</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Miniaturas de Fotos Adicionais (Galeria) */}
+                    {detailProduct.images && detailProduct.images.length > 1 && (
+                      <View style={styles.thumbnailsRow}>
+                        {detailProduct.images.map((imgUri, idx) => {
+                          const isThumbActive = idx === activePhotoIndex;
+                          return (
+                            <TouchableOpacity
+                              key={idx}
+                              style={[
+                                styles.thumbnailBox,
+                                isThumbActive && styles.thumbnailBoxActive,
+                              ]}
+                              onPress={() => setActivePhotoIndex(idx)}
+                              activeOpacity={0.8}
+                            >
+                              <Image source={{ uri: imgUri }} style={styles.thumbnailImg} />
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Informações e Descrição do Produto */}
+                  <View style={[styles.modalCardBody, !isDark && styles.modalCardBodyLight]}>
+                    <View style={styles.modalCategoryRow}>
+                      <Text style={styles.modalCategoryText}>{detailProduct.category}</Text>
+                      <Text style={[styles.modalCodeText, !isDark && styles.textMutedDark]}>
+                        REF: {detailProduct.id.toUpperCase()}
+                      </Text>
+                    </View>
+
+                    <Text style={[styles.modalProductTitle, !isDark && styles.textDark]}>
+                      {detailProduct.title}
+                    </Text>
+
+                    <Text style={[styles.modalProductDesc, !isDark && styles.modalProductDescLight]}>
+                      {detailProduct.description}
+                    </Text>
+
+                    {/* Especificações Oficiais */}
+                    {detailProduct.specs && (
+                      <View style={[styles.specsContainer, !isDark && styles.specsContainerLight]}>
+                        <Text style={[styles.specsTitle, !isDark && styles.textDark]}>
+                          Especificações Oficiais
+                        </Text>
+                        <View style={styles.specsList}>
+                          {detailProduct.specs.map((item, i) => (
+                            <View key={i} style={styles.specItemRow}>
+                              <Text style={[styles.specLabel, !isDark && styles.textMutedDark]}>
+                                {item.label}
+                              </Text>
+                              <Text style={[styles.specValue, !isDark && styles.textDark]}>
+                                {item.value}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Seletor de Tamanho / Formato */}
+                    {detailProduct.sizes && (
+                      <View style={styles.modalSizesSection}>
+                        <Text style={[styles.modalSectionLabel, !isDark && styles.textDark]}>
+                          Tamanho / Formato:
+                        </Text>
+                        <View style={styles.modalSizesRow}>
+                          {detailProduct.sizes.map((s) => {
+                            const isSelected = modalSize === s;
+                            return (
+                              <TouchableOpacity
+                                key={s}
+                                style={[
+                                  styles.modalSizeChip,
+                                  !isDark && styles.modalSizeChipLight,
+                                  isSelected && styles.modalSizeChipActive,
+                                ]}
+                                onPress={() => handleModalSizeSelect(s)}
+                                activeOpacity={0.75}
+                              >
+                                <Text
+                                  style={[
+                                    styles.modalSizeChipText,
+                                    !isDark && styles.modalSizeChipTextLight,
+                                    isSelected && styles.modalSizeChipTextActive,
+                                  ]}
+                                >
+                                  {s}
+                                </Text>
+                                {isSelected && <Check size={12} color="#FFF" style={{ marginLeft: 4 }} />}
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Bloco de Valor e Desconto de Sócio */}
+                    <View style={[styles.modalPriceCard, !isDark && styles.modalPriceCardLight]}>
+                      <View>
+                        <Text style={[styles.modalPriceLabel, !isDark && styles.textMutedDark]}>
+                          Valor Especial Sócio G39
+                        </Text>
+                        <View style={styles.modalPriceRow}>
+                          <Text style={styles.modalPriceValue}>
+                            {detailProduct.price.toFixed(2)} €
+                          </Text>
+                          <Text style={[styles.modalPricePublic, !isDark && styles.pricePublicLight]}>
+                            {(detailProduct.price + 3.0).toFixed(2)} €
+                          </Text>
+                          <View style={styles.modalDiscountPill}>
+                            <Text style={styles.modalDiscountPillText}>-20% SÓCIO</Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Botão de Compra com MB WAY */}
+                    <TouchableOpacity
+                      style={styles.modalBuyBtn}
+                      onPress={handleBuyFromModal}
+                      activeOpacity={0.88}
+                    >
+                      <View style={styles.mbWayLogoBox}>
+                        <Text style={styles.mbWayLogoTxt}>MB</Text>
+                      </View>
+                      <Text style={styles.modalBuyBtnText}>
+                        Comprar via MB WAY ({detailProduct.price.toFixed(2)} €)
+                      </Text>
+                      <ChevronRight size={18} color="#FFF" />
+                    </TouchableOpacity>
+
+                    {/* Selo de Garantia e Recolha */}
+                    <View style={styles.modalGuaranteeBox}>
+                      <ShieldCheck size={15} color={COLORS.primaryLight} />
+                      <Text style={[styles.modalGuaranteeText, !isDark && styles.textMutedDark]}>
+                        Artigo 100% Oficial Grupo 39 · Levantamento imediato na Sede ou nos Arcos
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -340,6 +640,11 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     fontWeight: '900',
     letterSpacing: 0.4,
+  },
+  viewDetailsTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   featuredStockText: {
     color: COLORS.primaryLight,
@@ -476,6 +781,25 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.3,
   },
+  productClickHint: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  productClickHintText: {
+    color: '#FFF',
+    fontSize: 9.5,
+    fontWeight: '700',
+  },
   productBody: {
     padding: 12,
   },
@@ -499,7 +823,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  // Tamanhos
+  // Tamanhos no Card
   sizesBox: {
     marginVertical: 6,
   },
@@ -535,7 +859,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
 
-  // Preço e Botão
+  // Preço e Botão no Card
   priceContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -599,11 +923,11 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.2)',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   infoIconBox: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 10,
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
     alignItems: 'center',
@@ -614,42 +938,443 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '800',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   infoDesc: {
     color: COLORS.textSecondary,
-    fontSize: 10.5,
+    fontSize: 11,
     lineHeight: 15,
   },
-  containerLight: {
+
+  // ==========================================
+  // ESTILOS DO MODAL DETALHADO DO PRODUTO
+  // ==========================================
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 10, 8, 0.85)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '100%',
+    maxWidth: 520,
+    maxHeight: '92%',
+    backgroundColor: '#111A15',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    overflow: 'hidden',
+  },
+  modalContainerTablet: {
+    borderRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    maxHeight: '85%',
+  },
+  modalContainerLight: {
     backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  modalDragHandle: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    alignSelf: 'center',
+    marginTop: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalHeaderLight: {
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  modalHeaderIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalHeaderIconBoxLight: {
+    backgroundColor: 'rgba(242, 182, 0, 0.2)',
+  },
+  modalHeaderTitle: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  modalHeaderSubtitle: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  modalCloseBtn: {
+    padding: 6,
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingBottom: 30,
+  },
+
+  // Galeria de Fotos
+  galleryContainer: {
+    padding: 14,
+    paddingBottom: 8,
+  },
+  mainImageWrapper: {
+    width: '100%',
+    height: 230,
+    borderRadius: 18,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#0D1510',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  modalMainImg: {
+    width: '100%',
+    height: '100%',
+  },
+  modalBadgeRow: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalTagBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.gold,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+  },
+  modalTagBadgeText: {
+    color: '#000',
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.3,
+  },
+  modalStockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.35)',
+  },
+  modalStockBadgeText: {
+    color: COLORS.primaryLight,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  thumbnailsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  thumbnailBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: '#0D1510',
+  },
+  thumbnailBoxActive: {
+    borderColor: COLORS.primaryLight,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 10px rgba(0, 179, 104, 0.4)',
+      },
+    }),
+  },
+  thumbnailImg: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // Corpo do Modal
+  modalCardBody: {
+    paddingHorizontal: 16,
+    paddingTop: 6,
+  },
+  modalCardBodyLight: {},
+  modalCategoryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  modalCategoryText: {
+    color: COLORS.gold,
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  modalCodeText: {
+    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  modalProductTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '900',
+    marginBottom: 8,
+    lineHeight: 23,
+  },
+  modalProductDesc: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: 14,
+  },
+  modalProductDescLight: {
+    color: '#3A4E42',
+  },
+
+  // Especificações
+  specsContainer: {
+    backgroundColor: '#0F1812',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: 14,
+  },
+  specsContainerLight: {
+    backgroundColor: '#F4F8F5',
+    borderColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  specsTitle: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  specsList: {
+    gap: 6,
+  },
+  specItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  specLabel: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  specValue: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  // Tamanhos no Modal
+  modalSizesSection: {
+    marginBottom: 16,
+  },
+  modalSectionLabel: {
+    color: '#FFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  modalSizesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  modalSizeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#16241B',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  modalSizeChipLight: {
+    backgroundColor: '#EDF5F0',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+  },
+  modalSizeChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primaryLight,
+  },
+  modalSizeChipText: {
+    color: COLORS.textSecondary,
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  modalSizeChipTextLight: {
+    color: '#43584B',
+  },
+  modalSizeChipTextActive: {
+    color: '#FFF',
+  },
+
+  // Preço no Modal
+  modalPriceCard: {
+    backgroundColor: '#0F1812',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.25)',
+    marginBottom: 16,
+  },
+  modalPriceCardLight: {
+    backgroundColor: '#EDF7F1',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  modalPriceLabel: {
+    color: COLORS.textMuted,
+    fontSize: 10.5,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  modalPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  modalPriceValue: {
+    color: COLORS.primaryLight,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  modalPricePublic: {
+    color: COLORS.textMuted,
+    fontSize: 13,
+    textDecorationLine: 'line-through',
+  },
+  modalDiscountPill: {
+    backgroundColor: 'rgba(0, 179, 104, 0.2)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.35)',
+  },
+  modalDiscountPillText: {
+    color: '#00B368',
+    fontSize: 9.5,
+    fontWeight: '900',
+  },
+
+  // Botão de Compra no Modal
+  modalBuyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#00874E',
+    height: 50,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#00B368',
+    marginBottom: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 135, 78, 0.4)',
+      },
+    }),
+  },
+  mbWayLogoBox: {
+    backgroundColor: '#F2B600',
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: 4,
+  },
+  mbWayLogoTxt: {
+    color: '#000',
+    fontSize: 10.5,
+    fontWeight: '900',
+  },
+  modalBuyBtnText: {
+    color: '#FFF',
+    fontSize: 13.5,
+    fontWeight: '800',
+  },
+  modalGuaranteeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  modalGuaranteeText: {
+    color: COLORS.textMuted,
+    fontSize: 10.5,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  // Variantes Modo Claro
+  containerLight: {
+    backgroundColor: '#F4F7F5',
   },
   categoryChipLight: {
-    backgroundColor: '#F2F6F4',
+    backgroundColor: '#FFFFFF',
     borderColor: 'rgba(0, 135, 78, 0.15)',
   },
   categoryChipTextLight: {
-    color: '#24382C',
+    color: '#556A5E',
   },
   featuredCardLight: {
-    backgroundColor: '#F8FAF9',
-    borderColor: 'rgba(0, 135, 78, 0.2)',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)',
-      },
-    }),
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(242, 182, 0, 0.5)',
   },
   productCardLight: {
     backgroundColor: '#FFFFFF',
     borderColor: 'rgba(0, 135, 78, 0.14)',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 3px 12px rgba(0, 0, 0, 0.04)',
-      },
-    }),
+  },
+  infoBannerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  infoIconBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+  },
+  infoTitleLight: {
+    color: '#0E1712',
+  },
+  infoDescLight: {
+    color: '#556A5E',
   },
   textDark: {
     color: '#0E1712',
@@ -657,30 +1382,19 @@ const styles = StyleSheet.create({
   textMutedDark: {
     color: '#556A5E',
   },
-  sizeChipLight: {
-    backgroundColor: '#F2F6F4',
-    borderColor: 'rgba(0, 135, 78, 0.18)',
-  },
-  sizeChipTextLight: {
-    color: '#24382C',
-  },
   originalPriceLight: {
-    color: '#7A9184',
+    color: '#8A9E92',
   },
   pricePublicLight: {
-    color: '#7A9184',
+    color: '#8A9E92',
   },
-  infoBannerLight: {
-    backgroundColor: '#F4F9F6',
-    borderColor: 'rgba(0, 135, 78, 0.25)',
+  sizeChipLight: {
+    backgroundColor: '#F4F8F6',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
   },
-  infoIconBoxLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
-  },
-  infoTitleLight: {
-    color: '#00874E',
-  },
-  infoDescLight: {
-    color: '#344D3F',
+  sizeChipTextLight: {
+    color: '#4B6154',
   },
 });
+
+export default memo(StoreScreen);

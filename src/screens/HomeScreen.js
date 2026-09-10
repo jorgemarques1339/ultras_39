@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Platform,
   Animated,
+  Image,
+  useWindowDimensions,
 } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import {
@@ -32,6 +34,7 @@ import ClubBadge from '../components/ClubBadge';
 import DeslocacaoModal from '../components/DeslocacaoModal';
 import TabelaModal from '../components/TabelaModal';
 import SejaSocioModal from '../components/SejaSocioModal';
+import JogosModal from '../components/JogosModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -56,7 +59,7 @@ function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   );
 }
 
-export default function HomeScreen({
+function HomeScreen({
   user,
   onBuyTicket,
   onNavigateTab,
@@ -70,6 +73,7 @@ export default function HomeScreen({
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
   const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [socioModalVisible, setSocioModalVisible] = useState(false);
+  const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const mainScrollRef = useRef(null);
@@ -83,12 +87,12 @@ export default function HomeScreen({
         Animated.timing(pulseAnim, {
           toValue: 1.05,
           duration: 750,
-          useNativeDriver: false,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(pulseAnim, {
           toValue: 1.0,
           duration: 750,
-          useNativeDriver: false,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     );
@@ -96,18 +100,20 @@ export default function HomeScreen({
     return () => pulseLoop.stop();
   }, [pulseAnim]);
 
-  const handleVoteMotm = (playerId) => {
-    if (votedPlayerId === playerId) return;
-    setVotedPlayerId(playerId);
-    setMotmList((prev) =>
-      prev.map((p) => {
-        if (p.id === playerId) {
-          return { ...p, votes: p.votes + 1, pct: Math.min(100, p.pct + 3) };
-        }
-        return p;
-      })
-    );
-  };
+  const handleVoteMotm = useCallback((playerId) => {
+    setVotedPlayerId((current) => {
+      if (current === playerId) return current;
+      setMotmList((prev) =>
+        prev.map((p) => {
+          if (p.id === playerId) {
+            return { ...p, votes: p.votes + 1, pct: Math.min(100, p.pct + 3) };
+          }
+          return p;
+        })
+      );
+      return playerId;
+    });
+  }, []);
 
   return (
     <ScrollView
@@ -117,6 +123,9 @@ export default function HomeScreen({
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
       scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
+      removeClippedSubviews={Platform.OS !== 'web'}
+      overScrollMode="never"
     >
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <View style={[styles.heroCard, !isDark && styles.heroCardLight]}>
@@ -267,17 +276,21 @@ export default function HomeScreen({
           onPress={onOpenChants}
           activeOpacity={0.85}
         >
-          <View style={styles.shortcutIconBgMusic}>
-            <Drum size={20} color="#FFF" />
+          <View style={styles.chantsLogoWrapper}>
+            <Image
+              source={require('../../assets/logo_39.png')}
+              style={styles.chantsLogoImage}
+              resizeMode="contain"
+            />
           </View>
           <View style={styles.chantsTextBoxCentered}>
             <View style={styles.shortcutHeaderRowCentered}>
-              <Text style={[styles.shortcutTitleCentered, !isDark && styles.shortcutTitleCenteredLight]}>Cânticos G39</Text>
+              <Text style={styles.shortcutTitleCentered}>Cânticos G39</Text>
             </View>
-            <Text style={[styles.shortcutDescCentered, !isDark && styles.shortcutDescCenteredLight]}>Letra e Ritmos</Text>
+            <Text style={styles.shortcutDescCentered}>Letra e Ritmos</Text>
           </View>
           <View style={styles.chantsArrowCircle}>
-            <ChevronRight size={16} color="#FFF" />
+            <ChevronRight size={15} color="#FFF" />
           </View>
         </TouchableOpacity>
       </View>
@@ -316,7 +329,7 @@ export default function HomeScreen({
 
         <TouchableOpacity
           style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-          onPress={() => onNavigateTab('calendar')}
+          onPress={() => setJogosModalVisible(true)}
           activeOpacity={0.8}
         >
           <View style={styles.subShortcutIconBgCalendar}>
@@ -359,13 +372,30 @@ export default function HomeScreen({
         visible={deslocacaoModalVisible}
         onClose={() => setDeslocacaoModalVisible(false)}
         onBuyTicket={onBuyTicket}
+        isDark={isDark}
+      />
+
+      {/* Modal de Jogos e Calendário Oficial em Direto */}
+      <JogosModal
+        visible={jogosModalVisible}
+        onClose={() => setJogosModalVisible(false)}
+        onBuyTicket={onBuyTicket}
+        onOpenDeslocacao={() => setDeslocacaoModalVisible(true)}
+        isDark={isDark}
       />
 
       {/* Modal de Tabela Classificativa */}
       <TabelaModal
         visible={tabelaModalVisible}
         onClose={() => setTabelaModalVisible(false)}
-        onNavigateTab={onNavigateTab}
+        onNavigateTab={(tab) => {
+          if (tab === 'calendar') {
+            setJogosModalVisible(true);
+          } else if (onNavigateTab) {
+            onNavigateTab(tab);
+          }
+        }}
+        isDark={isDark}
       />
 
       {/* Modal Seja Sócio */}
@@ -374,6 +404,7 @@ export default function HomeScreen({
         onClose={() => setSocioModalVisible(false)}
         onJoinMember={onBuyTicket}
         onNavigateTab={onNavigateTab}
+        isDark={isDark}
       />
 
       {/* Espaço para a barra flutuante */}
@@ -697,27 +728,43 @@ const styles = StyleSheet.create({
   // Atalhos Rápidos da Claque
   chantsCenterWrapper: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   chantsCenteredBtn: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#13281E',
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderWidth: 1.5,
+    backgroundColor: '#00874E',
+    borderRadius: 13,
+    paddingVertical: 7.5,
+    paddingHorizontal: 12,
+    borderWidth: 1,
     borderColor: '#00B368',
-    gap: 12,
+    gap: 10,
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 20px rgba(0, 179, 104, 0.25), 0 0 12px rgba(0, 135, 78, 0.2)',
+        boxShadow: '0 3px 14px rgba(0, 135, 78, 0.35)',
       },
       default: {
-        elevation: 6,
+        elevation: 4,
       },
     }),
+  },
+  chantsLogoWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#00B368',
+  },
+  chantsLogoImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
   },
   chantsTextBoxCentered: {
     flex: 1,
@@ -733,15 +780,15 @@ const styles = StyleSheet.create({
   },
   shortcutTitleCentered: {
     color: '#FFF',
-    fontSize: 14.5,
+    fontSize: 13.5,
     fontWeight: '900',
     textAlign: 'center',
     letterSpacing: 0.3,
   },
   shortcutDescCentered: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 10.5,
+    marginTop: 1,
     textAlign: 'center',
   },
   subShortcutsRow: {
@@ -751,6 +798,7 @@ const styles = StyleSheet.create({
   },
   animatedBusWrapper: {
     flex: 1,
+    borderRadius: 12,
   },
   subShortcutCardPulsing: {
     flex: 1,
@@ -837,14 +885,14 @@ const styles = StyleSheet.create({
     }),
   },
   chantsArrowCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(0, 179, 104, 0.22)',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.45)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   shortcutBadgeGold: {
     backgroundColor: 'rgba(0, 179, 104, 0.22)',
@@ -1078,23 +1126,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F7F5',
   },
   chantsCenteredBtnLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(0, 135, 78, 0.45)',
+    backgroundColor: '#00874E',
+    borderColor: '#00A85F',
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 18px rgba(0, 135, 78, 0.12), 0 2px 8px rgba(0, 0, 0, 0.05)',
+        boxShadow: '0 3px 14px rgba(0, 135, 78, 0.3)',
+      },
+      default: {
+        elevation: 4,
       },
     }),
-  },
-  shortcutTitleCenteredLight: {
-    color: '#14201A',
-  },
-  shortcutDescCenteredLight: {
-    color: '#556960',
   },
   subShortcutCardPulsingLight: {
     backgroundColor: '#FFFFFF',
     borderColor: '#00874E',
+    borderRadius: 12,
     ...Platform.select({
       web: {
         boxShadow: '0 0 14px rgba(0, 135, 78, 0.3), 0 2px 8px rgba(0, 0, 0, 0.05)',
@@ -1168,3 +1214,5 @@ const styles = StyleSheet.create({
     color: '#556960',
   },
 });
+
+export default memo(HomeScreen);

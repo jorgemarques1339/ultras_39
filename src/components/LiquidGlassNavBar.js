@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { Home, MessageSquare, ShoppingBag, User } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { id: 'profile', icon: User, label: 'Perfil' },
 ];
 
-export default function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
+function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -229,3 +229,5 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 });
+
+export default memo(LiquidGlassNavBar);

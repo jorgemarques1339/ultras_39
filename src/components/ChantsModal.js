@@ -16,20 +16,17 @@ import {
   RotateCcw,
   Volume2,
   VolumeX,
-  Drum,
-  Share2,
+  Music,
   Radio,
-  Sparkles,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { CHANTS_DATA } from '../data/mockData';
 
-export default function ChantsModal({ visible, onClose }) {
+export default function ChantsModal({ visible, onClose, isDark = true }) {
   const [selectedChant, setSelectedChant] = useState(CHANTS_DATA[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const [activeDrumPad, setActiveDrumPad] = useState(null);
 
   const audioContextRef = useRef(null);
   const intervalRef = useRef(null);
@@ -37,7 +34,7 @@ export default function ChantsModal({ visible, onClose }) {
   const beatIndexRef = useRef(0);
   const lastSpokenLineRef = useRef(-1);
 
-  // Animação de equalizador
+  // Animação do equalizador
   const eqAnim1 = useRef(new Animated.Value(6)).current;
   const eqAnim2 = useRef(new Animated.Value(14)).current;
   const eqAnim3 = useRef(new Animated.Value(10)).current;
@@ -97,7 +94,7 @@ export default function ChantsModal({ visible, onClose }) {
     }
   };
 
-  // 1. Som de Bombo de Bancada (Sub-Bass Stadium Kick)
+  // Som de Bombo de Bancada (Sub-Bass Stadium Kick)
   const playBombo = (time = 0) => {
     if (isMuted) return;
     const ctx = getAudioContext();
@@ -122,7 +119,7 @@ export default function ChantsModal({ visible, onClose }) {
     } catch (e) {}
   };
 
-  // 2. Som de Caixa / Tarol da Claque (Snare & Rattle)
+  // Som de Caixa / Tarol da Claque
   const playCaixa = (time = 0) => {
     if (isMuted) return;
     const ctx = getAudioContext();
@@ -166,7 +163,7 @@ export default function ChantsModal({ visible, onClose }) {
     } catch (e) {}
   };
 
-  // 3. Som de Palmas Coletivas da Bancada (Terrace Claps)
+  // Som de Palmas Coletivas da Bancada
   const playPalmas = (time = 0) => {
     if (isMuted) return;
     const ctx = getAudioContext();
@@ -199,7 +196,7 @@ export default function ChantsModal({ visible, onClose }) {
     } catch (e) {}
   };
 
-  // 4. Som de Corneta / Fanfarra dos Arcos (Brass Horn Fanfare)
+  // Som de Corneta / Fanfarra dos Arcos
   const playCorneta = (freq = 392, duration = 0.24, time = 0) => {
     if (isMuted) return;
     const ctx = getAudioContext();
@@ -269,23 +266,19 @@ export default function ChantsModal({ visible, onClose }) {
         beatIndexRef.current += 1;
 
         if (beat === 0) {
-          // Batida forte: Bombo + Corneta de apoio
           playBombo();
-          playCorneta(392, 0.2); // Sol
+          playCorneta(392, 0.2);
         } else if (beat === 1) {
-          // Batida média: Caixa + Palmas
           playCaixa();
           playPalmas();
         } else if (beat === 2) {
-          // Contra-tempo: Bombo duplo
           playBombo();
           setTimeout(() => playBombo(), 140);
-          playCorneta(440, 0.18); // Lá
+          playCorneta(440, 0.18);
         } else if (beat === 3) {
-          // Fecho do compasso: Caixa + Palmas + Fanfarra
           playCaixa();
           playPalmas();
-          playCorneta(523.25, 0.25); // Dó agudo
+          playCorneta(523.25, 0.25);
         }
       }, beatMs);
     } else {
@@ -304,10 +297,9 @@ export default function ChantsModal({ visible, onClose }) {
           const next = prev + 1;
           if (next >= selectedChant.duration) {
             lastSpokenLineRef.current = -1;
-            return 0; // Loop contínuo de apoio na bancada
+            return 0;
           }
 
-          // Verificar se alguma linha da letra começa neste segundo
           const lineIndex = selectedChant.lines.findIndex((l) => l.time === next);
           if (lineIndex !== -1 && lineIndex !== lastSpokenLineRef.current) {
             lastSpokenLineRef.current = lineIndex;
@@ -334,9 +326,8 @@ export default function ChantsModal({ visible, onClose }) {
         window.speechSynthesis.cancel();
       }
     } else {
-      getAudioContext(); // Desbloqueia áudio no smartphone
+      getAudioContext();
       setIsPlaying(true);
-      // Inicia com primeira linha da letra
       const currentLine = selectedChant.lines.find((l) => l.time <= currentTime) || selectedChant.lines[0];
       if (currentLine) {
         speakChantLyric(currentLine.text);
@@ -365,23 +356,6 @@ export default function ChantsModal({ visible, onClose }) {
     }
   };
 
-  // Tocar Pad Individual de Bateria (Feedback auditivo imediato no smartphone)
-  const triggerPad = (type) => {
-    getAudioContext();
-    setActiveDrumPad(type);
-    setTimeout(() => setActiveDrumPad(null), 180);
-
-    if (type === 'bombo') {
-      playBombo();
-    } else if (type === 'caixa') {
-      playCaixa();
-    } else if (type === 'palmas') {
-      playPalmas();
-    } else if (type === 'corneta') {
-      playCorneta(440, 0.35);
-    }
-  };
-
   return (
     <Modal
       visible={visible}
@@ -389,37 +363,59 @@ export default function ChantsModal({ visible, onClose }) {
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+      <View style={[styles.overlay, !isDark && styles.overlayLight]}>
+        <View style={[styles.container, !isDark && styles.containerLight]}>
           {/* Header do Cancioneiro */}
-          <View style={styles.header}>
+          <View style={[styles.header, !isDark && styles.headerLight]}>
             <View style={styles.headerLeft}>
-              <View style={styles.headerIconBadge}>
-                <Drum size={20} color={COLORS.gold} />
+              <View style={[styles.headerIconBadge, !isDark && styles.headerIconBadgeLight]}>
+                <Music size={20} color={isDark ? COLORS.gold : '#00874E'} />
               </View>
               <View>
-                <Text style={styles.headerTitle}>Cancioneiro Grupo 39</Text>
-                <Text style={styles.headerSubtitle}>Letra e Ritmos da Bancada</Text>
+                <Text style={[styles.headerTitle, !isDark && styles.headerTitleLight]}>
+                  Cancioneiro Grupo 39
+                </Text>
+                <Text style={[styles.headerSubtitle, !isDark && styles.headerSubtitleLight]}>
+                  Letra e Ritmos da Bancada
+                </Text>
               </View>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-              <X size={20} color={COLORS.textSecondary} />
+              <X size={20} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
           </View>
 
           {/* Abas dos Cânticos */}
-          <View style={styles.tabsContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContent}>
+          <View style={[styles.tabsContainer, !isDark && styles.tabsContainerLight]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsContent}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={Platform.OS !== 'web'}
+              overScrollMode="never"
+            >
               {CHANTS_DATA.map((chant) => {
                 const isSelected = chant.id === selectedChant.id;
                 return (
                   <TouchableOpacity
                     key={chant.id}
-                    style={[styles.tabPill, isSelected && styles.tabPillActive]}
+                    style={[
+                      styles.tabPill,
+                      !isDark && styles.tabPillLight,
+                      isSelected && styles.tabPillActive,
+                      isSelected && !isDark && styles.tabPillActiveLight,
+                    ]}
                     onPress={() => handleSelectChant(chant)}
                     activeOpacity={0.7}
                   >
-                    <Text style={[styles.tabPillText, isSelected && styles.tabPillTextActive]}>
+                    <Text
+                      style={[
+                        styles.tabPillText,
+                        !isDark && styles.tabPillTextLight,
+                        isSelected && styles.tabPillTextActive,
+                      ]}
+                    >
                       {chant.title}
                     </Text>
                   </TouchableOpacity>
@@ -428,53 +424,79 @@ export default function ChantsModal({ visible, onClose }) {
             </ScrollView>
           </View>
 
-          {/* Player & Letra Sincronizada */}
-          <ScrollView style={styles.scrollBody} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Cartão de Informação do Cântico */}
-            <View style={styles.chantInfoCard}>
+          {/* Player & Letra Sincronizada (Apenas estes dois elementos) */}
+          <ScrollView
+            style={styles.scrollBody}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
+          >
+            {/* 1. CARTÃO DO PLAYER */}
+            <View style={[styles.chantInfoCard, !isDark && styles.chantInfoCardLight]}>
               <View style={styles.chantTopMeta}>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryBadgeText}>{selectedChant.category}</Text>
+                <View style={[styles.categoryBadge, !isDark && styles.categoryBadgeLight]}>
+                  <Text style={[styles.categoryBadgeText, !isDark && styles.categoryBadgeTextLight]}>
+                    {selectedChant.category}
+                  </Text>
                 </View>
 
                 {/* Equalizador animado & BPM */}
                 <View style={styles.audioStatusRow}>
                   <View style={styles.equalizerBars}>
-                    <Animated.View style={[styles.eqBar, { height: eqAnim1 }]} />
-                    <Animated.View style={[styles.eqBar, { height: eqAnim2 }]} />
-                    <Animated.View style={[styles.eqBar, { height: eqAnim3 }]} />
-                    <Animated.View style={[styles.eqBar, { height: eqAnim4 }]} />
+                    <Animated.View style={[styles.eqBar, !isDark && styles.eqBarLight, { height: eqAnim1 }]} />
+                    <Animated.View style={[styles.eqBar, !isDark && styles.eqBarLight, { height: eqAnim2 }]} />
+                    <Animated.View style={[styles.eqBar, !isDark && styles.eqBarLight, { height: eqAnim3 }]} />
+                    <Animated.View style={[styles.eqBar, !isDark && styles.eqBarLight, { height: eqAnim4 }]} />
                   </View>
-                  <View style={styles.bpmTag}>
-                    <Radio size={12} color={COLORS.primaryLight} />
-                    <Text style={styles.bpmText}>{selectedChant.bpm} BPM</Text>
+                  <View style={[styles.bpmTag, !isDark && styles.bpmTagLight]}>
+                    <Radio size={12} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                    <Text style={[styles.bpmText, !isDark && styles.bpmTextLight]}>
+                      {selectedChant.bpm} BPM
+                    </Text>
                   </View>
                 </View>
               </View>
 
-              <Text style={styles.chantMainTitle}>{selectedChant.title}</Text>
+              <Text style={[styles.chantMainTitle, !isDark && styles.chantMainTitleLight]}>
+                {selectedChant.title}
+              </Text>
 
               {/* Barra de Progresso */}
               <View style={styles.progressRow}>
-                <Text style={styles.timeText}>0:{String(currentTime).padStart(2, '0')}</Text>
-                <View style={styles.progressBarBg}>
+                <Text style={[styles.timeText, !isDark && styles.timeTextLight]}>
+                  0:{String(currentTime).padStart(2, '0')}
+                </Text>
+                <View style={[styles.progressBarBg, !isDark && styles.progressBarBgLight]}>
                   <View
                     style={[
                       styles.progressBarFill,
-                      { width: `${(currentTime / selectedChant.duration) * 100}%` }
+                      !isDark && styles.progressBarFillLight,
+                      { width: `${(currentTime / selectedChant.duration) * 100}%` },
                     ]}
                   />
                 </View>
-                <Text style={styles.timeText}>0:{String(selectedChant.duration).padStart(2, '0')}</Text>
+                <Text style={[styles.timeText, !isDark && styles.timeTextLight]}>
+                  0:{String(selectedChant.duration).padStart(2, '0')}
+                </Text>
               </View>
 
               {/* Botões de Controlo */}
               <View style={styles.controlsRow}>
-                <TouchableOpacity onPress={handleReset} style={styles.subControlBtn} activeOpacity={0.7}>
-                  <RotateCcw size={18} color={COLORS.textSecondary} />
+                <TouchableOpacity
+                  onPress={handleReset}
+                  style={[styles.subControlBtn, !isDark && styles.subControlBtnLight]}
+                  activeOpacity={0.7}
+                >
+                  <RotateCcw size={18} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={togglePlay} style={styles.mainPlayBtn} activeOpacity={0.85}>
+                <TouchableOpacity
+                  onPress={togglePlay}
+                  style={[styles.mainPlayBtn, !isDark && styles.mainPlayBtnLight]}
+                  activeOpacity={0.85}
+                >
                   {isPlaying ? (
                     <Pause size={24} color="#FFF" />
                   ) : (
@@ -484,86 +506,65 @@ export default function ChantsModal({ visible, onClose }) {
 
                 <TouchableOpacity
                   onPress={() => setIsMuted((prev) => !prev)}
-                  style={[styles.subControlBtn, isMuted && styles.subControlBtnMuted]}
+                  style={[
+                    styles.subControlBtn,
+                    !isDark && styles.subControlBtnLight,
+                    isMuted && styles.subControlBtnMuted,
+                    isMuted && !isDark && styles.subControlBtnMutedLight,
+                  ]}
                   activeOpacity={0.7}
                 >
                   {isMuted ? (
                     <VolumeX size={18} color="#FF6E6E" />
                   ) : (
-                    <Volume2 size={18} color={COLORS.primaryLight} />
+                    <Volume2 size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
                   )}
                 </TouchableOpacity>
               </View>
 
               {/* Indicador de Som do Smartphone */}
-              <View style={styles.speakerIndicatorRow}>
-                <Volume2 size={13} color={isPlaying ? COLORS.primaryLight : COLORS.textMuted} />
-                <Text style={[styles.speakerIndicatorText, isPlaying && styles.speakerIndicatorTextActive]}>
-                  {isPlaying ? 'Som ativo no altifalante (Bateria & Voz)' : 'Toca para reproduzir no smartphone'}
+              <View style={[styles.speakerIndicatorRow, !isDark && styles.speakerIndicatorRowLight]}>
+                <Volume2
+                  size={13}
+                  color={
+                    isPlaying
+                      ? (isDark ? COLORS.primaryLight : '#00874E')
+                      : (isDark ? COLORS.textMuted : '#94A3B8')
+                  }
+                />
+                <Text
+                  style={[
+                    styles.speakerIndicatorText,
+                    !isDark && styles.speakerIndicatorTextLight,
+                    isPlaying && styles.speakerIndicatorTextActive,
+                    isPlaying && !isDark && styles.speakerIndicatorTextActiveLight,
+                  ]}
+                >
+                  {isPlaying
+                    ? 'Som ativo no altifalante (Bateria & Voz)'
+                    : 'Toca para reproduzir no smartphone'}
                 </Text>
               </View>
             </View>
 
-            {/* Bateria Interativa da Claque (Toca no Ecrã) */}
-            <View style={styles.drumPadSection}>
-              <View style={styles.drumPadHeader}>
-                <View style={styles.drumPadTitleRow}>
-                  <Drum size={15} color={COLORS.gold} />
-                  <Text style={styles.drumPadTitle}>Bateria da Claque (Toca no Smartphone)</Text>
-                </View>
-                <Text style={styles.drumPadSub}>Toca nos pads para acompanhar o ritmo</Text>
-              </View>
-
-              <View style={styles.drumGrid}>
-                <TouchableOpacity
-                  style={[styles.drumBtn, activeDrumPad === 'bombo' && styles.drumBtnActive]}
-                  onPress={() => triggerPad('bombo')}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.drumBtnIcon}>🥁</Text>
-                  <Text style={styles.drumBtnTitle}>Bombo</Text>
-                  <Text style={styles.drumBtnNote}>Grave</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.drumBtn, activeDrumPad === 'caixa' && styles.drumBtnActive]}
-                  onPress={() => triggerPad('caixa')}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.drumBtnIcon}>🥁</Text>
-                  <Text style={styles.drumBtnTitle}>Caixa</Text>
-                  <Text style={styles.drumBtnNote}>Tarol</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.drumBtn, activeDrumPad === 'palmas' && styles.drumBtnActive]}
-                  onPress={() => triggerPad('palmas')}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.drumBtnIcon}>👏</Text>
-                  <Text style={styles.drumBtnTitle}>Palmas</Text>
-                  <Text style={styles.drumBtnNote}>Bancada</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.drumBtn, activeDrumPad === 'corneta' && styles.drumBtnActive]}
-                  onPress={() => triggerPad('corneta')}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.drumBtnIcon}>🎺</Text>
-                  <Text style={styles.drumBtnTitle}>Corneta</Text>
-                  <Text style={styles.drumBtnNote}>Fanfarra</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Letras em Estilo Karaoke Sincronizado */}
-            <View style={styles.lyricsContainer}>
+            {/* 2. LETRAS EM ESTILO KARAOKE SINCRONIZADO */}
+            <View style={[styles.lyricsContainer, !isDark && styles.lyricsContainerLight]}>
               <View style={styles.lyricsHeaderRow}>
-                <Text style={styles.lyricsHeading}>Letra da Bancada Poente</Text>
-                <View style={styles.liveSyncBadge}>
-                  <View style={[styles.syncDot, isPlaying && styles.syncDotActive]} />
-                  <Text style={styles.syncBadgeText}>Sincronizado</Text>
+                <Text style={[styles.lyricsHeading, !isDark && styles.lyricsHeadingLight]}>
+                  Letra da Bancada Poente
+                </Text>
+                <View style={[styles.liveSyncBadge, !isDark && styles.liveSyncBadgeLight]}>
+                  <View
+                    style={[
+                      styles.syncDot,
+                      !isDark && styles.syncDotLight,
+                      isPlaying && styles.syncDotActive,
+                      isPlaying && !isDark && styles.syncDotActiveLight,
+                    ]}
+                  />
+                  <Text style={[styles.syncBadgeText, !isDark && styles.syncBadgeTextLight]}>
+                    Sincronizado
+                  </Text>
                 </View>
               </View>
 
@@ -577,7 +578,9 @@ export default function ChantsModal({ visible, onClose }) {
                     key={index}
                     style={[
                       styles.lyricLineBox,
-                      isCurrent && styles.lyricLineBoxActive
+                      !isDark && styles.lyricLineBoxLight,
+                      isCurrent && styles.lyricLineBoxActive,
+                      isCurrent && !isDark && styles.lyricLineBoxActiveLight,
                     ]}
                     onPress={() => {
                       setCurrentTime(line.time);
@@ -588,8 +591,11 @@ export default function ChantsModal({ visible, onClose }) {
                     <Text
                       style={[
                         styles.lyricLineText,
+                        !isDark && styles.lyricLineTextLight,
                         isCurrent && styles.lyricLineTextActive,
-                        isPast && styles.lyricLineTextPast
+                        isCurrent && !isDark && styles.lyricLineTextActiveLight,
+                        isPast && styles.lyricLineTextPast,
+                        isPast && !isDark && styles.lyricLineTextPastLight,
                       ]}
                     >
                       {line.text}
@@ -612,6 +618,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
+  overlayLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+  },
   container: {
     width: '100%',
     maxWidth: 520,
@@ -623,6 +632,24 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.12)',
     overflow: 'hidden',
   },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8E5',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 12,
+      },
+      web: {
+        boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.12)',
+      },
+    }),
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -631,6 +658,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  headerLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: '#EBEFEA',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -647,15 +678,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerIconBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
   headerTitle: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '800',
   },
+  headerTitleLight: {
+    color: '#121614',
+  },
   headerSubtitle: {
     color: COLORS.textSecondary,
     fontSize: 11,
     marginTop: 1,
+  },
+  headerSubtitleLight: {
+    color: '#5A6E63',
   },
   closeBtn: {
     padding: 6,
@@ -664,6 +705,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
     backgroundColor: '#0F1813',
+  },
+  tabsContainerLight: {
+    backgroundColor: '#F8FAF9',
+    borderBottomColor: '#EBEFEA',
   },
   tabsContent: {
     paddingHorizontal: 14,
@@ -678,14 +723,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
   },
+  tabPillLight: {
+    backgroundColor: '#ECEFEF',
+    borderColor: '#DDE3DF',
+  },
   tabPillActive: {
     backgroundColor: '#00874E',
     borderColor: '#00B368',
+  },
+  tabPillActiveLight: {
+    backgroundColor: '#00874E',
+    borderColor: '#00874E',
   },
   tabPillText: {
     color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '600',
+  },
+  tabPillTextLight: {
+    color: '#5A6E63',
   },
   tabPillTextActive: {
     color: '#FFF',
@@ -706,6 +762,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.08)',
     marginBottom: 16,
   },
+  chantInfoCardLight: {
+    backgroundColor: '#F4F7F5',
+    borderColor: '#DDE3DF',
+  },
   chantTopMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -720,10 +780,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0, 135, 78, 0.4)',
   },
+  categoryBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
   categoryBadgeText: {
     color: COLORS.primaryLight,
     fontSize: 10,
     fontWeight: '700',
+  },
+  categoryBadgeTextLight: {
+    color: '#00874E',
   },
   audioStatusRow: {
     flexDirection: 'row',
@@ -741,6 +808,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primaryLight,
     borderRadius: 1.5,
   },
+  eqBarLight: {
+    backgroundColor: '#00874E',
+  },
   bpmTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -750,16 +820,25 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  bpmTagLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
   bpmText: {
     color: COLORS.textMuted,
     fontSize: 10,
     fontWeight: '600',
+  },
+  bpmTextLight: {
+    color: '#5A6E63',
   },
   chantMainTitle: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: '900',
     marginBottom: 14,
+  },
+  chantMainTitleLight: {
+    color: '#121614',
   },
   progressRow: {
     flexDirection: 'row',
@@ -772,6 +851,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
+  timeTextLight: {
+    color: '#5A6E63',
+  },
   progressBarBg: {
     flex: 1,
     height: 6,
@@ -779,10 +861,16 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     overflow: 'hidden',
   },
+  progressBarBgLight: {
+    backgroundColor: '#DCE3DE',
+  },
   progressBarFill: {
     height: '100%',
     backgroundColor: COLORS.primaryLight,
     borderRadius: 3,
+  },
+  progressBarFillLight: {
+    backgroundColor: '#00874E',
   },
   controlsRow: {
     flexDirection: 'row',
@@ -801,9 +889,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
+  subControlBtnLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DCE3DE',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)',
+      },
+    }),
+  },
   subControlBtnMuted: {
     borderColor: 'rgba(255, 110, 110, 0.4)',
     backgroundColor: 'rgba(255, 110, 110, 0.1)',
+  },
+  subControlBtnMutedLight: {
+    borderColor: 'rgba(220, 38, 38, 0.35)',
+    backgroundColor: 'rgba(254, 242, 242, 0.9)',
   },
   mainPlayBtn: {
     width: 56,
@@ -815,99 +925,75 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#00B368',
     ...Platform.select({
+      ios: {
+        shadowColor: '#00874E',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
       web: {
-        boxShadow: '0 4px 18px rgba(0, 135, 78, 0.6)',
+        boxShadow: '0 4px 18px rgba(0, 135, 78, 0.5)',
       },
     }),
+  },
+  mainPlayBtnLight: {
+    borderColor: '#007040',
   },
   speakerIndicatorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingTop: 6,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  speakerIndicatorRowLight: {
+    borderTopColor: '#EBEFEA',
   },
   speakerIndicatorText: {
     color: COLORS.textMuted,
     fontSize: 11,
     fontWeight: '500',
   },
+  speakerIndicatorTextLight: {
+    color: '#64748B',
+  },
   speakerIndicatorTextActive: {
     color: COLORS.primaryLight,
     fontWeight: '700',
   },
-
-  // Pads de Bateria da Claque
-  drumPadSection: {
-    backgroundColor: '#111A14',
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    marginBottom: 16,
+  speakerIndicatorTextActiveLight: {
+    color: '#00874E',
+    fontWeight: '700',
   },
-  drumPadHeader: {
-    marginBottom: 12,
-  },
-  drumPadTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  drumPadTitle: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  drumPadSub: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  drumGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  drumBtn: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  drumBtnActive: {
-    backgroundColor: 'rgba(0, 179, 104, 0.25)',
-    borderColor: COLORS.primaryLight,
-    transform: [{ scale: 0.94 }],
-  },
-  drumBtnIcon: {
-    fontSize: 20,
-    marginBottom: 3,
-  },
-  drumBtnTitle: {
-    color: '#FFF',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  drumBtnNote: {
-    color: COLORS.textMuted,
-    fontSize: 9,
-    marginTop: 1,
-  },
-
-  // Letras
   lyricsContainer: {
     backgroundColor: '#0E1712',
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  lyricsContainerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DDE3DF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 1,
+      },
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+      },
+    }),
   },
   lyricsHeaderRow: {
     flexDirection: 'row',
@@ -922,6 +1008,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
+  lyricsHeadingLight: {
+    color: '#00874E',
+  },
   liveSyncBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -931,19 +1020,31 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
   },
+  liveSyncBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+  },
   syncDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: COLORS.textMuted,
   },
+  syncDotLight: {
+    backgroundColor: '#94A3B8',
+  },
   syncDotActive: {
     backgroundColor: COLORS.primaryLight,
+  },
+  syncDotActiveLight: {
+    backgroundColor: '#00874E',
   },
   syncBadgeText: {
     color: COLORS.primaryLight,
     fontSize: 10,
     fontWeight: '700',
+  },
+  syncBadgeTextLight: {
+    color: '#00874E',
   },
   lyricLineBox: {
     paddingVertical: 10,
@@ -952,10 +1053,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     backgroundColor: 'transparent',
   },
+  lyricLineBoxLight: {
+    backgroundColor: '#F8FAF9',
+    borderWidth: 1,
+    borderColor: '#EBEFEA',
+  },
   lyricLineBoxActive: {
     backgroundColor: 'rgba(0, 135, 78, 0.25)',
     borderLeftWidth: 3,
     borderLeftColor: COLORS.primaryLight,
+  },
+  lyricLineBoxActiveLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#00874E',
   },
   lyricLineText: {
     color: COLORS.textSecondary,
@@ -963,12 +1075,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 20,
   },
+  lyricLineTextLight: {
+    color: '#334155',
+  },
   lyricLineTextActive: {
     color: '#FFF',
     fontSize: 15,
     fontWeight: '800',
   },
+  lyricLineTextActiveLight: {
+    color: '#00874E',
+    fontWeight: '800',
+  },
   lyricLineTextPast: {
     color: COLORS.textMuted,
+  },
+  lyricLineTextPastLight: {
+    color: '#94A3B8',
   },
 });

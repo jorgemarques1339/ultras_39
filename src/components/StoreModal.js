@@ -66,10 +66,24 @@ export default function StoreModal({ visible, onClose, onCheckoutItem }) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollBody} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollBody}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
+          >
             {/* Seletor Horizontal de Produtos */}
             <Text style={styles.sectionLabel}>Catálogo de Artigos da Claque</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.productsGrid}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.productsGrid}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={Platform.OS !== 'web'}
+              overScrollMode="never"
+            >
               {STORE_PRODUCTS.map((prod) => {
                 const isSelected = prod.id === selectedProduct.id;
                 return (

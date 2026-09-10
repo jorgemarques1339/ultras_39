@@ -458,10 +458,20 @@ export const STORE_PRODUCTS = [
     price: 12.00,
     memberDiscount: 'Preço Sócio: 12,00 € (Público: 15,00 €)',
     badge: 'OFICIAL G39',
-    image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&w=400&q=80',
-    description: 'Tecido duplo acetinado de alta densidade com franjas verdes e brancas. Edição oficial comemorativa Grupo 39.',
+    image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&w=400&q=70',
+    images: [
+      'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&w=480&q=70',
+      'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&w=480&q=70',
+    ],
+    description: 'Tecido duplo acetinado de alta densidade com franjas verdes e brancas. Edição oficial comemorativa Grupo 39, ideal para erguer nos Arcos e levar nas deslocações da claque.',
     sizes: ['Tamanho Único (140x18cm)'],
-    inStock: true
+    specs: [
+      { label: 'Material', value: '100% Acrílico Alta Densidade Acetinado' },
+      { label: 'Dimensões', value: '140 cm x 18 cm com franjas' },
+      { label: 'Fabrico', value: 'Produzido em Portugal' },
+      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
+    ],
+    inStock: true,
   },
   {
     id: 'prod-tshirt-vdc',
@@ -470,10 +480,20 @@ export const STORE_PRODUCTS = [
     price: 18.00,
     memberDiscount: 'Preço Sócio: 18,00 € (Público: 22,00 €)',
     badge: 'LANÇAMENTO',
-    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=80',
-    description: '100% Algodão Premium orgânico 190g com serigrafia de alta resistência. Emblema G39 no peito e barco poveiro/vilacondense nas costas.',
+    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=70',
+    images: [
+      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=480&q=70',
+      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=480&q=70',
+    ],
+    description: '100% Algodão Premium orgânico 190g com serigrafia de alta resistência. Emblema do Grupo 39 no peito e barco poveiro/vilacondense estilizado nas costas.',
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    inStock: true
+    specs: [
+      { label: 'Material', value: '100% Algodão Orgânico 190g' },
+      { label: 'Estampa', value: 'Serigrafia Têxtil Resistente' },
+      { label: 'Corte', value: 'Regular Fit Confortável' },
+      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
+    ],
+    inStock: true,
   },
   {
     id: 'prod-cap-g39',
@@ -482,10 +502,20 @@ export const STORE_PRODUCTS = [
     price: 10.00,
     memberDiscount: 'Preço Sócio: 10,00 € (Público: 13,00 €)',
     badge: 'POPULAR',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=400&q=80',
-    description: 'Boné estilo trucker com rede respirável para dias de jogo e pala curva. Bordado 3D de alta definição.',
+    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=400&q=70',
+    images: [
+      'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=480&q=70',
+      'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?auto=format&fit=crop&w=480&q=70',
+    ],
+    description: 'Boné estilo trucker com rede respirável para dias de jogo sob sol e pala curva. Bordado 3D de alta definição com símbolo oficial Grupo 39.',
     sizes: ['Ajustável (Snapback)'],
-    inStock: true
+    specs: [
+      { label: 'Tipo', value: 'Trucker com rede respirável' },
+      { label: 'Bordado', value: 'Logótipo G39 em Relevo 3D' },
+      { label: 'Fecho', value: 'Ajuste Snapback Traseiro' },
+      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
+    ],
+    inStock: true,
   },
   {
     id: 'prod-stickers-pack',
@@ -494,11 +524,21 @@ export const STORE_PRODUCTS = [
     price: 3.00,
     memberDiscount: 'Pack Sócio: 3,00 €',
     badge: 'COLEÇÃO',
-    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=80',
-    description: 'Vinil impermeável ultra resistente aos raios UV e intempéries. 10 designs exclusivos para marcar presença.',
+    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=70',
+    images: [
+      'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=480&q=70',
+      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=480&q=70',
+    ],
+    description: 'Vinil impermeável ultra resistente aos raios UV e intempéries. 10 designs exclusivos comemorativos da história e força do Grupo 39.',
     sizes: ['10 Unidades Sortidas'],
-    inStock: true
-  }
+    specs: [
+      { label: 'Material', value: 'Vinil Adesivo Resistente à Água e UV' },
+      { label: 'Quantidade', value: '10 autocolantes variados' },
+      { label: 'Uso', value: 'Interior e Exterior' },
+      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
+    ],
+    inStock: true,
+  },
 ];
 
 // ==========================================

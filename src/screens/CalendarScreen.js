@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { COLORS } from '../theme/colors';
 import { CALENDAR_MATCHES, PAST_RESULTS } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-export default function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
+function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
 
   return (
@@ -100,6 +100,9 @@ export default function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark =
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={Platform.OS !== 'web'}
+        overScrollMode="never"
       >
         {/* ABA 1: PRÓXIMOS JOGOS COM SÍMBOLOS */}
         {activeTab === 'upcoming' && (
@@ -691,3 +694,5 @@ const styles = StyleSheet.create({
     }),
   },
 });
+
+export default memo(CalendarScreen);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-export default function DeslocacaoModal({ visible, onClose, onBuyTicket }) {
+function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true }) {
   const handleReserve = () => {
     onClose();
     if (onBuyTicket) {
@@ -43,75 +43,107 @@ export default function DeslocacaoModal({ visible, onClose, onBuyTicket }) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, !isDark && styles.containerLight]}>
           {/* Header do Modal */}
-          <View style={styles.header}>
+          <View style={[styles.header, !isDark && styles.headerLight]}>
             <View style={styles.headerLeft}>
-              <View style={styles.headerIconBox}>
-                <Bus size={18} color={COLORS.gold} />
+              <View style={[styles.headerIconBox, !isDark && styles.headerIconBoxLight]}>
+                <Bus size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
               </View>
               <View>
-                <Text style={styles.headerTitle}>Deslocação Oficial G39</Text>
-                <Text style={styles.headerSubtitle}>Caravana do Rio Ave FC</Text>
+                <Text style={[styles.headerTitle, !isDark && styles.textDark]}>
+                  Deslocação Oficial G39
+                </Text>
+                <Text style={[styles.headerSubtitle, !isDark && styles.headerSubtitleLight]}>
+                  Caravana do Rio Ave FC
+                </Text>
               </View>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-              <X size={20} color={COLORS.textSecondary} />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[styles.closeBtn, !isDark && styles.closeBtnLight]}
+              activeOpacity={0.7}
+            >
+              <X size={20} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollBody}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
+          >
             {/* Card Principal da Viagem */}
-            <View style={styles.mainCard}>
+            <View style={[styles.mainCard, !isDark && styles.mainCardLight]}>
               <View style={styles.badgeRow}>
                 <View style={styles.badgeGold}>
-                  <Sparkles size={11} color="#000" />
+                  <Sparkles size={11} color="#FFF" />
                   <Text style={styles.badgeGoldText}>CARAVANA G39</Text>
                 </View>
-                <Text style={styles.roundText}>19 de Setembro · 7.ª Jornada</Text>
+                <Text style={[styles.roundText, !isDark && styles.textMutedDark]}>
+                  19 de Setembro · 7.ª Jornada
+                </Text>
               </View>
 
-              <Text style={styles.matchTitle}>
+              <Text style={[styles.matchTitle, !isDark && styles.textDark]}>
                 Autocarros para Alverca (FC Alverca vs Rio Ave FC)
               </Text>
 
-              <Text style={styles.matchDesc}>
-                Inscrições abertas na sede e pela app! Saída do Estadio dos Arcos às
+              <Text style={[styles.matchDesc, !isDark && styles.matchDescLight]}>
+                Inscrições abertas na sede e pela app! Saída do Estádio dos Arcos às
                 11h30. O pack inclui viagem ida/volta em autocarro de turismo + bilhete no
                 setor visitante por apenas 15,00 €.
               </Text>
 
               {/* Itinerário & Detalhes da Viagem */}
-              <View style={styles.itineraryBox}>
+              <View style={[styles.itineraryBox, !isDark && styles.itineraryBoxLight]}>
                 <View style={styles.itineraryItem}>
-                  <MapPin size={15} color={COLORS.primaryLight} />
+                  <MapPin size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
                   <View style={styles.itineraryCol}>
-                    <Text style={styles.itineraryLabel}>Ponto de Partida</Text>
-                    <Text style={styles.itineraryValue}>Estádio dos Arcos</Text>
+                    <Text style={[styles.itineraryLabel, !isDark && styles.textMutedDark]}>
+                      Ponto de Partida
+                    </Text>
+                    <Text style={[styles.itineraryValue, !isDark && styles.textDark]}>
+                      Estádio dos Arcos
+                    </Text>
                   </View>
                 </View>
 
                 <View style={styles.itineraryItem}>
-                  <Clock size={15} color={COLORS.gold} />
+                  <Clock size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
                   <View style={styles.itineraryCol}>
-                    <Text style={styles.itineraryLabel}>Horário de Saída</Text>
-                    <Text style={styles.itineraryValue}>11h30 (Concentração às 11h00)</Text>
+                    <Text style={[styles.itineraryLabel, !isDark && styles.textMutedDark]}>
+                      Horário de Saída
+                    </Text>
+                    <Text style={[styles.itineraryValue, !isDark && styles.textDark]}>
+                      11h30 (Concentração às 11h00)
+                    </Text>
                   </View>
                 </View>
 
                 <View style={styles.itineraryItem}>
-                  <Ticket size={15} color={COLORS.primaryLight} />
+                  <Ticket size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
                   <View style={styles.itineraryCol}>
-                    <Text style={styles.itineraryLabel}>Bilhete de Jogo</Text>
-                    <Text style={styles.itineraryValue}>Setor Visitante Incluído no Pack</Text>
+                    <Text style={[styles.itineraryLabel, !isDark && styles.textMutedDark]}>
+                      Bilhete de Jogo
+                    </Text>
+                    <Text style={[styles.itineraryValue, !isDark && styles.textDark]}>
+                      Setor Visitante Incluído no Pack
+                    </Text>
                   </View>
                 </View>
 
                 <View style={styles.itineraryItem}>
-                  <ShieldCheck size={15} color={COLORS.gold} />
+                  <ShieldCheck size={15} color={isDark ? COLORS.primaryLight : '#00874E'} />
                   <View style={styles.itineraryCol}>
-                    <Text style={styles.itineraryLabel}>Garantia</Text>
-                    <Text style={styles.itineraryValue}>Ambiente 100% Família Grupo 39</Text>
+                    <Text style={[styles.itineraryLabel, !isDark && styles.textMutedDark]}>
+                      Garantia
+                    </Text>
+                    <Text style={[styles.itineraryValue, !isDark && styles.textDark]}>
+                      Ambiente 100% Família Grupo 39
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -119,10 +151,16 @@ export default function DeslocacaoModal({ visible, onClose, onBuyTicket }) {
               {/* Bloco de Reserva & MB WAY */}
               <View style={styles.priceContainer}>
                 <View>
-                  <Text style={styles.priceLabel}>Valor do Pack Completo</Text>
+                  <Text style={[styles.priceLabel, !isDark && styles.textMutedDark]}>
+                    Valor do Pack Completo
+                  </Text>
                   <View style={styles.priceRow}>
-                    <Text style={styles.priceHighlight}>15,00 €</Text>
-                    <Text style={styles.pricePublic}>20,00 €</Text>
+                    <Text style={[styles.priceHighlight, !isDark && styles.priceHighlightLight]}>
+                      15,00 €
+                    </Text>
+                    <Text style={[styles.pricePublic, !isDark && styles.textMutedDark]}>
+                      20,00 €
+                    </Text>
                     <View style={styles.memberTag}>
                       <Text style={styles.memberTagText}>SÓCIO G39</Text>
                     </View>
@@ -152,6 +190,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'flex-end',
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(8px)',
+      },
+    }),
   },
   container: {
     backgroundColor: '#0F1A13',
@@ -160,10 +203,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.3)',
     maxHeight: '85%',
+    overflow: 'hidden',
     paddingBottom: Platform.OS === 'ios' ? 30 : 20,
     ...Platform.select({
       web: {
         boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.8)',
+      },
+    }),
+  },
+  containerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -8px 30px rgba(0, 0, 0, 0.12)',
       },
     }),
   },
@@ -172,9 +226,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 14,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  headerLight: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
   },
   headerLeft: {
     flexDirection: 'row',
@@ -182,14 +244,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     backgroundColor: 'rgba(0, 179, 104, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.35)',
+  },
+  headerIconBoxLight: {
+    backgroundColor: '#EDF5F0',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
   },
   headerTitle: {
     color: '#FFF',
@@ -201,10 +267,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 1,
   },
+  headerSubtitleLight: {
+    color: '#00874E',
+  },
   closeBtn: {
-    padding: 6,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeBtnLight: {
+    backgroundColor: '#F0F4F2',
   },
   scrollBody: {
     padding: 16,
@@ -215,6 +290,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.25)',
+  },
+  mainCardLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.16)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      },
+    }),
   },
   badgeRow: {
     flexDirection: 'row',
@@ -255,6 +339,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 16,
   },
+  matchDescLight: {
+    color: '#475C50',
+  },
   itineraryBox: {
     backgroundColor: '#0D1510',
     borderRadius: 14,
@@ -263,6 +350,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
     marginBottom: 16,
+  },
+  itineraryBoxLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 6px rgba(0, 0, 0, 0.03)',
+      },
+    }),
   },
   itineraryItem: {
     flexDirection: 'row',
@@ -303,21 +399,24 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
   },
+  priceHighlightLight: {
+    color: '#00874E',
+  },
   pricePublic: {
     color: COLORS.textMuted,
     fontSize: 14,
     textDecorationLine: 'line-through',
   },
   memberTag: {
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    backgroundColor: 'rgba(0, 179, 104, 0.15)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.3)',
+    borderColor: 'rgba(0, 179, 104, 0.35)',
   },
   memberTagText: {
-    color: COLORS.gold,
+    color: COLORS.primaryLight,
     fontSize: 9,
     fontWeight: '800',
   },
@@ -330,9 +429,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 13,
     paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#00B368',
     ...Platform.select({
       web: {
-        boxShadow: '0 6px 20px rgba(0, 135, 78, 0.45)',
+        boxShadow: '0 6px 20px rgba(0, 135, 78, 0.35)',
       },
     }),
   },
@@ -341,4 +442,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
   },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#556A5E',
+  },
 });
+
+export default memo(DeslocacaoModal);

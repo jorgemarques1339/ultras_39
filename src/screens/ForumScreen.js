@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ import {
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
 
-export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
+function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -47,12 +47,12 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
         Animated.timing(pulseAnim, {
           toValue: 1.03,
           duration: 750,
-          useNativeDriver: false,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(pulseAnim, {
           toValue: 1.0,
           duration: 750,
-          useNativeDriver: false,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     );
@@ -71,15 +71,19 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
   const [replyText, setReplyText] = useState('');
 
   // Categoria ativa selecionada
-  const activeCategoryObj = FORUM_CATEGORIES.find((c) => c.id === selectedCategory);
+  const activeCategoryObj = useMemo(
+    () => FORUM_CATEGORIES.find((c) => c.id === selectedCategory),
+    [selectedCategory]
+  );
 
-  // Filtrar posts da categoria ativa
-  const categoryPosts = selectedCategory
-    ? posts.filter((p) => p.categoryId === selectedCategory)
-    : [];
+  // Filtrar posts da categoria ativa com useMemo
+  const categoryPosts = useMemo(
+    () => (selectedCategory ? posts.filter((p) => p.categoryId === selectedCategory) : []),
+    [posts, selectedCategory]
+  );
 
-  // Upvote interativo
-  const handleToggleUpvote = (postId) => {
+  // Upvote interativo memoizado
+  const handleToggleUpvote = useCallback((postId) => {
     setPosts((prev) =>
       prev.map((post) => {
         if (post.id === postId) {
@@ -93,10 +97,10 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
         return post;
       })
     );
-  };
+  }, []);
 
   // Abrir modal de novo tópico pré-selecionando categoria se aplicável
-  const handleOpenNewPost = (categoryId) => {
+  const handleOpenNewPost = useCallback((categoryId) => {
     if (categoryId) {
       setNewCategory(categoryId);
     } else if (selectedCategory) {
@@ -105,10 +109,10 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
       setNewCategory('bancada');
     }
     setIsNewPostModalOpen(true);
-  };
+  }, [selectedCategory]);
 
-  // Criar novo tópico
-  const handleCreatePost = () => {
+  // Criar novo tópico memoizado
+  const handleCreatePost = useCallback(() => {
     if (!newTitle.trim() || !newContent.trim()) {
       alert('Por favor preenche o título e conteúdo do tópico.');
       return;
@@ -133,7 +137,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
       replies: [],
     };
 
-    setPosts([newPostObj, ...posts]);
+    setPosts((prev) => [newPostObj, ...prev]);
     setNewTitle('');
     setNewContent('');
     setIsNewPostModalOpen(false);
@@ -142,10 +146,10 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
     if (!selectedCategory) {
       setSelectedCategory(newCategory);
     }
-  };
+  }, [newTitle, newContent, newCategory, user.name, user.avatar, selectedCategory]);
 
-  // Adicionar resposta
-  const handleAddReply = (postId) => {
+  // Adicionar resposta memoizado
+  const handleAddReply = useCallback((postId) => {
     if (!replyText.trim()) return;
 
     setPosts((prev) =>
@@ -167,7 +171,7 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
       })
     );
     setReplyText('');
-  };
+  }, [replyText, user.name]);
 
   const getCategoryIcon = (id, size = 18) => {
     switch (id) {
@@ -199,16 +203,23 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
     }
   };
 
-  // Obter contagem em tempo real de posts numa categoria
-  const getCategoryStats = (catId) => {
-    const matchingPosts = posts.filter((p) => p.categoryId === catId);
-    const repliesTotal = matchingPosts.reduce((acc, p) => acc + (p.replies?.length || 0), 0);
-    return {
-      topics: matchingPosts.length,
-      replies: repliesTotal + matchingPosts.length,
-      lastPost: matchingPosts[0] || null,
-    };
-  };
+  // Obter contagem em tempo real de posts numa categoria otimizada com useMemo
+  const categoryStatsMap = useMemo(() => {
+    const map = {};
+    for (const cat of FORUM_CATEGORIES) {
+      const matchingPosts = posts.filter((p) => p.categoryId === cat.id);
+      const repliesTotal = matchingPosts.reduce((acc, p) => acc + (p.replies?.length || 0), 0);
+      map[cat.id] = {
+        topics: matchingPosts.length,
+        replies: repliesTotal + matchingPosts.length,
+        lastPost: matchingPosts[0] || null,
+      };
+    }
+    return map;
+  }, [posts]);
+
+  const getCategoryStats = (catId) =>
+    categoryStatsMap[catId] || { topics: 0, replies: 0, lastPost: null };
 
   // =========================================================================
   // VISTA 1: DIRETÓRIO DE CATEGORIAS (O NÚCLEO DOS FÓRUNS CLÁSSICOS)
@@ -221,6 +232,9 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
+          keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={Platform.OS !== 'web'}
+          overScrollMode="never"
         >
           {/* Cabeçalho da Lista de Categorias */}
           <View style={styles.sectionHeaderRow}>
@@ -359,7 +373,13 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
                 </TouchableOpacity>
               </View>
 
-              <ScrollView contentContainerStyle={styles.newPostContent}>
+              <ScrollView
+                contentContainerStyle={styles.newPostContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                removeClippedSubviews={Platform.OS !== 'web'}
+                overScrollMode="never"
+              >
                 <Text style={styles.inputLabel}>Escolhe a Categoria</Text>
                 <View style={styles.categoryPickerRow}>
                   {FORUM_CATEGORIES.map((c) => (
@@ -451,6 +471,9 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={Platform.OS !== 'web'}
+        overScrollMode="never"
       >
         {/* Cartão de Destaque da Categoria Selecionada */}
         <View style={[styles.activeCategoryHero, !isDark && styles.activeCategoryHeroLight]}>
@@ -711,7 +734,13 @@ export default function ForumScreen({ user, onBuyTicket, onScroll, isDark = true
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.newPostContent}>
+            <ScrollView
+              contentContainerStyle={styles.newPostContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={Platform.OS !== 'web'}
+              overScrollMode="never"
+            >
               <Text style={styles.inputLabel}>Escolhe a Categoria</Text>
               <View style={styles.categoryPickerRow}>
                 {FORUM_CATEGORIES.map((c) => (
@@ -1681,3 +1710,5 @@ const styles = StyleSheet.create({
     color: '#0E1712',
   },
 });
+
+export default memo(ForumScreen);

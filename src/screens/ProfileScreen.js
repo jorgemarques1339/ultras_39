@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -24,11 +24,134 @@ import {
   Download,
   ChevronDown,
   ChevronUp,
+  Check,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
 
-export default function ProfileScreen({
+// Componente isolado para o cartão holográfico (evita re-renders da tela inteira ao mover o mouse)
+const HolographicMemberCard = memo(function HolographicMemberCard({
+  user,
+  isQuotaPending,
+  onPayQuota,
+  isDark = true,
+}) {
+  const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
+
+  const handleCardTouch = useCallback((e) => {
+    if (Platform.OS === 'web') {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      setTiltAngle({ x: x * 15, y: -y * 15 });
+    }
+  }, []);
+
+  const handleCardLeave = useCallback(() => {
+    setTiltAngle({ x: 0, y: 0 });
+  }, []);
+
+  return (
+    <View
+      style={[
+        styles.holographicCard,
+        Platform.OS === 'web' && {
+          transform: `perspective(1000px) rotateX(${tiltAngle.y}deg) rotateY(${tiltAngle.x}deg)`,
+          transition: 'transform 0.15s ease-out',
+        },
+      ]}
+      onMouseMove={handleCardTouch}
+      onMouseLeave={handleCardLeave}
+    >
+      {/* Brilho metálico holográfico */}
+      <View style={styles.holoSheenOverlay} />
+
+      {/* Miolo do Cartão: Foto & Identificação */}
+      <View style={styles.cardBody}>
+        <View style={styles.memberPhotoWrapper}>
+          <View style={styles.memberPhoto}>
+            <Text style={styles.memberPhotoInitial}>
+              {user.name.charAt(0)}
+            </Text>
+          </View>
+          <View style={styles.memberPhotoRing} />
+        </View>
+
+        <View style={styles.memberInfoCol}>
+          <Text style={styles.memberName}>{user.name}</Text>
+          <Text style={styles.memberRole}>Membro Oficial G39</Text>
+        </View>
+      </View>
+
+      {/* Dados Oficiais do Sócio (Grelha Sem QR Code, 100% Responsiva) */}
+      <View style={styles.cardDataContainer}>
+        <View style={styles.cardDataRow}>
+          <View style={styles.cardDataCol}>
+            <Text style={styles.dataLabel}>N.º SÓCIO G39</Text>
+            <Text style={styles.dataVal}>#{user.memberNumber}</Text>
+          </View>
+
+          <View style={styles.cardDataDivider} />
+
+          <View style={styles.cardDataCol}>
+            <Text style={styles.dataLabel}>ÉPOCA ATIVA</Text>
+            <Text style={styles.dataVal}>2026 / 2027</Text>
+          </View>
+        </View>
+
+        <View style={styles.cardHorizontalDivider} />
+
+        <View style={styles.cardDataRow}>
+          <View style={styles.cardDataCol}>
+            <Text style={styles.dataLabel}>FILIAÇÃO</Text>
+            <Text style={styles.dataVal}>Desde {user.memberSince}</Text>
+          </View>
+
+          <View style={styles.cardDataDivider} />
+
+          <View style={styles.cardDataCol}>
+            <Text style={styles.dataLabel}>VALIDADE</Text>
+            <Text style={styles.dataVal}>30/06/2027</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Rodapé Oficial do Cartão: Quota Anual (Design Compacto & Luxuoso) */}
+      <View style={[styles.cardFooterData, !isQuotaPending && styles.cardFooterDataPaid]}>
+        <View style={styles.cardQuotaSimpleRow}>
+          <View style={styles.cardQuotaLabelContainer}>
+            <View style={[styles.cardQuotaDot, !isQuotaPending && styles.cardQuotaDotPaid]} />
+            <Text style={styles.cardQuotaSimpleLabel}>QUOTA ANUAL</Text>
+          </View>
+
+          {isQuotaPending ? (
+            <TouchableOpacity
+              style={styles.cardPayBtn}
+              onPress={() =>
+                onPayQuota({
+                  title: 'Quota Anual Grupo 39 · Época 2026/2027',
+                  category: 'Quota Anual de Sócio',
+                  amount: 12.50,
+                  type: 'quota',
+                })
+              }
+              activeOpacity={0.85}
+            >
+              <Text style={styles.cardPayBtnText}>Pagar Quota</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.cardPaidSuccessBtn}>
+              <Check size={11} color="#00E676" strokeWidth={3} />
+              <Text style={styles.cardPaidSuccessText}>EM DIA</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+});
+
+function ProfileScreen({
   user,
   transactions,
   onPayQuota,
@@ -37,13 +160,12 @@ export default function ProfileScreen({
   onOpenWalletPass,
   isDark = true,
 }) {
-  const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
   const [showAllAchievements, setShowAllAchievements] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = useCallback(() => {
     if (hasCheckedIn) return;
     setHasCheckedIn(true);
     setAchievements((prev) =>
@@ -52,21 +174,7 @@ export default function ProfileScreen({
       )
     );
     alert('📍 Check-in de Bancada confirmado no Estádio dos Arcos! A tua presença no apoio ao Rio Ave FC foi registada com sucesso.');
-  };
-
-  // Efeito holográfico interativo com toque ou movimento
-  const handleCardTouch = (e) => {
-    if (Platform.OS === 'web') {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      setTiltAngle({ x: x * 15, y: -y * 15 });
-    }
-  };
-
-  const handleCardLeave = () => {
-    setTiltAngle({ x: 0, y: 0 });
-  };
+  }, [hasCheckedIn]);
 
   const isQuotaPending = user.quotaStatus === 'pendente';
 
@@ -77,124 +185,20 @@ export default function ProfileScreen({
       showsVerticalScrollIndicator={false}
       onScroll={onScroll}
       scrollEventThrottle={16}
+      keyboardShouldPersistTaps="handled"
+      removeClippedSubviews={Platform.OS !== 'web'}
+      overScrollMode="never"
     >
       {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (SOMENTE DADOS) */}
       <View style={styles.cardSection}>
         <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>Cartão Digital</Text>
 
-        <View
-          style={[
-            styles.holographicCard,
-            Platform.OS === 'web' && {
-              transform: `perspective(1000px) rotateX(${tiltAngle.y}deg) rotateY(${tiltAngle.x}deg)`,
-              transition: 'transform 0.15s ease-out',
-            },
-          ]}
-          onMouseMove={handleCardTouch}
-          onMouseLeave={handleCardLeave}
-        >
-          {/* Brilho metálico holográfico */}
-          <View style={styles.holoSheenOverlay} />
-
-
-          {/* Miolo do Cartão: Foto & Identificação */}
-          <View style={styles.cardBody}>
-            <View style={styles.memberPhotoWrapper}>
-              <View style={styles.memberPhoto}>
-                <Text style={styles.memberPhotoInitial}>
-                  {user.name.charAt(0)}
-                </Text>
-              </View>
-              <View style={styles.memberPhotoRing} />
-            </View>
-
-            <View style={styles.memberInfoCol}>
-              <Text style={styles.memberName}>{user.name}</Text>
-              <Text style={styles.memberRole}>Membro Oficial G39</Text>
-              <View style={styles.memberStatusInline}>
-                <View style={[styles.statusDot, { backgroundColor: isQuotaPending ? '#FFB74D' : COLORS.primaryLight }]} />
-                <Text style={[styles.statusInlineText, { color: isQuotaPending ? '#FFB74D' : COLORS.primaryLight }]}>
-                  {isQuotaPending ? 'Quota Anual Pendente' : 'Quota Regularizada'}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Dados Oficiais do Sócio (Grelha Sem QR Code, 100% Responsiva) */}
-          <View style={styles.cardDataContainer}>
-            <View style={styles.cardDataRow}>
-              <View style={styles.cardDataCol}>
-                <Text style={styles.dataLabel}>N.º SÓCIO G39</Text>
-                <Text style={styles.dataVal}>#{user.memberNumber}</Text>
-              </View>
-
-              <View style={styles.cardDataDivider} />
-
-              <View style={styles.cardDataCol}>
-                <Text style={styles.dataLabel}>ÉPOCA ATIVA</Text>
-                <Text style={styles.dataVal}>2026 / 2027</Text>
-              </View>
-            </View>
-
-            <View style={styles.cardHorizontalDivider} />
-
-            <View style={styles.cardDataRow}>
-              <View style={styles.cardDataCol}>
-                <Text style={styles.dataLabel}>FILIAÇÃO</Text>
-                <Text style={styles.dataVal}>Desde {user.memberSince}</Text>
-              </View>
-
-              <View style={styles.cardDataDivider} />
-
-              <View style={styles.cardDataCol}>
-                <Text style={styles.dataLabel}>VALIDADE</Text>
-                <Text style={styles.dataVal}>30/06/2027</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Rodapé Oficial do Cartão: Pagamento / Estado de Quotas */}
-          <View style={[styles.cardFooterData, !isQuotaPending && styles.cardFooterDataPaid]}>
-            {isQuotaPending ? (
-              <View style={styles.cardQuotaRow}>
-                <View style={styles.cardQuotaInfo}>
-                  <AlertTriangle size={15} color="#FF9800" />
-                  <View>
-                    <Text style={styles.cardQuotaTitle}>Quota Anual em Atraso</Text>
-                    <Text style={styles.cardQuotaSub}>Época 2026/2027 · 12,50 €</Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  style={styles.cardPayBtn}
-                  onPress={() =>
-                    onPayQuota({
-                      title: 'Quota Anual Grupo 39 · Época 2026/2027',
-                      category: 'Quota Anual de Sócio',
-                      amount: 12.50,
-                      type: 'quota',
-                    })
-                  }
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.cardPayBtnText}>Pagar Quota Anual</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.cardQuotaPaidRow}>
-                <View style={styles.cardQuotaPaidInfo}>
-                  <CheckCircle2 size={16} color="#00C853" />
-                  <View>
-                    <Text style={styles.cardQuotaPaidTitle}>Quotas em Ordem ✓</Text>
-                    <Text style={styles.cardQuotaPaidSub}>Época 2026/2027 Regularizada</Text>
-                  </View>
-                </View>
-                <View style={styles.cardPillPaid}>
-                  <Text style={styles.cardPillTextPaid}>EM ORDEM</Text>
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
+        <HolographicMemberCard
+          user={user}
+          isQuotaPending={isQuotaPending}
+          onPayQuota={onPayQuota}
+          isDark={isDark}
+        />
 
         {/* NOVO: BOTÕES OFICIAIS APPLE WALLET & GOOGLE WALLET */}
         <View style={styles.walletBtnContainer}>
@@ -631,85 +635,75 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 
-  // Rodapé Oficial do Cartão: Pagamento / Estado de Quotas
+  // Rodapé Oficial do Cartão: Quota Anual (Design Compacto & Luxuoso)
   cardFooterData: {
-    backgroundColor: '#0A120E',
-    borderRadius: 12,
-    paddingVertical: 10,
+    backgroundColor: 'rgba(5, 14, 9, 0.92)',
+    borderRadius: 8,
+    paddingVertical: 6,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(218, 165, 32, 0.35)',
+    marginTop: 10,
   },
   cardFooterDataPaid: {
-    backgroundColor: 'rgba(0, 135, 78, 0.15)',
-    borderColor: 'rgba(0, 200, 83, 0.35)',
+    backgroundColor: 'rgba(0, 40, 22, 0.85)',
+    borderColor: 'rgba(0, 230, 118, 0.35)',
   },
-  cardQuotaRow: {
+  cardQuotaSimpleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
   },
-  cardQuotaInfo: {
+  cardQuotaLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    flex: 1,
+    gap: 6,
   },
-  cardQuotaTitle: {
-    color: '#FFB74D',
-    fontSize: 11,
+  cardQuotaDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFB74D',
+  },
+  cardQuotaDotPaid: {
+    backgroundColor: '#00E676',
+  },
+  cardQuotaSimpleLabel: {
+    color: '#F4E8C1',
+    fontSize: 10,
     fontWeight: '800',
-  },
-  cardQuotaSub: {
-    color: COLORS.textMuted,
-    fontSize: 9.5,
+    letterSpacing: 0.8,
   },
   cardPayBtn: {
     backgroundColor: '#00874E',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#00B368',
+    borderColor: 'rgba(218, 165, 32, 0.6)',
   },
   cardPayBtnText: {
     color: '#FFF',
-    fontSize: 10.5,
-    fontWeight: '800',
-  },
-  cardQuotaPaidRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardQuotaPaidInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cardQuotaPaidTitle: {
-    color: '#00C853',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  cardQuotaPaidSub: {
-    color: COLORS.textSecondary,
     fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
-  cardPillPaid: {
+  cardPaidSuccessBtn: {
     backgroundColor: 'rgba(0, 200, 83, 0.2)',
-    borderColor: 'rgba(0, 200, 83, 0.5)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3.5,
+    paddingHorizontal: 9,
     borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.5)',
   },
-  cardPillTextPaid: {
-    color: '#00C853',
-    fontSize: 9.5,
+  cardPaidSuccessText: {
+    color: '#00E676',
+    fontSize: 9,
     fontWeight: '900',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
 
   // 2. Quotas
@@ -1327,3 +1321,5 @@ const styles = StyleSheet.create({
     color: '#00874E',
   },
 });
+
+export default memo(ProfileScreen);

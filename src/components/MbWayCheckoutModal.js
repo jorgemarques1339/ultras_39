@@ -214,6 +214,9 @@ export default function MbWayCheckoutModal({
           <ScrollView
             contentContainerStyle={styles.sheetBody}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
           >
             {/* ESTADO 1: FORMULÁRIO DE CHECKOUT */}
             {status === 'form' && (

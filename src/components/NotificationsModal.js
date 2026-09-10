@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { X, Bell, Ticket, CreditCard, Bus, Sparkles, Check } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
@@ -63,7 +64,13 @@ export default function NotificationsModal({ visible, onClose, onSelectAction })
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.list}>
+          <ScrollView
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
+          >
             {NOTIFICATIONS.map((item) => {
               const IconComp = item.icon;
               return (

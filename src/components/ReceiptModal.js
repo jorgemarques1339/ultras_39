@@ -48,7 +48,13 @@ export default function ReceiptModal({ visible, onClose, transaction }) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.content}>
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={Platform.OS !== 'web'}
+            overScrollMode="never"
+          >
             {/* Stamp Status */}
             <View style={styles.stampBox}>
               <CheckCircle2 size={32} color={COLORS.primaryLight} />

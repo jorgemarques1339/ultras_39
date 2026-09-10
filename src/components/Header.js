@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
 import { Bell, Sun, Moon } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-export default function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTheme }) {
+function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTheme }) {
   const anim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -211,3 +211,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.08)',
   },
 });
+
+export default memo(Header);

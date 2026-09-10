@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -39,31 +39,29 @@ function MainApp() {
   const [user, setUser] = useState(INITIAL_USER);
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
 
-  // Visibilidade do Header ao fazer Scroll
+  // Visibilidade do Header ao fazer Scroll com Throttling Otimizado
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  const handleScroll = (event) => {
+  const handleScroll = useCallback((event) => {
     const currentY = event.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
 
-    if (Math.abs(diff) > 8) {
-      if (diff > 0 && currentY > 30) {
-        // Deslizar para baixo -> esconder Header
-        setIsHeaderVisible(false);
+    if (Math.abs(diff) > 12) {
+      if (diff > 0 && currentY > 36) {
+        setIsHeaderVisible((prev) => (prev ? false : prev));
       } else if (diff < 0) {
-        // Deslizar para cima -> mostrar Header
-        setIsHeaderVisible(true);
+        setIsHeaderVisible((prev) => (!prev ? true : prev));
       }
+      lastScrollY.current = currentY;
     }
-    lastScrollY.current = currentY;
-  };
+  }, []);
 
-  const handleSelectTab = (tab) => {
+  const handleSelectTab = useCallback((tab) => {
     setIsHeaderVisible(true);
     lastScrollY.current = 0;
     setActiveTab(tab);
-  };
+  }, []);
 
   // Modais
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
@@ -76,25 +74,25 @@ function MainApp() {
   const [storeModalVisible, setStoreModalVisible] = useState(false);
 
   // Iniciar fluxo de compra de bilhete
-  const handleBuyTicket = (itemData) => {
+  const handleBuyTicket = useCallback((itemData) => {
     setCheckoutData({
       ...itemData,
       phone: user.phone,
     });
     setCheckoutModalVisible(true);
-  };
+  }, [user.phone]);
 
   // Iniciar fluxo de regularização de quota
-  const handlePayQuota = (itemData) => {
+  const handlePayQuota = useCallback((itemData) => {
     setCheckoutData({
       ...itemData,
       phone: user.phone,
     });
     setCheckoutModalVisible(true);
-  };
+  }, [user.phone]);
 
   // Callback de sucesso no pagamento MB WAY
-  const handlePaymentSuccess = (newTx) => {
+  const handlePaymentSuccess = useCallback((newTx) => {
     setTransactions((prev) => [newTx, ...prev]);
 
     // Se o pagamento for de quota, atualizar estado do cartão digital do sócio
@@ -106,13 +104,13 @@ function MainApp() {
         quotaPendingMonth: 'Época 2026/2027 Regularizada',
       }));
     }
-  };
+  }, []);
 
   // Ver recibo/comprovativo oficial
-  const handleViewReceipt = (tx) => {
+  const handleViewReceipt = useCallback((tx) => {
     setSelectedReceipt(tx);
     setReceiptModalVisible(true);
-  };
+  }, []);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.bgDark }]}>
@@ -136,9 +134,9 @@ function MainApp() {
           onToggleTheme={toggleTheme}
         />
 
-        {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll */}
+        {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll e Keep-Alive de Performance */}
         <View style={[styles.screenArea, !isDark && styles.screenAreaLight]}>
-          {activeTab === 'home' && (
+          <View style={[styles.tabContentPane, activeTab !== 'home' && styles.hiddenPane]}>
             <HomeScreen
               user={user}
               onBuyTicket={handleBuyTicket}
@@ -148,36 +146,36 @@ function MainApp() {
               onOpenStore={() => handleSelectTab('store')}
               isDark={isDark}
             />
-          )}
+          </View>
 
-          {activeTab === 'forum' && (
+          <View style={[styles.tabContentPane, activeTab !== 'forum' && styles.hiddenPane]}>
             <ForumScreen
               user={user}
               onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
               isDark={isDark}
             />
-          )}
+          </View>
 
-          {activeTab === 'store' && (
+          <View style={[styles.tabContentPane, activeTab !== 'store' && styles.hiddenPane]}>
             <StoreScreen
               user={user}
               onCheckoutItem={handleBuyTicket}
               onScroll={handleScroll}
               isDark={isDark}
             />
-          )}
+          </View>
 
-          {activeTab === 'calendar' && (
+          <View style={[styles.tabContentPane, activeTab !== 'calendar' && styles.hiddenPane]}>
             <CalendarScreen
               onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
               onBack={() => handleSelectTab('home')}
               isDark={isDark}
             />
-          )}
+          </View>
 
-          {activeTab === 'profile' && (
+          <View style={[styles.tabContentPane, activeTab !== 'profile' && styles.hiddenPane]}>
             <ProfileScreen
               user={user}
               transactions={transactions}
@@ -187,7 +185,7 @@ function MainApp() {
               onOpenWalletPass={() => setWalletPassModalVisible(true)}
               isDark={isDark}
             />
-          )}
+          </View>
         </View>
 
         {/* Barra de Navegação Flutuante Liquid Glass UI */}
@@ -218,12 +216,14 @@ function MainApp() {
           visible={walletPassModalVisible}
           onClose={() => setWalletPassModalVisible(false)}
           user={user}
+          isDark={isDark}
         />
 
         {/* Modal do Cancioneiro Grupo 39 */}
         <ChantsModal
           visible={chantsModalVisible}
           onClose={() => setChantsModalVisible(false)}
+          isDark={isDark}
         />
 
         {/* Modal da Loja Oficial G39 */}
@@ -316,5 +316,13 @@ const styles = StyleSheet.create({
   },
   screenAreaLight: {
     backgroundColor: '#FFFFFF',
+  },
+  tabContentPane: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  hiddenPane: {
+    display: 'none',
   },
 });
