@@ -56,8 +56,8 @@ export default function MbWayCheckoutModal({
     title: 'Bilhete Bancada Grupo 39',
     category: 'Bilhética Oficial RAFC',
     amount: 7.50,
-    originalPrice: 17.50,
-    discount: 10.00,
+    originalPrice: 10.00,
+    discount: 2.50,
     phone: '912 345 678',
     type: 'ticket',
   };

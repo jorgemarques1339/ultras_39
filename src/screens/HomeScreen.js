@@ -87,12 +87,12 @@ function HomeScreen({
   const [deslocacaoNoticeVisible, setDeslocacaoNoticeVisible] = useState(false);
   const [simulatedUnlocked, setSimulatedUnlocked] = useState(false);
 
-  // Regra da Deslocação: Para utilizadores sem login, o botão só fica ativo 3 dias antes do jogo (11 de Setembro).
+  // Regra da Deslocação: Para utilizadores sem login, o botão só fica ativo 3 dias antes do jogo (19 de Setembro -> 16 de Setembro).
   // Para utilizadores com login (Sócios), está SEMPRE ativo por 7,50€.
   const isGuestDeslocacaoUnlocked = useMemo(() => {
     if (simulatedUnlocked) return true;
     const now = new Date();
-    const unlockDate = new Date('2026-09-11T00:00:00');
+    const unlockDate = new Date('2026-09-16T00:00:00');
     return now >= unlockDate;
   }, [simulatedUnlocked]);
 
@@ -237,16 +237,19 @@ function HomeScreen({
         {/* CTA BILHÉTICA INTEGRADO: COMPRA RÁPIDA MB WAY */}
         <TouchableOpacity
           style={styles.heroBuyBtn}
-          onPress={() =>
+          onPress={() => {
+            const memberPrice = 7.50;
+            const nonMemberPrice = 10.00;
+            const finalPrice = isLoggedIn ? memberPrice : nonMemberPrice;
             onBuyTicket({
               title: `Bilhete Grupo 39 · ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
               category: 'Bilhética Oficial RAFC',
-              amount: nextMatch.ticketPriceMember || 7.50,
-              originalPrice: nextMatch.ticketPricePublic || 17.50,
-              discount: (nextMatch.ticketPricePublic || 17.50) - (nextMatch.ticketPriceMember || 7.50),
+              amount: finalPrice,
+              originalPrice: nonMemberPrice,
+              discount: isLoggedIn ? (nonMemberPrice - memberPrice) : 0,
               type: 'ticket',
-            })
-          }
+            });
+          }}
           activeOpacity={0.85}
         >
           <View style={styles.heroBuyContent}>
@@ -254,7 +257,9 @@ function HomeScreen({
               <View style={styles.ticketIconBox}>
                 <Ticket size={13} color="#FFF" />
               </View>
-              <Text style={styles.heroBuyTitle}>Comprar Bilhete</Text>
+              <Text style={styles.heroBuyTitle}>
+                Comprar Bilhete · {isLoggedIn ? '7,50 €' : '10,00 €'}
+              </Text>
             </View>
             <ChevronRight size={14} color="#FFF" />
           </View>
@@ -366,7 +371,7 @@ function HomeScreen({
       </View>
 
       {/* 3. SECÇÃO: ACESSOS RÁPIDOS */}
-      <View style={styles.shortcutsSection}>
+      <View style={[styles.shortcutsSection, isSmallScreen && styles.shortcutsSectionSmall]}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleWithIcon}>
             <Sparkles size={16} color={COLORS.primaryLight} />
@@ -418,7 +423,7 @@ function HomeScreen({
                     Deslocação
                   </Text>
                   <Text style={styles.lockedBadgeText} numberOfLines={1}>
-                    {isSmallScreen ? '11 Set · 10€' : 'Abre 11 Set · 10€'}
+                    {isSmallScreen ? '16 Set · 10€' : 'Abre 16 Set · 10€'}
                   </Text>
                 </View>
                 <ChevronRight size={13} color={isDark ? '#7E9187' : '#5A6E63'} />
@@ -569,7 +574,7 @@ function HomeScreen({
                 As inscrições antecipadas em autocarro são <Text style={styles.noticeHighlightGreen}>exclusivas para Sócios do Grupo 39</Text> por apenas <Text style={styles.noticeHighlightGreen}>7,50 €</Text>.
               </Text>
               <Text style={[styles.noticeTextSub, !isDark && styles.textMutedDark]}>
-                Para quem não tem login (público geral), as vagas abrem a <Text style={styles.noticeHighlightGold}>11 de Setembro</Text> (3 dias antes do jogo) pelo valor de <Text style={styles.noticeHighlightGold}>10,00 €</Text>.
+                Para quem não tem login (público geral), as vagas abrem a <Text style={styles.noticeHighlightGold}>16 de Setembro</Text> (3 dias antes do jogo) pelo valor de <Text style={styles.noticeHighlightGold}>10,00 €</Text>.
               </Text>
             </View>
 
@@ -598,7 +603,7 @@ function HomeScreen({
                 activeOpacity={0.7}
               >
                 <Text style={styles.noticeSimulateBtnText}>
-                  ⚡ Simular Data a partir de 11 Setembro (10,00 €)
+                  ⚡ Simular Data a partir de 16 Setembro (10,00 €)
                 </Text>
               </TouchableOpacity>
 
@@ -1076,20 +1081,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     marginTop: 4,
   },
   shortcutsSection: {
     width: '100%',
-    marginTop: 2,
+    marginTop: 6,
+  },
+  shortcutsSectionSmall: {
+    marginTop: 4,
   },
   shortcutsGridContainer: {
-    gap: 8,
+    gap: 9,
     width: '100%',
   },
   subShortcutsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 9,
     width: '100%',
   },
   animatedBusWrapper: {

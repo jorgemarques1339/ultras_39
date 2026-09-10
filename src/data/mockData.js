@@ -36,7 +36,7 @@ export const NEXT_MATCH = {
   },
   sector: 'Bancada Poente Coberta (Setor Grupo 39)',
   ticketPriceMember: 7.50,
-  ticketPricePublic: 17.50,
+  ticketPricePublic: 10.00,
   totalAvailableTickets: 120,
 };
 

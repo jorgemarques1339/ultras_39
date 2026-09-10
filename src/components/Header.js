@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
-import { Bell, Sun, Moon, LogIn, User } from 'lucide-react-native';
+import { Bell, Sun, Moon, User } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 function Header({
@@ -46,20 +46,9 @@ function Header({
       ]}
     >
       <View style={[styles.headerContainer, !isDark && styles.headerContainerLight]}>
-        {/* Espaço à esquerda: Botão de Login / Estado de Sócio */}
+        {/* Espaço à esquerda: Estado de Sócio (quando autenticado) */}
         <View style={styles.leftActionsContainer}>
-          {!isLoggedIn ? (
-            <TouchableOpacity
-              style={[styles.headerLoginBtn, !isDark && styles.headerLoginBtnLight]}
-              onPress={onOpenAuth}
-              activeOpacity={0.8}
-            >
-              <LogIn size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
-              <Text style={[styles.headerLoginBtnText, !isDark && styles.headerLoginBtnTextLight]}>
-                Entrar
-              </Text>
-            </TouchableOpacity>
-          ) : (
+          {isLoggedIn && (
             <TouchableOpacity
               style={[styles.headerMemberBadge, !isDark && styles.headerMemberBadgeLight]}
               onPress={onNavigateProfile}
