@@ -10,7 +10,7 @@ import {
   Image,
   useWindowDimensions,
 } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Path, Rect, Line } from 'react-native-svg';
 import {
   MapPin,
   Ticket,
@@ -23,18 +23,20 @@ import {
   ShoppingBag,
   Radio,
   Award,
-  CheckCircle2,
   Trophy,
   Table,
   IdCard,
+  Camera,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
+import { getNextMatchData } from '../services/matchesService';
 import ClubBadge from '../components/ClubBadge';
 import DeslocacaoModal from '../components/DeslocacaoModal';
 import TabelaModal from '../components/TabelaModal';
 import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
+import GaleriaModal from '../components/GaleriaModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -67,6 +69,7 @@ function HomeScreen({
   onOpenChants,
   onOpenStore,
   isDark = true,
+  onOpenPwaInstall,
 }) {
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
@@ -74,9 +77,38 @@ function HomeScreen({
   const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [socioModalVisible, setSocioModalVisible] = useState(false);
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
+  const [galeriaModalVisible, setGaleriaModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
+  const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
   const mainScrollRef = useRef(null);
+
+  // Carregar dados oficiais do próximo jogo em tempo real (mesma API dos Jogos)
+  useEffect(() => {
+    let isMounted = true;
+    getNextMatchData()
+      .then((liveMatch) => {
+        if (isMounted && liveMatch) {
+          setNextMatch(liveMatch);
+        }
+      })
+      .catch((err) => console.warn('Erro ao atualizar próximo jogo:', err));
+
+    const interval = setInterval(() => {
+      getNextMatchData()
+        .then((liveMatch) => {
+          if (isMounted && liveMatch) {
+            setNextMatch(liveMatch);
+          }
+        })
+        .catch(() => {});
+    }, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Efeito de pulso contínuo no botão Deslocações
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -132,8 +164,8 @@ function HomeScreen({
         {/* Header do Confronto */}
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
-            <Text style={[styles.compName, !isDark && styles.compNameLight]}>LIGA PORTUGAL BETCLIC</Text>
-            <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>6.ª Jornada</Text>
+            <Text style={[styles.compName, !isDark && styles.compNameLight]}>{nextMatch.competition || 'LIGA PORTUGAL BETCLIC'}</Text>
+            <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>{nextMatch.round || '6.ª Jornada'}</Text>
           </View>
         </View>
 
@@ -141,8 +173,14 @@ function HomeScreen({
         <View style={styles.matchTeamsRow}>
           {/* Rio Ave FC */}
           <View style={styles.teamColumn}>
-            <ClubBadge name={NEXT_MATCH.homeTeam.name} size="md" style={{ marginBottom: 4 }} />
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{NEXT_MATCH.homeTeam.name}</Text>
+            <ClubBadge
+              name={nextMatch.homeTeam.name}
+              logo={nextMatch.homeTeam.logo}
+              size="md"
+              isDark={isDark}
+              style={{ marginBottom: 4 }}
+            />
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{nextMatch.homeTeam.name}</Text>
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Anfitrião</Text>
           </View>
 
@@ -151,15 +189,21 @@ function HomeScreen({
             <Text style={[styles.vsText, !isDark && styles.vsTextLight]}>VS</Text>
             <View style={[styles.stadiumTag, !isDark && styles.stadiumTagLight]}>
               <MapPin size={10} color={COLORS.primaryLight} />
-              <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]}>{NEXT_MATCH.stadium}</Text>
+              <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]}>{nextMatch.stadium}</Text>
             </View>
-            <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>{NEXT_MATCH.dateFormatted}</Text>
+            <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>{nextMatch.dateFormatted}</Text>
           </View>
 
           {/* Adversário Real */}
           <View style={styles.teamColumn}>
-            <ClubBadge name={NEXT_MATCH.awayTeam.name} size="md" style={{ marginBottom: 4 }} />
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{NEXT_MATCH.awayTeam.name}</Text>
+            <ClubBadge
+              name={nextMatch.awayTeam.name}
+              logo={nextMatch.awayTeam.logo}
+              size="md"
+              isDark={isDark}
+              style={{ marginBottom: 4 }}
+            />
+            <Text style={[styles.teamName, !isDark && styles.teamNameLight]}>{nextMatch.awayTeam.name}</Text>
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
@@ -169,11 +213,11 @@ function HomeScreen({
           style={styles.heroBuyBtn}
           onPress={() =>
             onBuyTicket({
-              title: `Bilhete Grupo 39 · ${NEXT_MATCH.homeTeam.name} vs ${NEXT_MATCH.awayTeam.name}`,
+              title: `Bilhete Grupo 39 · ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
               category: 'Bilhética Oficial RAFC',
-              amount: NEXT_MATCH.ticketPriceMember,
-              originalPrice: NEXT_MATCH.ticketPricePublic,
-              discount: NEXT_MATCH.ticketPricePublic - NEXT_MATCH.ticketPriceMember,
+              amount: nextMatch.ticketPriceMember || 7.50,
+              originalPrice: nextMatch.ticketPricePublic || 17.50,
+              discount: (nextMatch.ticketPricePublic || 17.50) - (nextMatch.ticketPriceMember || 7.50),
               type: 'ticket',
             })
           }
@@ -367,6 +411,22 @@ function HomeScreen({
         </TouchableOpacity>
       </View>
 
+      {/* 3ª LINHA: BOTÃO GALERIA (MESMO TAMANHO QUE OS OUTROS, SOB TABELA) */}
+      <View style={styles.subShortcutsRow}>
+        <TouchableOpacity
+          style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+          onPress={() => setGaleriaModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.subShortcutIconBgCamera}>
+            <Camera size={16} color={COLORS.primaryLight} />
+          </View>
+          <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]}>Galeria</Text>
+          <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }} />
+      </View>
+
       {/* Modal Dedicado da Deslocação Oficial */}
       <DeslocacaoModal
         visible={deslocacaoModalVisible}
@@ -404,6 +464,13 @@ function HomeScreen({
         onClose={() => setSocioModalVisible(false)}
         onJoinMember={onBuyTicket}
         onNavigateTab={onNavigateTab}
+        isDark={isDark}
+      />
+
+      {/* Modal Galeria / Instagram Ultras Grupo 39 */}
+      <GaleriaModal
+        visible={galeriaModalVisible}
+        onClose={() => setGaleriaModalVisible(false)}
         isDark={isDark}
       />
 
@@ -856,6 +923,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subShortcutIconBgCalendar: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 179, 104, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subShortcutIconBgCamera: {
     width: 28,
     height: 28,
     borderRadius: 8,

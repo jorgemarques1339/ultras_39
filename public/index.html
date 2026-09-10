@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    
+    <!-- Viewport otimizado para Smartphones e iPhones (Safe Area Fit) -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    
+    <title>Grupo 39 - Rio Ave FC</title>
+    <meta name="description" content="Aplicação oficial da claque Grupo 39 do Rio Ave FC. Notícias, deslocações, bilhetes, cânticos e comunidade ultra." />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0D1310" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Otimizações Safari iOS (iPhone / iPad) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Grupo 39" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+
+    <style id="expo-reset">
+      /* Reset e otimização total para ecrãs de smartphone */
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #0D1310;
+        color: #FFFFFF;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Remove o destaque cinzento ao tocar nos links e botões */
+        -webkit-tap-highlight-color: transparent;
+        /* Evita puxar para atualizar e efeito de mola do browser */
+        overscroll-behavior: none;
+        touch-action: manipulation;
+      }
+
+      /* Dispositivos iOS com notch e barras de navegação */
+      body {
+        overflow: hidden;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      #root {
+        display: flex;
+        height: 100%;
+        width: 100%;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Otimização de botões para toque responsivo */
+      button, a, div[role="button"] {
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>
+      É necessário ativar o JavaScript para utilizar a aplicação do Grupo 39.
+    </noscript>
+
+    <div id="root"></div>
+
+    <!-- Registo de Service Worker e Gestão do Prompt de Instalação PWA -->
+    <script>
+      // Guarda o evento de instalação do Chrome para disparo via UI
+      window.deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.deferredPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-installable', { detail: true }));
+      });
+
+      window.addEventListener('appinstalled', () => {
+        window.deferredPrompt = null;
+        console.log('[PWA] Aplicação instalada com sucesso no smartphone!');
+      });
+
+      // Registo do Service Worker
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {
+              console.log('[PWA] Service Worker registado com escopo:', registration.scope);
+            })
+            .catch((error) => {
+              console.warn('[PWA] Erro ao registar Service Worker:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

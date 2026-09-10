@@ -20,7 +20,13 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "Grupo 39 - Rio Ave FC",
+      "shortName": "Grupo 39",
+      "backgroundColor": "#0D1310",
+      "themeColor": "#00874E",
+      "display": "standalone",
+      "orientation": "portrait"
     }
   }
 }

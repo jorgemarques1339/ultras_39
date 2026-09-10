@@ -25,9 +25,11 @@ import {
   ChevronDown,
   ChevronUp,
   Check,
+  Nfc,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
+import NfcCheckInModal from '../components/NfcCheckInModal';
 
 // Componente isolado para o cartão holográfico (evita re-renders da tela inteira ao mover o mouse)
 const HolographicMemberCard = memo(function HolographicMemberCard({
@@ -159,22 +161,26 @@ function ProfileScreen({
   onScroll,
   onOpenWalletPass,
   isDark = true,
+  onOpenPwaInstall,
 }) {
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
   const [showAllAchievements, setShowAllAchievements] = useState(false);
   const [showAllTransactions, setShowAllTransactions] = useState(false);
+  const [nfcModalVisible, setNfcModalVisible] = useState(false);
 
-  const handleCheckIn = useCallback(() => {
-    if (hasCheckedIn) return;
+  const handleOpenNfcCheckIn = useCallback(() => {
+    setNfcModalVisible(true);
+  }, []);
+
+  const handleNfcSuccess = useCallback(() => {
     setHasCheckedIn(true);
     setAchievements((prev) =>
       prev.map((ach) =>
         ach.id === 'ach-1' ? { ...ach, unlocked: true, progress: '4/4 Jogos' } : ach
       )
     );
-    alert('📍 Check-in de Bancada confirmado no Estádio dos Arcos! A tua presença no apoio ao Rio Ave FC foi registada com sucesso.');
-  }, [hasCheckedIn]);
+  }, []);
 
   const isQuotaPending = user.quotaStatus === 'pendente';
 
@@ -233,21 +239,21 @@ function ProfileScreen({
           </View>
         </View>
 
-        {/* Botão de Check-in no Estádio */}
+        {/* Botão de Check-in NFC no Estádio */}
         <TouchableOpacity
           style={[styles.checkInBtn, hasCheckedIn && styles.checkInBtnActive]}
-          onPress={handleCheckIn}
+          onPress={handleOpenNfcCheckIn}
           activeOpacity={0.85}
         >
           {hasCheckedIn ? (
             <>
               <CheckCircle2 size={16} color="#FFF" />
-              <Text style={styles.checkInBtnText}>Presença Confirmada nos Arcos Hoje!</Text>
+              <Text style={styles.checkInBtnText}>Presença Validada via NFC nos Arcos!</Text>
             </>
           ) : (
             <>
-              <MapPin size={16} color="#FFF" />
-              <Text style={styles.checkInBtnText}>Fazer Check-In</Text>
+              <Nfc size={16} color="#FFF" />
+              <Text style={styles.checkInBtnText}>Faça Check-In via NFC</Text>
             </>
           )}
         </TouchableOpacity>
@@ -405,6 +411,39 @@ function ProfileScreen({
           </View>
         </View>
       </View>
+
+      {/* 5. INSTALAR APP NO SMARTPHONE (PWA) */}
+      {onOpenPwaInstall && (
+        <TouchableOpacity
+          style={[styles.pwaProfileBtn, !isDark && styles.pwaProfileBtnLight]}
+          onPress={onOpenPwaInstall}
+          activeOpacity={0.8}
+        >
+          <View style={styles.pwaProfileLeft}>
+            <View style={[styles.pwaProfileIconBox, !isDark && styles.pwaProfileIconBoxLight]}>
+              <Smartphone size={16} color={isDark ? '#00B368' : '#00874E'} />
+            </View>
+            <View>
+              <Text style={[styles.pwaProfileTitle, !isDark && styles.textDark]}>
+                Instalar Aplicação no Ecrã Principal
+              </Text>
+              <Text style={[styles.pwaProfileSubtitle, !isDark && styles.textMutedDark]}>
+                PWA para iPhone (Safari) e Android (Chrome)
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={16} color={isDark ? COLORS.textMuted : '#7E9187'} />
+        </TouchableOpacity>
+      )}
+
+      {/* Modal de Check-In NFC */}
+      <NfcCheckInModal
+        visible={nfcModalVisible}
+        onClose={() => setNfcModalVisible(false)}
+        onCheckInSuccess={handleNfcSuccess}
+        user={user}
+        isDark={isDark}
+      />
 
       <View style={{ height: 140 }} />
     </ScrollView>
@@ -1319,6 +1358,49 @@ const styles = StyleSheet.create({
   },
   viewMoreBtnTextLight: {
     color: '#00874E',
+  },
+  pwaProfileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#121C16',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 14,
+  },
+  pwaProfileBtnLight: {
+    backgroundColor: '#F3F9F5',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
+  },
+  pwaProfileLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  pwaProfileIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pwaProfileIconBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  pwaProfileTitle: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  pwaProfileSubtitle: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    marginTop: 1,
   },
 });
 

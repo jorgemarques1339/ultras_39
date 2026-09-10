@@ -10,8 +10,12 @@ import {
 } from 'react-native';
 import { X, CheckCircle2, ShieldCheck, Download, Share2, QrCode } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
+import { useAppTheme } from '../context/ThemeContext';
 
-export default function ReceiptModal({ visible, onClose, transaction }) {
+export default function ReceiptModal({ visible, onClose, transaction, isDark }) {
+  const themeContext = useAppTheme?.();
+  const isEffectiveDark = isDark !== undefined ? isDark : (themeContext?.isDark ?? true);
+
   if (!visible || !transaction) return null;
 
   const safeTx = transaction || {
@@ -31,20 +35,20 @@ export default function ReceiptModal({ visible, onClose, transaction }) {
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.cardContainer}>
+        <View style={[styles.cardContainer, !isEffectiveDark && styles.cardContainerLight]}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, !isEffectiveDark && styles.headerLight]}>
             <View style={styles.brandRow}>
               <View style={styles.mbwayLogoBadge}>
                 <Text style={styles.mbwayLogoText}>MB</Text>
                 <View style={styles.mbwayRedDot} />
                 <Text style={styles.mbwayLogoSub}>WAY</Text>
               </View>
-              <Text style={styles.headerTitle}>Comprovativo Oficial</Text>
+              <Text style={[styles.headerTitle, !isEffectiveDark && styles.headerTitleLight]}>Comprovativo Oficial</Text>
             </View>
 
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={20} color={COLORS.textSecondary} />
+            <TouchableOpacity onPress={onClose} style={[styles.closeBtn, !isEffectiveDark && styles.closeBtnLight]}>
+              <X size={20} color={isEffectiveDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
           </View>
 
@@ -57,76 +61,76 @@ export default function ReceiptModal({ visible, onClose, transaction }) {
           >
             {/* Stamp Status */}
             <View style={styles.stampBox}>
-              <CheckCircle2 size={32} color={COLORS.primaryLight} />
-              <Text style={styles.stampTitle}>Transação Autorizada</Text>
-              <Text style={styles.stampSub}>Rede SIBS Portugal · Grupo 39 RAFC</Text>
+              <CheckCircle2 size={32} color={isEffectiveDark ? COLORS.primaryLight : '#00874E'} />
+              <Text style={[styles.stampTitle, !isEffectiveDark && styles.textDark]}>Transação Autorizada</Text>
+              <Text style={[styles.stampSub, !isEffectiveDark && styles.textMutedDark]}>Rede SIBS Portugal · Grupo 39 RAFC</Text>
             </View>
 
             {/* Total Amount Box */}
-            <View style={styles.amountBox}>
-              <Text style={styles.amountLabel}>Valor Liquidado</Text>
-              <Text style={styles.amountText}>{transaction.amount.toFixed(2)} €</Text>
-              <Text style={styles.amountStatus}>Processado com Sucesso</Text>
+            <View style={[styles.amountBox, !isEffectiveDark && styles.amountBoxLight]}>
+              <Text style={[styles.amountLabel, !isEffectiveDark && styles.textMutedDark]}>Valor Liquidado</Text>
+              <Text style={[styles.amountText, !isEffectiveDark && styles.amountTextLight]}>{transaction.amount.toFixed(2)} €</Text>
+              <Text style={[styles.amountStatus, !isEffectiveDark && styles.amountStatusLight]}>Processado com Sucesso</Text>
             </View>
 
             {/* Details Table */}
-            <View style={styles.detailsList}>
+            <View style={[styles.detailsList, !isEffectiveDark && styles.detailsListLight]}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>Descrição:</Text>
-                <Text style={styles.detailVal}>{transaction.title}</Text>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>Descrição:</Text>
+                <Text style={[styles.detailVal, !isEffectiveDark && styles.textDark]}>{transaction.title}</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>Data & Hora:</Text>
-                <Text style={styles.detailVal}>{transaction.date}</Text>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>Data & Hora:</Text>
+                <Text style={[styles.detailVal, !isEffectiveDark && styles.textDark]}>{transaction.date}</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>N.º Telemóvel:</Text>
-                <Text style={styles.detailVal}>+351 {transaction.phone}</Text>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>N.º Telemóvel:</Text>
+                <Text style={[styles.detailVal, !isEffectiveDark && styles.textDark]}>+351 {transaction.phone}</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>Entidade Beneficiária:</Text>
-                <Text style={styles.detailVal}>Claque Oficial Grupo 39</Text>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>Entidade Beneficiária:</Text>
+                <Text style={[styles.detailVal, !isEffectiveDark && styles.textDark]}>Claque Oficial Grupo 39</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>NIF Institucional:</Text>
-                <Text style={styles.detailVal}>501 239 840</Text>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>NIF Institucional:</Text>
+                <Text style={[styles.detailVal, !isEffectiveDark && styles.textDark]}>501 239 840</Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>ID Transação SIBS:</Text>
-                <Text style={[styles.detailVal, styles.mono]}>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>ID Transação SIBS:</Text>
+                <Text style={[styles.detailVal, styles.mono, !isEffectiveDark && styles.monoLight]}>
                   {transaction.sibsRef || 'SIBS-PT-039-98214'}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailKey}>Código de Autorização:</Text>
-                <Text style={[styles.detailVal, styles.mono]}>
+                <Text style={[styles.detailKey, !isEffectiveDark && styles.textMutedDark]}>Código de Autorização:</Text>
+                <Text style={[styles.detailVal, styles.mono, !isEffectiveDark && styles.monoLight]}>
                   {transaction.authCode || 'AUT-78942'}
                 </Text>
               </View>
             </View>
 
             {/* QR de Validação de Torniquete / Bilhética */}
-            <View style={styles.qrValidationCard}>
-              <View style={styles.qrBox}>
-                <QrCode size={48} color={COLORS.primaryLight} />
+            <View style={[styles.qrValidationCard, !isEffectiveDark && styles.qrValidationCardLight]}>
+              <View style={[styles.qrBox, !isEffectiveDark && styles.qrBoxLight]}>
+                <QrCode size={44} color={isEffectiveDark ? COLORS.primaryLight : '#00874E'} />
               </View>
               <View style={styles.qrInfo}>
-                <Text style={styles.qrTitle}>Código de Acesso aos Arcos</Text>
-                <Text style={styles.qrDesc}>
-                  Apresenta este QR Code nos torniquetes da Bancada Poente ou na entrada da sede.
+                <Text style={[styles.qrTitle, !isEffectiveDark && styles.textDark]}>Código Digital Único</Text>
+                <Text style={[styles.qrDesc, !isEffectiveDark && styles.textMutedDark]}>
+                  Apresenta este QR code no torniquete de acesso ou guarda o PDF.
                 </Text>
               </View>
             </View>
 
             <View style={styles.sealRow}>
-              <ShieldCheck size={14} color={COLORS.textSecondary} />
-              <Text style={styles.sealText}>
+              <ShieldCheck size={14} color={isEffectiveDark ? COLORS.primaryLight : '#00874E'} />
+              <Text style={[styles.sealText, !isEffectiveDark && styles.textMutedDark]}>
                 Documento emitido eletronicamente conforme diretiva SIBS MB WAY.
               </Text>
             </View>
@@ -367,5 +371,57 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 13,
     fontWeight: '700',
+  },
+
+  // Estilos Light
+  cardContainerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 10px 35px rgba(0, 0, 0, 0.12)',
+      },
+    }),
+  },
+  headerLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  headerTitleLight: {
+    color: '#0E1712',
+  },
+  closeBtnLight: {
+    backgroundColor: '#F0F4F2',
+  },
+  amountBoxLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  amountTextLight: {
+    color: '#00874E',
+  },
+  amountStatusLight: {
+    color: '#00874E',
+  },
+  detailsListLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.15)',
+  },
+  textDark: {
+    color: '#0E1712',
+  },
+  textMutedDark: {
+    color: '#5A6E63',
+  },
+  monoLight: {
+    color: '#00874E',
+  },
+  qrValidationCardLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  qrBoxLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
   },
 });

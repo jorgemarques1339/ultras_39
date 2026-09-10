@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
 import { Bell, Sun, Moon } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -30,23 +30,25 @@ function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTh
   });
 
   return (
-    <Animated.View style={[styles.headerAnimatedWrapper, { height, opacity, transform: [{ translateY }] }, !isDark && styles.headerAnimatedWrapperLight]}>
+    <Animated.View
+      style={[
+        styles.headerAnimatedWrapper,
+        { height, opacity, transform: [{ translateY }] },
+        !isDark && styles.headerAnimatedWrapperLight,
+      ]}
+    >
       <View style={[styles.headerContainer, !isDark && styles.headerContainerLight]}>
-        <View style={styles.leftBrand}>
-          {/* Logótipo Oficial Grupo 39 */}
+        {/* Espaço à esquerda para manter equilíbrio com as ações da direita */}
+        <View style={styles.leftSpacer} />
+
+        {/* Logótipo Oficial Perfeitamente Centrado no Header */}
+        <View style={styles.centerBrand} pointerEvents="none">
           <View style={[styles.logoWrapper, !isDark && styles.logoWrapperLight]}>
             <Image
               source={require('../../assets/logo_39.png')}
               style={styles.logoImage}
               resizeMode="contain"
             />
-          </View>
-
-          <View style={styles.brandTitleRow}>
-            <Text style={[styles.brandMainTitle, !isDark && styles.brandMainTitleLight]}>GRUPO 39</Text>
-            <View style={styles.officialPill}>
-              <Text style={styles.officialPillText}>OFICIAL</Text>
-            </View>
           </View>
         </View>
 
@@ -57,7 +59,7 @@ function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTh
             style={[styles.themeToggleButton, !isDark && styles.themeToggleButtonLight]}
             onPress={onToggleTheme}
             activeOpacity={0.75}
-            accessibilityLabel={isDark ? "Mudar para modo Light" : "Mudar para modo Black"}
+            accessibilityLabel={isDark ? 'Mudar para modo Light' : 'Mudar para modo Black'}
           >
             {isDark ? (
               <Sun size={17} color="#00B368" />
@@ -71,6 +73,7 @@ function Header({ onOpenNotifications, visible = true, isDark = true, onToggleTh
             style={[styles.notifButton, !isDark && styles.notifButtonLight]}
             onPress={onOpenNotifications}
             activeOpacity={0.7}
+            accessibilityLabel="Ver Notificações"
           >
             <Bell size={18} color={isDark ? COLORS.textSecondary : '#4A5D53'} />
             <View style={styles.notifDot} />
@@ -96,17 +99,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1310',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    position: 'relative',
   },
-  leftBrand: {
-    flexDirection: 'row',
+  leftSpacer: {
+    width: 76,
+  },
+  centerBrand: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     alignItems: 'center',
-    gap: 10,
-    flex: 1,
+    justifyContent: 'center',
+    zIndex: 1,
   },
   logoWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     overflow: 'hidden',
     backgroundColor: '#0D1410',
     borderWidth: 1.5,
@@ -115,7 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       web: {
-        boxShadow: '0 0 10px rgba(0, 179, 104, 0.35)',
+        boxShadow: '0 0 12px rgba(0, 179, 104, 0.4)',
       },
     }),
   },
@@ -124,38 +135,34 @@ const styles = StyleSheet.create({
     borderColor: '#00874E',
     ...Platform.select({
       web: {
-        boxShadow: '0 2px 8px rgba(0, 135, 78, 0.2)',
+        boxShadow: '0 2px 8px rgba(0, 135, 78, 0.25)',
       },
     }),
   },
   logoImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
   },
-  brandTitleRow: {
+  rightActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    zIndex: 10,
   },
-  brandMainTitle: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 0.6,
-  },
-  officialPill: {
-    backgroundColor: 'rgba(0, 179, 104, 0.2)',
+  themeToggleButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(0, 179, 104, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.45)',
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 5,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  officialPillText: {
-    color: '#00B368',
-    fontSize: 8.5,
-    fontWeight: '800',
+  themeToggleButtonLight: {
+    backgroundColor: '#EDF5F0',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
   },
   notifButton: {
     width: 34,
@@ -177,34 +184,12 @@ const styles = StyleSheet.create({
     borderRadius: 3.5,
     backgroundColor: COLORS.primaryLight,
   },
-  rightActionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  themeToggleButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(0, 179, 104, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  themeToggleButtonLight: {
-    backgroundColor: '#EDF5F0',
-    borderColor: 'rgba(0, 135, 78, 0.25)',
-  },
   headerAnimatedWrapperLight: {
     backgroundColor: '#FFFFFF',
   },
   headerContainerLight: {
     backgroundColor: '#FFFFFF',
     borderBottomColor: 'rgba(0, 135, 78, 0.12)',
-  },
-  brandMainTitleLight: {
-    color: '#14201A',
   },
   notifButtonLight: {
     backgroundColor: '#F0F4F2',

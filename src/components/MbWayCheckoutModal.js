@@ -26,6 +26,7 @@ import {
 } from 'lucide-react-native';
 import confetti from 'canvas-confetti';
 import { COLORS } from '../theme/colors';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function MbWayCheckoutModal({
   visible,
@@ -33,7 +34,10 @@ export default function MbWayCheckoutModal({
   checkoutData, // { title, category, amount, originalPrice, discount, phone, type }
   onPaymentSuccess,
   onViewReceipt,
+  isDark,
 }) {
+  const themeContext = useAppTheme?.();
+  const isEffectiveDark = isDark !== undefined ? isDark : (themeContext?.isDark ?? true);
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -186,9 +190,9 @@ export default function MbWayCheckoutModal({
       onRequestClose={onClose}
     >
       <View style={[styles.modalOverlay, isTablet && styles.modalOverlayTablet]}>
-        <View style={[styles.sheetContainer, isTablet && styles.sheetContainerTablet]}>
+        <View style={[styles.sheetContainer, isTablet && styles.sheetContainerTablet, !isEffectiveDark && styles.sheetContainerLight]}>
           {/* Header da BottomSheet */}
-          <View style={styles.sheetHeader}>
+          <View style={[styles.sheetHeader, !isEffectiveDark && styles.sheetHeaderLight]}>
             <View style={styles.brandRow}>
               {/* Logótipo Estilizado MB WAY */}
               <View style={styles.mbwayLogoBadge}>
@@ -197,17 +201,17 @@ export default function MbWayCheckoutModal({
                 <Text style={styles.mbwayLogoSub}>WAY</Text>
               </View>
               <View style={styles.headerTitles}>
-                <Text style={styles.headerTitle}>Checkout Oficial</Text>
-                <Text style={styles.headerSubtitle}>SIBS Pagamentos Portugal</Text>
+                <Text style={[styles.headerTitle, !isEffectiveDark && styles.headerTitleLight]}>Checkout Oficial</Text>
+                <Text style={[styles.headerSubtitle, !isEffectiveDark && styles.headerSubtitleLight]}>SIBS Pagamentos Portugal</Text>
               </View>
             </View>
 
             <TouchableOpacity
               onPress={onClose}
-              style={styles.closeButton}
+              style={[styles.closeButton, !isEffectiveDark && styles.closeButtonLight]}
               activeOpacity={0.7}
             >
-              <X size={20} color={COLORS.textSecondary} />
+              <X size={20} color={isEffectiveDark ? COLORS.textSecondary : '#5A6E63'} />
             </TouchableOpacity>
           </View>
 
@@ -222,17 +226,17 @@ export default function MbWayCheckoutModal({
             {status === 'form' && (
               <View>
                 {/* Resumo do Produto / Quota / Bilhete */}
-                <View style={styles.itemSummaryCard}>
-                  <View style={styles.itemCategoryBadge}>
-                    <Text style={styles.itemCategoryText}>{safeData.category}</Text>
+                <View style={[styles.itemSummaryCard, !isEffectiveDark && styles.itemSummaryCardLight]}>
+                  <View style={[styles.itemCategoryBadge, !isEffectiveDark && styles.itemCategoryBadgeLight]}>
+                    <Text style={[styles.itemCategoryText, !isEffectiveDark && styles.itemCategoryTextLight]}>{safeData.category}</Text>
                   </View>
-                  <Text style={styles.itemTitle}>{safeData.title}</Text>
+                  <Text style={[styles.itemTitle, !isEffectiveDark && styles.itemTitleLight]}>{safeData.title}</Text>
 
-                  <View style={styles.divider} />
+                  <View style={[styles.divider, !isEffectiveDark && styles.dividerLight]} />
 
                   <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Preço Geral</Text>
-                    <Text style={styles.priceOld}>
+                    <Text style={[styles.priceLabel, !isEffectiveDark && styles.textMutedLight]}>Preço Geral</Text>
+                    <Text style={[styles.priceOld, !isEffectiveDark && styles.textMutedLight]}>
                       {safeData.originalPrice
                         ? `${safeData.originalPrice.toFixed(2)} €`
                         : `${safeData.amount.toFixed(2)} €`}
@@ -252,26 +256,26 @@ export default function MbWayCheckoutModal({
                   )}
 
                   <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Taxa SIBS / MB WAY</Text>
-                    <Text style={styles.freeFeeText}>Grátis (0,00 €)</Text>
+                    <Text style={[styles.priceLabel, !isEffectiveDark && styles.textMutedLight]}>Taxa SIBS / MB WAY</Text>
+                    <Text style={[styles.freeFeeText, !isEffectiveDark && styles.freeFeeTextLight]}>Grátis (0,00 €)</Text>
                   </View>
 
-                  <View style={styles.divider} />
+                  <View style={[styles.divider, !isEffectiveDark && styles.dividerLight]} />
 
                   <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Total a Pagar</Text>
-                    <Text style={styles.totalAmount}>
+                    <Text style={[styles.totalLabel, !isEffectiveDark && styles.totalLabelLight]}>Total a Pagar</Text>
+                    <Text style={[styles.totalAmount, !isEffectiveDark && styles.totalAmountLight]}>
                       {safeData.amount.toFixed(2)} €
                     </Text>
                   </View>
                 </View>
 
                 {/* Secção do Telemóvel MB WAY */}
-                <View style={styles.phoneSection}>
+                <View style={[styles.phoneSection, !isEffectiveDark && styles.phoneSectionLight]}>
                   <View style={styles.phoneHeaderRow}>
                     <View style={styles.iconWithText}>
-                      <Smartphone size={16} color={COLORS.primaryLight} />
-                      <Text style={styles.phoneSectionTitle}>
+                      <Smartphone size={16} color={isEffectiveDark ? COLORS.primaryLight : '#00874E'} />
+                      <Text style={[styles.phoneSectionTitle, !isEffectiveDark && styles.phoneSectionTitleLight]}>
                         Número de Telemóvel MB WAY
                       </Text>
                     </View>
@@ -279,28 +283,28 @@ export default function MbWayCheckoutModal({
                       onPress={() => setIsEditingPhone(!isEditingPhone)}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.changePhoneText}>
+                      <Text style={[styles.changePhoneText, !isEffectiveDark && styles.changePhoneTextLight]}>
                         {isEditingPhone ? 'Guardar' : 'Alterar'}
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  <View style={styles.phoneInputContainer}>
-                    <View style={styles.countryBadge}>
+                  <View style={[styles.phoneInputContainer, !isEffectiveDark && styles.phoneInputContainerLight]}>
+                    <View style={[styles.countryBadge, !isEffectiveDark && styles.countryBadgeLight]}>
                       <Text style={styles.flagEmoji}>🇵🇹</Text>
-                      <Text style={styles.countryCode}>+351</Text>
+                      <Text style={[styles.countryCode, !isEffectiveDark && styles.countryCodeLight]}>+351</Text>
                     </View>
                     <TextInput
-                      style={styles.phoneInput}
+                      style={[styles.phoneInput, !isEffectiveDark && styles.phoneInputLight]}
                       value={phoneNumber}
                       onChangeText={setPhoneNumber}
                       keyboardType="phone-pad"
                       editable={isEditingPhone}
                       placeholder="912 345 678"
-                      placeholderTextColor={COLORS.textMuted}
+                      placeholderTextColor={isEffectiveDark ? COLORS.textMuted : '#8FA497'}
                     />
                   </View>
-                  <Text style={styles.phoneHelperText}>
+                  <Text style={[styles.phoneHelperText, !isEffectiveDark && styles.textMutedLight]}>
                     Enviaremos uma notificação instantânea para o teu telemóvel.
                   </Text>
                 </View>
@@ -324,8 +328,8 @@ export default function MbWayCheckoutModal({
                 </TouchableOpacity>
 
                 <View style={styles.securitySealRow}>
-                  <ShieldCheck size={14} color={COLORS.textSecondary} />
-                  <Text style={styles.securitySealText}>
+                  <ShieldCheck size={14} color={isEffectiveDark ? COLORS.textSecondary : '#5A6E63'} />
+                  <Text style={[styles.securitySealText, !isEffectiveDark && styles.textMutedLight]}>
                     Pagamento 100% encriptado e certificado pela SIBS Portugal
                   </Text>
                 </View>
@@ -350,30 +354,30 @@ export default function MbWayCheckoutModal({
                   </View>
                 </View>
 
-                <Text style={styles.pendingHeading}>
+                <Text style={[styles.pendingHeading, !isEffectiveDark && styles.pendingHeadingLight]}>
                   Confirma o pagamento na tua app MB WAY
                 </Text>
-                <Text style={styles.pendingInstructions}>
+                <Text style={[styles.pendingInstructions, !isEffectiveDark && styles.pendingInstructionsLight]}>
                   Enviámos um pedido de{' '}
-                  <Text style={{ fontWeight: '700', color: COLORS.white }}>
+                  <Text style={{ fontWeight: '700', color: isEffectiveDark ? COLORS.white : '#0E1712' }}>
                     {safeData.amount.toFixed(2)} €
                   </Text>{' '}
                   para o número{' '}
-                  <Text style={{ fontWeight: '700', color: COLORS.primaryLight }}>
+                  <Text style={{ fontWeight: '700', color: isEffectiveDark ? COLORS.primaryLight : '#00874E' }}>
                     +351 {phoneNumber}
                   </Text>
                   . Abre a notificação no teu telemóvel para autorizar.
                 </Text>
 
                 {/* Timer Decrescente */}
-                <View style={styles.timerBadge}>
+                <View style={[styles.timerBadge, !isEffectiveDark && styles.timerBadgeLight]}>
                   <Clock size={16} color={COLORS.gold} />
                   <Text style={styles.timerText}>{formatTimer(timeLeft)}</Text>
                 </View>
 
                 {/* Controles de Simulação Interativa (Demonstração Webhook) */}
-                <View style={styles.simulationCard}>
-                  <Text style={styles.simulationTitle}>
+                <View style={[styles.simulationCard, !isEffectiveDark && styles.simulationCardLight]}>
+                  <Text style={[styles.simulationTitle, !isEffectiveDark && styles.simulationTitleLight]}>
                     ⚡ Simulação Interativa de Webhook SIBS:
                   </Text>
                   <View style={styles.simulationButtonsRow}>
@@ -407,8 +411,8 @@ export default function MbWayCheckoutModal({
                     }}
                     activeOpacity={0.7}
                   >
-                    <RefreshCw size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.resendBtnText}>Reenviar Notificação</Text>
+                    <RefreshCw size={14} color={isEffectiveDark ? COLORS.textSecondary : '#5A6E63'} />
+                    <Text style={[styles.resendBtnText, !isEffectiveDark && styles.textMutedLight]}>Reenviar Notificação</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -416,7 +420,7 @@ export default function MbWayCheckoutModal({
                     onPress={() => setStatus('form')}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.cancelBtnText}>Alterar Número</Text>
+                    <Text style={[styles.cancelBtnText, !isEffectiveDark && styles.cancelBtnTextLight]}>Alterar Número</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -429,34 +433,34 @@ export default function MbWayCheckoutModal({
                   <CheckCircle2 size={46} color="#FFF" />
                 </View>
 
-                <Text style={styles.successTitle}>Pagamento Confirmado!</Text>
-                <Text style={styles.successSubtitle}>
+                <Text style={[styles.successTitle, !isEffectiveDark && styles.successTitleLight]}>Pagamento Confirmado!</Text>
+                <Text style={[styles.successSubtitle, !isEffectiveDark && styles.successSubtitleLight]}>
                   A transação MB WAY foi autorizada pela SIBS com sucesso.
                 </Text>
 
                 {/* Cartão de Confirmação Rápida */}
-                <View style={styles.successReceiptCard}>
+                <View style={[styles.successReceiptCard, !isEffectiveDark && styles.successReceiptCardLight]}>
                   <View style={styles.successReceiptRow}>
-                    <Text style={styles.receiptLabel}>Valor Pago</Text>
-                    <Text style={styles.receiptValueHighlight}>
+                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Valor Pago</Text>
+                    <Text style={[styles.receiptValueHighlight, !isEffectiveDark && styles.totalAmountLight]}>
                       {safeData.amount.toFixed(2)} €
                     </Text>
                   </View>
                   <View style={styles.successReceiptRow}>
-                    <Text style={styles.receiptLabel}>Referência SIBS</Text>
-                    <Text style={styles.receiptValue}>
+                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Referência SIBS</Text>
+                    <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>
                       {lastTransaction?.sibsRef || 'SIBS-PT-039-98214'}
                     </Text>
                   </View>
                   <View style={styles.successReceiptRow}>
-                    <Text style={styles.receiptLabel}>Destinatário</Text>
-                    <Text style={styles.receiptValue}>
+                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Destinatário</Text>
+                    <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>
                       Grupo 39 - Rio Ave F.C.
                     </Text>
                   </View>
                   <View style={styles.successReceiptRow}>
-                    <Text style={styles.receiptLabel}>Telemóvel</Text>
-                    <Text style={styles.receiptValue}>+351 {phoneNumber}</Text>
+                    <Text style={[styles.receiptLabel, !isEffectiveDark && styles.textMutedLight]}>Telemóvel</Text>
+                    <Text style={[styles.receiptValue, !isEffectiveDark && styles.receiptValueLight]}>+351 {phoneNumber}</Text>
                   </View>
                 </View>
 
@@ -482,7 +486,7 @@ export default function MbWayCheckoutModal({
                   onPress={onClose}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.doneBtnText}>Concluir e Voltar</Text>
+                  <Text style={[styles.doneBtnText, !isEffectiveDark && styles.textMutedLight]}>Concluir e Voltar</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -494,8 +498,8 @@ export default function MbWayCheckoutModal({
                   <AlertCircle size={44} color="#FFF" />
                 </View>
 
-                <Text style={styles.failedTitle}>Transação Não Concluída</Text>
-                <Text style={styles.failedSubtitle}>
+                <Text style={[styles.failedTitle, !isEffectiveDark && styles.failedTitleLight]}>Transação Não Concluída</Text>
+                <Text style={[styles.failedSubtitle, !isEffectiveDark && styles.failedSubtitleLight]}>
                   O tempo limite de 5 minutos expirou ou a operação foi cancelada na app MB WAY.
                 </Text>
 
@@ -516,7 +520,7 @@ export default function MbWayCheckoutModal({
                   onPress={onClose}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.closeFailedBtnText}>Fechar</Text>
+                  <Text style={[styles.closeFailedBtnText, !isEffectiveDark && styles.textMutedLight]}>Fechar</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -1118,5 +1122,123 @@ const styles = StyleSheet.create({
   closeFailedBtnText: {
     color: COLORS.textSecondary,
     fontSize: 13,
+  },
+
+  // Estilos do Tema Claro (Light Mode)
+  sheetContainerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 -10px 35px rgba(0, 0, 0, 0.12)',
+      },
+    }),
+  },
+  sheetHeaderLight: {
+    backgroundColor: '#FFFFFF',
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  headerTitleLight: {
+    color: '#0E1712',
+  },
+  headerSubtitleLight: {
+    color: '#00874E',
+  },
+  closeButtonLight: {
+    backgroundColor: '#F0F4F2',
+  },
+  itemSummaryCardLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+      },
+    }),
+  },
+  itemCategoryBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  itemCategoryTextLight: {
+    color: '#00874E',
+  },
+  itemTitleLight: {
+    color: '#0E1712',
+  },
+  dividerLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  textMutedLight: {
+    color: '#5A6E63',
+  },
+  freeFeeTextLight: {
+    color: '#00874E',
+  },
+  totalLabelLight: {
+    color: '#0E1712',
+  },
+  totalAmountLight: {
+    color: '#00874E',
+  },
+  phoneSectionLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  phoneSectionTitleLight: {
+    color: '#0E1712',
+  },
+  changePhoneTextLight: {
+    color: '#00874E',
+  },
+  phoneInputContainerLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  countryBadgeLight: {
+    borderRightColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  countryCodeLight: {
+    color: '#0E1712',
+  },
+  phoneInputLight: {
+    color: '#0E1712',
+  },
+  pendingHeadingLight: {
+    color: '#0E1712',
+  },
+  pendingInstructionsLight: {
+    color: '#5A6E63',
+  },
+  timerBadgeLight: {
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    borderColor: 'rgba(242, 182, 0, 0.4)',
+  },
+  simulationCardLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  simulationTitleLight: {
+    color: '#A07000',
+  },
+  cancelBtnTextLight: {
+    color: '#00874E',
+  },
+  successTitleLight: {
+    color: '#0E1712',
+  },
+  successSubtitleLight: {
+    color: '#5A6E63',
+  },
+  successReceiptCardLight: {
+    backgroundColor: '#F7FAF8',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
+  },
+  receiptValueLight: {
+    color: '#0E1712',
+  },
+  failedTitleLight: {
+    color: '#0E1712',
   },
 });

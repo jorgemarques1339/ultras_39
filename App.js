@@ -15,6 +15,7 @@ import NotificationsModal from './src/components/NotificationsModal';
 import WalletPassModal from './src/components/WalletPassModal';
 import ChantsModal from './src/components/ChantsModal';
 import StoreModal from './src/components/StoreModal';
+import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
 import HomeScreen from './src/screens/HomeScreen';
 import ForumScreen from './src/screens/ForumScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
@@ -72,6 +73,7 @@ function MainApp() {
   const [walletPassModalVisible, setWalletPassModalVisible] = useState(false);
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
   const [storeModalVisible, setStoreModalVisible] = useState(false);
+  const [pwaModalVisible, setPwaModalVisible] = useState(false);
 
   // Iniciar fluxo de compra de bilhete
   const handleBuyTicket = useCallback((itemData) => {
@@ -123,7 +125,9 @@ function MainApp() {
         style={[
           styles.appContainer,
           { maxWidth: containerMaxWidth, backgroundColor: theme.bgDark },
+          !isTablet && styles.appContainerMobile,
           !isDark && styles.appContainerLight,
+          !isDark && !isTablet && styles.appContainerMobileLight,
         ]}
       >
         {/* Cabeçalho Superior Retrátil com Animação Fluida & Alternador de Tema */}
@@ -145,6 +149,7 @@ function MainApp() {
               onOpenChants={() => setChantsModalVisible(true)}
               onOpenStore={() => handleSelectTab('store')}
               isDark={isDark}
+              onOpenPwaInstall={() => setPwaModalVisible(true)}
             />
           </View>
 
@@ -184,6 +189,7 @@ function MainApp() {
               onScroll={handleScroll}
               onOpenWalletPass={() => setWalletPassModalVisible(true)}
               isDark={isDark}
+              onOpenPwaInstall={() => setPwaModalVisible(true)}
             />
           </View>
         </View>
@@ -202,6 +208,7 @@ function MainApp() {
           checkoutData={checkoutData}
           onPaymentSuccess={handlePaymentSuccess}
           onViewReceipt={handleViewReceipt}
+          isDark={isDark}
         />
 
         {/* Modal de Comprovativo Oficial SIBS */}
@@ -209,6 +216,7 @@ function MainApp() {
           visible={receiptModalVisible}
           onClose={() => setReceiptModalVisible(false)}
           transaction={selectedReceipt}
+          isDark={isDark}
         />
 
         {/* Modal de Carteira Digital (Apple & Google Wallet) */}
@@ -231,12 +239,21 @@ function MainApp() {
           visible={storeModalVisible}
           onClose={() => setStoreModalVisible(false)}
           onCheckoutItem={handleBuyTicket}
+          isDark={isDark}
+        />
+
+        {/* Modal de Instalação PWA (Safari iOS & Chrome Android) */}
+        <PwaInstallPromptModal
+          visible={pwaModalVisible}
+          onClose={() => setPwaModalVisible(false)}
+          isDark={isDark}
         />
 
         {/* Modal de Notificações / Avisos */}
         <NotificationsModal
           visible={notificationsVisible}
           onClose={() => setNotificationsVisible(false)}
+          isDark={isDark}
           onSelectAction={(action) => {
             if (action === 'pay_quota') {
               handlePayQuota({
@@ -308,6 +325,16 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0, 135, 78, 0.15)',
       },
     }),
+  },
+  appContainerMobile: {
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    boxShadow: 'none',
+  },
+  appContainerMobileLight: {
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
+    boxShadow: 'none',
   },
   screenArea: {
     flex: 1,

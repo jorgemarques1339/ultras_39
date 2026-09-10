@@ -238,8 +238,8 @@ function TabelaModal({ visible, onClose, onNavigateTab, isDark = true }) {
                 disabled={isLoading}
                 accessibilityLabel="Atualizar tabela classificativa"
               >
-                <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                  <RefreshCw size={16} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                <Animated.View style={styles.spinIconWrap}>
+                  <RefreshCw size={14} color={isDark ? COLORS.primaryLight : '#00874E'} />
                 </Animated.View>
               </TouchableOpacity>
 
@@ -249,7 +249,7 @@ function TabelaModal({ visible, onClose, onNavigateTab, isDark = true }) {
                 style={[styles.closeBtn, !isDark && styles.closeBtnLight]}
                 activeOpacity={0.7}
               >
-                <X size={18} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
+                <X size={14} color={isDark ? COLORS.textSecondary : '#5A6E63'} />
               </TouchableOpacity>
             </View>
           </View>
@@ -466,7 +466,14 @@ const styles = StyleSheet.create({
   headerRightActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    flexShrink: 0,
+  },
+  spinIconWrap: {
+    width: 14,
+    height: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   titleRow: {
     flexDirection: 'row',
@@ -543,29 +550,32 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   refreshBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: 'rgba(0, 179, 104, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.25)',
+    borderColor: 'rgba(0, 179, 104, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   refreshBtnLight: {
     backgroundColor: '#EDF5F0',
-    borderColor: 'rgba(0, 135, 78, 0.2)',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
   },
   closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeBtnLight: {
     backgroundColor: '#F0F4F2',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   offlineNotice: {
     flexDirection: 'row',

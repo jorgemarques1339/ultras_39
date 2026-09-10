@@ -1,0 +1,56 @@
+{
+  "name": "Grupo 39 - Rio Ave FC",
+  "short_name": "Grupo 39",
+  "description": "Aplicação oficial da claque Grupo 39 do Rio Ave FC. Notícias, deslocações, bilhetes, cânticos e comunidade ultra.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1310",
+  "theme_color": "#00874E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Deslocações",
+      "short_name": "Deslocação",
+      "description": "Inscreve-te na próxima deslocação oficial",
+      "url": "/?tab=home&action=deslocacao",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Galeria Ultras",
+      "short_name": "Galeria",
+      "description": "Vê as fotos da claque Grupo 39",
+      "url": "/?tab=home&action=galeria",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Calendário de Jogos",
+      "short_name": "Jogos",
+      "description": "Próximos jogos do Rio Ave FC",
+      "url": "/?tab=home&action=jogos",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["sports", "social", "lifestyle"],
+  "lang": "pt-PT",
+  "dir": "ltr"
+}
