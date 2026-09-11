@@ -21,6 +21,7 @@ import {
   CreditCard,
   Ticket,
   Sparkles,
+  Receipt,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -31,27 +32,30 @@ function ForumLoginPromptModal({
   onOpenRegister,
   onSimulateUnlock,
   isDark = true,
-  type = 'forum', // 'forum' | 'profile' | 'deslocacao'
+  type = 'forum', // 'forum' | 'profile' | 'deslocacao' | 'pagamentos'
 }) {
   if (!visible) return null;
 
   const isProfile = type === 'profile';
   const isDeslocacao = type === 'deslocacao';
-  const IconComponent = isDeslocacao ? Bus : (isProfile ? User : MessageSquare);
+  const isPagamentos = type === 'pagamentos';
+  const IconComponent = isDeslocacao ? Bus : (isProfile ? User : (isPagamentos ? CreditCard : MessageSquare));
   const tagLabel = isDeslocacao
     ? 'DESLOCAÇÃO OFICIAL · ALVERCA'
-    : (isProfile ? 'CARTÃO DE SÓCIO DIGITAL' : 'COMUNIDADE GRUPO 39');
+    : (isProfile ? 'CARTÃO DE SÓCIO DIGITAL' : (isPagamentos ? 'ÁREA RESERVADA · GRUPO 39' : 'COMUNIDADE GRUPO 39'));
   const title = isDeslocacao
     ? 'Deslocação a Alverca'
-    : (isProfile ? 'Perfil do Sócio & Adepto' : 'Fórum da Claque');
+    : (isProfile ? 'Perfil do Sócio & Adepto' : (isPagamentos ? 'Os Meus Pagamentos' : 'Fórum da Claque'));
   const subtitle = isDeslocacao
     ? 'Acesso Antecipado & Sócios'
-    : (isProfile ? 'Cartão Digital & Quotas' : 'Voz da Bancada Poente');
+    : (isProfile ? 'Cartão Digital & Quotas' : (isPagamentos ? 'Histórico & Recibos SIBS' : 'Voz da Bancada Poente'));
   const description = isDeslocacao
     ? 'As inscrições antecipadas em autocarro são exclusivas para Sócios do Grupo 39 por apenas 7,50 €. Para quem não tem login, as vagas abrem a 16 de Setembro (10,00 €).'
     : (isProfile
       ? 'Para acederes ao teu Perfil, Cartão Digital de Sócio, histórico de quotas e bilhetes, precisas de iniciar sessão.'
-      : 'Para que possas participar no Fórum da Claque, precisas de iniciar sessão na tua conta de adepto ou sócio.');
+      : (isPagamentos
+        ? 'Para visualizar os Pagamentos e o histórico de transações executadas, tem que ter Login feito.'
+        : 'Para que possas participar no Fórum da Claque, precisas de iniciar sessão na tua conta de adepto ou sócio.'));
 
   return (
     <Modal
@@ -211,6 +215,35 @@ function ForumLoginPromptModal({
                     </Text>
                   </View>
                 </>
+              ) : isPagamentos ? (
+                <>
+                  <View style={styles.benefitRow}>
+                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
+                      <Receipt size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                    </View>
+                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
+                      Consulta todas as transações executadas pelo utilizador
+                    </Text>
+                  </View>
+
+                  <View style={styles.benefitRow}>
+                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
+                      <ShieldCheck size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                    </View>
+                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
+                      Comprovativos e recibos oficiais com autenticação SIBS
+                    </Text>
+                  </View>
+
+                  <View style={styles.benefitRow}>
+                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
+                      <CreditCard size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                    </View>
+                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
+                      Regularização de quotas de época e bilhetes via MB WAY
+                    </Text>
+                  </View>
+                </>
               ) : (
                 <>
                   <View style={styles.benefitRow}>
@@ -218,7 +251,7 @@ function ForumLoginPromptModal({
                       <Flame size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Publica e responde a tópópicos de bancada
+                      Publica e responde a tópicos de bancada
                     </Text>
                   </View>
 

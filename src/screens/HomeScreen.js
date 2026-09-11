@@ -30,6 +30,7 @@ import {
   Camera,
   Calendar as CalendarIcon,
   Lock,
+  CreditCard,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
@@ -42,6 +43,7 @@ import JogosModal from '../components/JogosModal';
 import GaleriaModal from '../components/GaleriaModal';
 import EventosModal from '../components/EventosModal';
 import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
+import PagamentosModal from '../components/PagamentosModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -68,7 +70,9 @@ function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
 
 function HomeScreen({
   user,
+  transactions = [],
   onBuyTicket,
+  onViewReceipt,
   onNavigateTab,
   onScroll,
   onOpenChants,
@@ -103,6 +107,8 @@ function HomeScreen({
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [galeriaModalVisible, setGaleriaModalVisible] = useState(false);
   const [eventosModalVisible, setEventosModalVisible] = useState(false);
+  const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
+  const [pagamentosNoticeVisible, setPagamentosNoticeVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
@@ -409,53 +415,67 @@ function HomeScreen({
 
         {/* GRELHA UNIFICADA E COMPACTA */}
         <View style={styles.shortcutsGridContainer}>
-          {/* BOTÕES: AUTOCARRO & JOGOS */}
-          <View style={styles.subShortcutsRow}>
+          {/* 1ª LINHA: BOTÃO DESLOCAÇÃO SOZINHO */}
+          <View style={styles.singleShortcutRow}>
             {canAccessDeslocacao ? (
               <Animated.View
                 style={[
-                  styles.animatedBusWrapper,
+                  styles.animatedBusWrapperSingle,
                   { transform: [{ scale: pulseAnim }] },
                 ]}
               >
                 <TouchableOpacity
-                  style={[styles.subShortcutCardPulsing, !isDark && styles.subShortcutCardPulsingLight]}
+                  style={[styles.subShortcutCardPulsingSingle, !isDark && styles.subShortcutCardPulsingLight]}
                   onPress={() => setDeslocacaoModalVisible(true)}
                   activeOpacity={0.8}
                 >
                   <View style={styles.subShortcutIconBgBus}>
-                    <Bus size={15} color={COLORS.primaryLight} />
+                    <Bus size={16} color={COLORS.primaryLight} />
                   </View>
-                  <View style={styles.busTextRow}>
-                    <Text style={[styles.subShortcutTextPulsing, !isDark && styles.subShortcutTextPulsingLight]} numberOfLines={1}>
+                  <View style={styles.busTextRowSingle}>
+                    <Text style={[styles.subShortcutTextPulsingSingle, !isDark && styles.subShortcutTextPulsingLight]} numberOfLines={1}>
                       Deslocação
                     </Text>
                     <View style={styles.livePulseDot} />
+                    <Text style={[styles.busSubtitleSingle, !isDark && styles.busSubtitleSingleLight]} numberOfLines={1}>
+                      Alverca · 19 Set
+                    </Text>
                   </View>
-                  <ChevronRight size={13} color={COLORS.primaryLight} />
+                  <View style={styles.singleRowRight}>
+                    <Text style={styles.singleRowPriceBadge}>7,50 €</Text>
+                    <ChevronRight size={14} color={COLORS.primaryLight} />
+                  </View>
                 </TouchableOpacity>
               </Animated.View>
             ) : (
               <TouchableOpacity
-                style={[styles.subShortcutCardLocked, !isDark && styles.subShortcutCardLockedLight]}
+                style={[styles.subShortcutCardLockedSingle, !isDark && styles.subShortcutCardLockedLight]}
                 onPress={() => setDeslocacaoNoticeVisible(true)}
                 activeOpacity={0.8}
               >
                 <View style={styles.subShortcutIconBgLocked}>
                   <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
                 </View>
-                <View style={styles.busTextRowLocked}>
-                  <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                <View style={styles.busTextRowSingle}>
+                  <Text style={[styles.subShortcutTextSingle, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
                     Deslocação
                   </Text>
-                  <Text style={styles.lockedBadgeText} numberOfLines={1}>
-                    {isSmallScreen ? '16 Set · 10€' : 'Abre 16 Set · 10€'}
+                  <Text style={[styles.busSubtitleSingle, !isDark && styles.busSubtitleSingleLight]} numberOfLines={1}>
+                    Alverca · 19 Set
                   </Text>
                 </View>
-                <ChevronRight size={13} color={isDark ? '#7E9187' : '#5A6E63'} />
+                <View style={styles.singleRowRight}>
+                  <Text style={styles.lockedBadgeTextSingle}>
+                    {isSmallScreen ? '16 Set · 10€' : 'Abre 16 Set · 10€'}
+                  </Text>
+                  <ChevronRight size={14} color={isDark ? '#7E9187' : '#5A6E63'} />
+                </View>
               </TouchableOpacity>
             )}
+          </View>
 
+          {/* 2ª LINHA: JOGOS AO LADO DE TABELA */}
+          <View style={styles.subShortcutsRow}>
             <TouchableOpacity
               style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
               onPress={() => setJogosModalVisible(true)}
@@ -469,10 +489,7 @@ function HomeScreen({
               </Text>
               <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
             </TouchableOpacity>
-          </View>
 
-          {/* 2 BOTÕES POR DEBAIXO: TABELA & SEJA SÓCIO */}
-          <View style={styles.subShortcutsRow}>
             <TouchableOpacity
               style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
               onPress={() => setTabelaModalVisible(true)}
@@ -486,23 +503,9 @@ function HomeScreen({
               </Text>
               <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-              onPress={() => setSocioModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.subShortcutIconBgCalendar}>
-                <IdCard size={16} color={COLORS.primaryLight} />
-              </View>
-              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                Seja Sócio
-              </Text>
-              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-            </TouchableOpacity>
           </View>
 
-          {/* 3ª LINHA: BOTÕES GALERIA & EVENTOS */}
+          {/* 3ª LINHA: GALERIA AO LADO DE EVENTOS */}
           <View style={styles.subShortcutsRow}>
             {/* Galeria - Temporariamente Bloqueada */}
             <TouchableOpacity
@@ -558,6 +561,65 @@ function HomeScreen({
               </Text>
               <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
             </TouchableOpacity>
+          </View>
+
+          {/* 4ª LINHA: SEJA SÓCIO AO LADO DE PAGAMENTOS */}
+          <View style={styles.subShortcutsRow}>
+            <TouchableOpacity
+              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+              onPress={() => setSocioModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.subShortcutIconBgCalendar}>
+                <IdCard size={16} color={COLORS.primaryLight} />
+              </View>
+              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                Seja Sócio
+              </Text>
+              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+            </TouchableOpacity>
+
+            {/* Pagamentos: Bloqueado sem login com aviso; Com login abre histórico completo */}
+            {isLoggedIn ? (
+              <TouchableOpacity
+                style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+                onPress={() => setPagamentosModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.subShortcutIconBgCalendar}>
+                  <CreditCard size={16} color={COLORS.primaryLight} />
+                </View>
+                <View style={styles.subShortcutTextLockedCol}>
+                  <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                    Pagamentos
+                  </Text>
+                  <Text style={[styles.subShortcutBadgeSmall, !isDark && styles.textMutedDark]} numberOfLines={1}>
+                    {transactions?.length || 0} mov.
+                  </Text>
+                </View>
+                <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.subShortcutCardLocked, !isDark && styles.subShortcutCardLockedLight]}
+                onPress={() => setPagamentosNoticeVisible(true)}
+                activeOpacity={0.8}
+                accessibilityLabel="Pagamentos bloqueados, requer login"
+              >
+                <View style={styles.subShortcutIconBgLocked}>
+                  <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
+                </View>
+                <View style={styles.busTextRowLocked}>
+                  <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                    Pagamentos
+                  </Text>
+                  <Text style={styles.lockedBadgeText} numberOfLines={1}>
+                    Requer Login
+                  </Text>
+                </View>
+                <ChevronRight size={13} color={isDark ? '#7E9187' : '#5A6E63'} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -648,6 +710,42 @@ function HomeScreen({
         visible={eventosModalVisible}
         onClose={() => setEventosModalVisible(false)}
         isDark={isDark}
+      />
+
+      {/* Modal Central de Pagamentos com Todas as Transações Executadas */}
+      <PagamentosModal
+        visible={pagamentosModalVisible}
+        onClose={() => setPagamentosModalVisible(false)}
+        transactions={transactions}
+        onViewReceipt={onViewReceipt}
+        user={user}
+        isDark={isDark}
+      />
+
+      {/* Modal de Aviso: Pagamentos Bloqueados sem Login */}
+      <ForumLoginPromptModal
+        visible={pagamentosNoticeVisible}
+        onClose={() => setPagamentosNoticeVisible(false)}
+        type="pagamentos"
+        isDark={isDark}
+        onOpenLogin={() => {
+          setPagamentosNoticeVisible(false);
+          if (onOpenAuth) {
+            onOpenAuth({
+              initialTab: 'login',
+              message: 'Para visualizar os Pagamentos tem que ter Login feito.',
+            });
+          }
+        }}
+        onOpenRegister={() => {
+          setPagamentosNoticeVisible(false);
+          if (onOpenAuth) {
+            onOpenAuth({
+              initialTab: 'register',
+              message: 'Cria a tua conta para acederes aos teus Pagamentos e Transações.',
+            });
+          }
+        }}
       />
 
     </View>
@@ -1080,6 +1178,95 @@ const styles = StyleSheet.create({
     gap: 9,
     width: '100%',
   },
+  singleShortcutRow: {
+    width: '100%',
+  },
+  animatedBusWrapperSingle: {
+    width: '100%',
+    borderRadius: 13,
+  },
+  subShortcutCardPulsingSingle: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#162419',
+    borderRadius: 13,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderColor: '#00B368',
+    gap: 9,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 12px rgba(0, 179, 104, 0.35)',
+      },
+    }),
+  },
+  subShortcutCardLockedSingle: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#131A15',
+    borderRadius: 13,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.35)',
+    gap: 9,
+  },
+  busTextRowSingle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  subShortcutTextPulsingSingle: {
+    color: '#FFF',
+    fontSize: 12.5,
+    fontWeight: '900',
+    letterSpacing: 0.1,
+  },
+  subShortcutTextSingle: {
+    color: '#FFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  busSubtitleSingle: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+    marginLeft: 2,
+  },
+  busSubtitleSingleLight: {
+    color: '#65786C',
+  },
+  singleRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  singleRowPriceBadge: {
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.35)',
+    color: COLORS.primaryLight,
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  lockedBadgeTextSingle: {
+    color: '#F2B600',
+    fontSize: 10,
+    fontWeight: '800',
+    backgroundColor: 'rgba(242, 182, 0, 0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.25)',
+  },
   subShortcutsRow: {
     flexDirection: 'row',
     gap: 9,
@@ -1237,6 +1424,12 @@ const styles = StyleSheet.create({
   subShortcutTextLockedCol: {
     flex: 1,
     justifyContent: 'center',
+  },
+  subShortcutBadgeSmall: {
+    color: COLORS.primaryLight,
+    fontSize: 9.5,
+    fontWeight: '700',
+    marginTop: 0.5,
   },
   subShortcutTextDisabled: {
     color: '#8A9E93',

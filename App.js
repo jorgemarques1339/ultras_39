@@ -200,7 +200,9 @@ function MainApp() {
           <View style={[styles.tabContentPane, activeTab !== 'home' && styles.hiddenPane]}>
             <HomeScreen
               user={user}
+              transactions={transactions}
               onBuyTicket={handleBuyTicket}
+              onViewReceipt={handleViewReceipt}
               onNavigateTab={handleSelectTab}
               onScroll={undefined}
               onOpenChants={() => setChantsModalVisible(true)}
