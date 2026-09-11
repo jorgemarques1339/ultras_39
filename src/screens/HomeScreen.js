@@ -437,12 +437,9 @@ function HomeScreen({
                       Deslocação
                     </Text>
                     <View style={styles.livePulseDot} />
-                    <Text style={[styles.busSubtitleSingle, !isDark && styles.busSubtitleSingleLight]} numberOfLines={1}>
-                      Alverca · 19 Set
-                    </Text>
                   </View>
                   <View style={styles.singleRowRight}>
-                    <Text style={styles.singleRowPriceBadge}>7,50 €</Text>
+                    <Text style={styles.singleRowPriceBadge}>19 Set · 7,50 €</Text>
                     <ChevronRight size={14} color={COLORS.primaryLight} />
                   </View>
                 </TouchableOpacity>
@@ -460,13 +457,10 @@ function HomeScreen({
                   <Text style={[styles.subShortcutTextSingle, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
                     Deslocação
                   </Text>
-                  <Text style={[styles.busSubtitleSingle, !isDark && styles.busSubtitleSingleLight]} numberOfLines={1}>
-                    Alverca · 19 Set
-                  </Text>
                 </View>
                 <View style={styles.singleRowRight}>
                   <Text style={styles.lockedBadgeTextSingle}>
-                    {isSmallScreen ? '16 Set · 10€' : 'Abre 16 Set · 10€'}
+                    19 Set · 10€
                   </Text>
                   <ChevronRight size={14} color={isDark ? '#7E9187' : '#5A6E63'} />
                 </View>
@@ -587,10 +581,10 @@ function HomeScreen({
                 activeOpacity={0.8}
               >
                 <View style={styles.subShortcutIconBgCalendar}>
-                  <CreditCard size={16} color={COLORS.primaryLight} />
+                  <CreditCard size={15} color={COLORS.primaryLight} />
                 </View>
                 <View style={styles.subShortcutTextLockedCol}>
-                  <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                  <Text style={[styles.subShortcutTextPagamentos, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
                     Pagamentos
                   </Text>
                   <Text style={[styles.subShortcutBadgeSmall, !isDark && styles.textMutedDark]} numberOfLines={1}>
@@ -607,13 +601,13 @@ function HomeScreen({
                 accessibilityLabel="Pagamentos bloqueados, requer login"
               >
                 <View style={styles.subShortcutIconBgLocked}>
-                  <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
+                  <Lock size={14} color={isDark ? '#F2B600' : '#8A6D00'} />
                 </View>
                 <View style={styles.busTextRowLocked}>
-                  <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                  <Text style={[styles.subShortcutTextPagamentos, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
                     Pagamentos
                   </Text>
-                  <Text style={styles.lockedBadgeText} numberOfLines={1}>
+                  <Text style={styles.lockedBadgeTextPagamentos} numberOfLines={1}>
                     Requer Login
                   </Text>
                 </View>
@@ -1403,6 +1397,17 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 12,
     fontWeight: '800',
+  },
+  subShortcutTextPagamentos: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  lockedBadgeTextPagamentos: {
+    color: '#F2B600',
+    fontSize: 8.5,
+    fontWeight: '800',
+    marginTop: 0.5,
   },
   subShortcutTextLight: {
     color: '#15241C',
