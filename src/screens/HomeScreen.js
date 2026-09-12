@@ -44,6 +44,8 @@ import GaleriaModal from '../components/GaleriaModal';
 import EventosModal from '../components/EventosModal';
 import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
 import PagamentosModal from '../components/PagamentosModal';
+import HomeSlidingBanner from '../components/HomeSlidingBanner';
+import AlertasModal from '../components/AlertasModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -109,9 +111,12 @@ function HomeScreen({
   const [eventosModalVisible, setEventosModalVisible] = useState(false);
   const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
   const [pagamentosNoticeVisible, setPagamentosNoticeVisible] = useState(false);
+  const [alertasModalVisible, setAlertasModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
+  const matchTicketsPct = 78;
+  const deslocacaoTicketsPct = 64;
   const mainScrollRef = useRef(null);
 
   // Carregar dados oficiais do próximo jogo em tempo real (mesma API dos Jogos)
@@ -213,6 +218,20 @@ function HomeScreen({
         },
       ]}
     >
+      {/* BOTÃO DESLIZANTE INFORMATIVO: BOAS-VINDAS A SÓCIOS, PRÓXIMA DESLOCAÇÃO E ALERTAS */}
+      <HomeSlidingBanner
+        onOpenSocio={() => setSocioModalVisible(true)}
+        onOpenDeslocacao={() => {
+          if (canAccessDeslocacao) {
+            setDeslocacaoModalVisible(true);
+          } else {
+            setDeslocacaoNoticeVisible(true);
+          }
+        }}
+        onOpenAlertas={() => setAlertasModalVisible(true)}
+        isDark={isDark}
+      />
+
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <View style={[styles.heroCard, !isDark && styles.heroCardLight, isSmallScreen && styles.heroCardSmall]}>
         {/* Header do Confronto */}
@@ -267,6 +286,25 @@ function HomeScreen({
         </View>
 
         {/* CTA BILHÉTICA INTEGRADO: COMPRA RÁPIDA MB WAY */}
+        {/* DISPONIBILIDADE DE BILHETES DO PRÓXIMO JOGO */}
+        <View style={styles.heroAvailabilityWrapper}>
+          <View style={styles.heroAvailabilityRow}>
+            <View style={styles.heroAvailabilityLeft}>
+              <View style={styles.heroAvailabilityPulseDot} />
+              <Text style={[styles.heroAvailabilityText, !isDark && styles.heroAvailabilityTextLight]}>
+                Bilhetes Disponíveis
+              </Text>
+            </View>
+            <Text style={[styles.heroAvailabilityPct, !isDark && styles.heroAvailabilityPctLight]}>
+              {matchTicketsPct}%
+            </Text>
+          </View>
+          <View style={[styles.heroAvailabilityTrack, !isDark && styles.heroAvailabilityTrackLight]}>
+            <View style={[styles.heroAvailabilityFill, { width: `${matchTicketsPct}%` }]} />
+          </View>
+        </View>
+
+        {/* CTA BILHÉTICA INTEGRADO: COMPRA RÁPIDA MB WAY */}
         <TouchableOpacity
           style={styles.heroBuyBtn}
           onPress={() => {
@@ -290,7 +328,7 @@ function HomeScreen({
                 <Ticket size={13} color="#FFF" />
               </View>
               <Text style={styles.heroBuyTitle}>
-                Comprar Bilhete · {isLoggedIn ? '7,50 €' : '10,00 €'}
+                Comprar Bilhete
               </Text>
             </View>
             <ChevronRight size={14} color="#FFF" />
@@ -429,14 +467,25 @@ function HomeScreen({
                   onPress={() => setDeslocacaoModalVisible(true)}
                   activeOpacity={0.8}
                 >
-                  <View style={styles.subShortcutIconBgBus}>
-                    <Bus size={16} color={COLORS.primaryLight} />
+                  <View style={styles.busLeftCol}>
+                    <View style={styles.subShortcutIconBgBus}>
+                      <Bus size={16} color={COLORS.primaryLight} />
+                    </View>
+                    <View style={styles.busTextRowSingle}>
+                      <Text style={[styles.subShortcutTextPulsingSingle, !isDark && styles.subShortcutTextPulsingLight]} numberOfLines={1}>
+                        Deslocação
+                      </Text>
+                      <View style={styles.livePulseDot} />
+                    </View>
                   </View>
-                  <View style={styles.busTextRowSingle}>
-                    <Text style={[styles.subShortcutTextPulsingSingle, !isDark && styles.subShortcutTextPulsingLight]} numberOfLines={1}>
-                      Deslocação
+                  {/* A MEIO: DISPONIBILIDADE DE BILHETES / LUGARES */}
+                  <View style={[styles.busAvailabilityBadge, !isDark && styles.busAvailabilityBadgeLight]}>
+                    <View style={styles.busAvailabilityMiniTrack}>
+                      <View style={[styles.busAvailabilityMiniFill, { width: `${deslocacaoTicketsPct}%` }]} />
+                    </View>
+                    <Text style={[styles.busAvailabilityText, !isDark && styles.busAvailabilityTextLight]}>
+                      {deslocacaoTicketsPct}% disp.
                     </Text>
-                    <View style={styles.livePulseDot} />
                   </View>
                   <View style={styles.singleRowRight}>
                     <Text style={styles.singleRowPriceBadge}>19 Set · 7,50 €</Text>
@@ -450,12 +499,23 @@ function HomeScreen({
                 onPress={() => setDeslocacaoNoticeVisible(true)}
                 activeOpacity={0.8}
               >
-                <View style={styles.subShortcutIconBgLocked}>
-                  <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
+                <View style={styles.busLeftCol}>
+                  <View style={styles.subShortcutIconBgLocked}>
+                    <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
+                  </View>
+                  <View style={styles.busTextRowSingle}>
+                    <Text style={[styles.subShortcutTextSingle, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                      Deslocação
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.busTextRowSingle}>
-                  <Text style={[styles.subShortcutTextSingle, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                    Deslocação
+                {/* A MEIO: DISPONIBILIDADE DE BILHETES / LUGARES */}
+                <View style={[styles.busAvailabilityBadge, !isDark && styles.busAvailabilityBadgeLight]}>
+                  <View style={styles.busAvailabilityMiniTrack}>
+                    <View style={[styles.busAvailabilityMiniFill, { width: `${deslocacaoTicketsPct}%` }]} />
+                  </View>
+                  <Text style={[styles.busAvailabilityText, !isDark && styles.busAvailabilityTextLight]}>
+                    {deslocacaoTicketsPct}% disp.
                   </Text>
                 </View>
                 <View style={styles.singleRowRight}>
@@ -742,6 +802,22 @@ function HomeScreen({
         }}
       />
 
+      {/* Modal Dedicado de Alertas & Comunicados do Grupo 39 */}
+      <AlertasModal
+        visible={alertasModalVisible}
+        onClose={() => setAlertasModalVisible(false)}
+        onOpenSocio={() => setSocioModalVisible(true)}
+        onOpenDeslocacao={() => {
+          if (canAccessDeslocacao) {
+            setDeslocacaoModalVisible(true);
+          } else {
+            setDeslocacaoNoticeVisible(true);
+          }
+        }}
+        onOpenJogos={() => setJogosModalVisible(true)}
+        isDark={isDark}
+      />
+
     </View>
   );
 }
@@ -775,9 +851,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: 9,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    marginBottom: 12,
+    marginBottom: 8,
     flexShrink: 0,
     ...Platform.select({
       web: {
@@ -786,9 +862,9 @@ const styles = StyleSheet.create({
     }),
   },
   heroCardSmall: {
-    paddingVertical: 7,
+    paddingVertical: 6,
     paddingHorizontal: 10,
-    marginBottom: 9,
+    marginBottom: 6,
   },
   heroTopBar: {
     alignItems: 'center',
@@ -916,6 +992,63 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
+  },
+
+  // Disponibilidade de Bilhetes no Hero Card
+  heroAvailabilityWrapper: {
+    width: '100%',
+    paddingHorizontal: 4,
+    marginTop: 2,
+    marginBottom: 6,
+  },
+  heroAvailabilityRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  heroAvailabilityLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  heroAvailabilityPulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00E676',
+  },
+  heroAvailabilityText: {
+    color: COLORS.textMuted,
+    fontSize: 9.5,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  heroAvailabilityTextLight: {
+    color: '#4B6355',
+  },
+  heroAvailabilityPct: {
+    color: '#00E676',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  heroAvailabilityPctLight: {
+    color: '#00874E',
+  },
+  heroAvailabilityTrack: {
+    width: '100%',
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  heroAvailabilityTrackLight: {
+    backgroundColor: '#E0E8E3',
+  },
+  heroAvailabilityFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: '#00B368',
   },
 
   // Botão Bilhete MB WAY Compacto e Centralizado
@@ -1083,11 +1216,11 @@ const styles = StyleSheet.create({
   // Atalhos Rápidos da Claque
   chantsCenterWrapper: {
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
     flexShrink: 0,
   },
   chantsCenterWrapperSmall: {
-    marginBottom: 10,
+    marginBottom: 6,
   },
   chantsCenteredBtn: {
     width: '100%',
@@ -1183,13 +1316,14 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#162419',
     borderRadius: 13,
     paddingVertical: 9,
     paddingHorizontal: 12,
     borderWidth: 1.5,
     borderColor: '#00B368',
-    gap: 9,
+    gap: 8,
     ...Platform.select({
       web: {
         boxShadow: '0 0 12px rgba(0, 179, 104, 0.35)',
@@ -1200,19 +1334,61 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#131A15',
     borderRadius: 13,
     paddingVertical: 9,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(242, 182, 0, 0.35)',
-    gap: 9,
+    gap: 8,
   },
-  busTextRowSingle: {
-    flex: 1,
+  busLeftCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    flexShrink: 0,
+  },
+  busTextRowSingle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  busAvailabilityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(242, 182, 0, 0.12)',
+    paddingHorizontal: 6.5,
+    paddingVertical: 2.5,
+    borderRadius: 6,
+    borderWidth: 0.8,
+    borderColor: 'rgba(242, 182, 0, 0.3)',
+    flexShrink: 0,
+  },
+  busAvailabilityBadgeLight: {
+    backgroundColor: 'rgba(242, 182, 0, 0.14)',
+    borderColor: 'rgba(180, 130, 0, 0.28)',
+  },
+  busAvailabilityMiniTrack: {
+    width: 20,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    overflow: 'hidden',
+  },
+  busAvailabilityMiniFill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: '#FFD700',
+  },
+  busAvailabilityText: {
+    color: '#FFD700',
+    fontSize: 9.5,
+    fontWeight: '800',
+  },
+  busAvailabilityTextLight: {
+    color: '#8A6200',
   },
   subShortcutTextPulsingSingle: {
     color: '#FFF',
