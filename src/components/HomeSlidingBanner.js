@@ -194,7 +194,7 @@ export default function HomeSlidingBanner({
             { backgroundColor: currentItem.badgeBg },
           ]}
         >
-          <IconComponent size={15} color={currentItem.iconColor} />
+          <IconComponent size={17} color={currentItem.iconColor} />
         </View>
 
         {/* Informação deslizante animada */}
@@ -276,37 +276,41 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#121F17',
-    borderRadius: 13,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
+    backgroundColor: 'rgba(18, 31, 23, 0.85)',
+    borderRadius: 15,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
     borderWidth: 1.2,
     borderColor: 'rgba(0, 179, 104, 0.35)',
-    height: 48,
+    height: 58,
     overflow: 'hidden',
     ...Platform.select({
       web: {
-        boxShadow: '0 3px 12px rgba(0, 0, 0, 0.25)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
         cursor: 'pointer',
       },
     }),
   },
   containerLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D4E6DC',
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
     ...Platform.select({
       web: {
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
       },
     }),
   },
   iconWrapper: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 9,
+    marginRight: 11,
     flexShrink: 0,
   },
   contentCol: {
@@ -317,60 +321,60 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
   },
   badgePill: {
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 4,
+    paddingHorizontal: 6.5,
+    paddingVertical: 2,
+    borderRadius: 5,
     borderWidth: 0.8,
     flexShrink: 0,
   },
   badgeText: {
-    fontSize: 8.5,
+    fontSize: 9,
     fontWeight: '900',
     letterSpacing: 0.3,
   },
   itemTitle: {
     color: '#FFF',
-    fontSize: 11.5,
+    fontSize: 12.5,
     fontWeight: '800',
     flexShrink: 1,
   },
   itemSubtitle: {
     color: COLORS.textMuted,
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontWeight: '500',
-    marginTop: 1.5,
+    marginTop: 2,
   },
   rightActionBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
-    marginLeft: 6,
+    gap: 8,
+    marginLeft: 8,
     flexShrink: 0,
   },
   dotsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3.5,
+    gap: 4,
   },
   dot: {
-    height: 4,
-    borderRadius: 2,
+    height: 4.5,
+    borderRadius: 2.25,
   },
   dotActive: {
-    width: 12,
+    width: 14,
     backgroundColor: COLORS.primaryLight,
   },
   dotInactive: {
-    width: 4,
+    width: 4.5,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   chevronBox: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
