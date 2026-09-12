@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, Image } from 'react-native';
 import { Home, MessageSquare, ShoppingBag, User, Lock } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -51,25 +51,31 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
               <View
                 style={[
                   styles.iconCapsule,
-                  isActive && (isDark ? styles.iconCapsuleActiveDark : styles.iconCapsuleActiveLight),
+                  isActive && styles.iconCapsuleActiveLogo,
                   isItemLocked && (isDark ? styles.iconCapsuleLockedDark : styles.iconCapsuleLockedLight),
                 ]}
               >
-                <IconComponent
-                  size={22}
-                  color={
-                    isItemLocked
-                      ? isDark
-                        ? '#6B7280' // Cor cinzenta evidente no modo escuro
-                        : '#9CA3AF' // Cor cinzenta evidente no modo claro
-                      : isActive
-                      ? COLORS.primaryLight
-                      : isDark
-                      ? 'rgba(255, 255, 255, 0.58)'
-                      : '#5A6E63'
-                  }
-                  strokeWidth={isActive ? 2.4 : 1.9}
-                />
+                {isActive ? (
+                  <Image
+                    source={require('../../assets/logo_39.png')}
+                    style={styles.activeTabLogo}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <IconComponent
+                    size={22}
+                    color={
+                      isItemLocked
+                        ? isDark
+                          ? '#6B7280' // Cor cinzenta evidente no modo escuro
+                          : '#9CA3AF' // Cor cinzenta evidente no modo claro
+                        : isDark
+                        ? 'rgba(255, 255, 255, 0.58)'
+                        : '#5A6E63'
+                    }
+                    strokeWidth={1.9}
+                  />
+                )}
 
                 {(item.badge || isItemLocked) && (
                   <View
@@ -85,11 +91,6 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
                       <Text style={styles.badgeText}>{item.badge}</Text>
                     )}
                   </View>
-                )}
-
-                {/* Apple Micro-indicador Luminoso Ativo */}
-                {isActive && (
-                  <View style={styles.activeDot} />
                 )}
               </View>
             </TouchableOpacity>
@@ -206,6 +207,34 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: {
         boxShadow: '0 2px 8px rgba(0, 135, 78, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+      },
+    }),
+  },
+  iconCapsuleActiveLogo: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      web: {
+        boxShadow: 'none',
+      },
+    }),
+  },
+  activeTabLogo: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    ...Platform.select({
+      web: {
+        filter: 'drop-shadow(0 2px 8px rgba(0, 179, 104, 0.45))',
+        transition: 'transform 0.2s ease',
+      },
+      default: {
+        shadowColor: COLORS.primaryLight,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.45,
+        shadowRadius: 6,
       },
     }),
   },

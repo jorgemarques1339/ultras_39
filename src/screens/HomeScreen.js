@@ -218,6 +218,16 @@ function HomeScreen({
         },
       ]}
     >
+      {/* LOGÓTIPO DE FUNDO DA CLAQUE (GRUPO 39) */}
+      <View style={styles.backgroundContainer} pointerEvents="none">
+        <Image
+          source={require('../../assets/logo_39.png')}
+          style={[styles.backgroundImage, !isDark && styles.backgroundImageLight]}
+          resizeMode="contain"
+        />
+        <View style={[styles.backgroundOverlay, !isDark && styles.backgroundOverlayLight]} />
+      </View>
+
       {/* BOTÃO DESLIZANTE INFORMATIVO: BOAS-VINDAS A SÓCIOS, PRÓXIMA DESLOCAÇÃO E ALERTAS */}
       <HomeSlidingBanner
         onOpenSocio={() => setSocioModalVisible(true)}
@@ -826,6 +836,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0D1310',
+    position: 'relative',
     overflow: 'hidden',
     paddingHorizontal: 14,
     paddingTop: 8,
@@ -844,20 +855,50 @@ const styles = StyleSheet.create({
   containerLight: {
     backgroundColor: '#F5F8F6',
   },
+  backgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  backgroundImage: {
+    width: '92%',
+    maxWidth: 440,
+    aspectRatio: 1,
+    opacity: 0.18,
+  },
+  backgroundImageLight: {
+    opacity: 0.13,
+  },
+  backgroundOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+  },
+  backgroundOverlayLight: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+  },
 
   // Hero Match Card
   heroCard: {
-    backgroundColor: '#14201A',
+    backgroundColor: 'rgba(20, 32, 26, 0.78)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(0, 179, 104, 0.28)',
     paddingVertical: 8,
     paddingHorizontal: 12,
     marginBottom: 8,
     flexShrink: 0,
     ...Platform.select({
       web: {
-        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.35), 0 0 14px rgba(0, 135, 78, 0.1)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.35), 0 0 14px rgba(0, 135, 78, 0.15)',
       },
     }),
   },
@@ -1317,7 +1358,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#162419',
+    backgroundColor: 'rgba(22, 36, 25, 0.82)',
     borderRadius: 13,
     paddingVertical: 9,
     paddingHorizontal: 12,
@@ -1326,6 +1367,8 @@ const styles = StyleSheet.create({
     gap: 8,
     ...Platform.select({
       web: {
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         boxShadow: '0 0 12px rgba(0, 179, 104, 0.35)',
       },
     }),
@@ -1335,13 +1378,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#131A15',
+    backgroundColor: 'rgba(19, 26, 21, 0.82)',
     borderRadius: 13,
     paddingVertical: 9,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(242, 182, 0, 0.35)',
     gap: 8,
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      },
+    }),
   },
   busLeftCol: {
     flexDirection: 'row',
@@ -1527,13 +1576,19 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111A14',
+    backgroundColor: 'rgba(17, 26, 20, 0.80)',
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 11,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 8,
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      },
+    }),
   },
   subShortcutCardLight: {
     backgroundColor: '#FFFFFF',
@@ -1906,10 +1961,12 @@ const styles = StyleSheet.create({
     color: '#14201A',
   },
   subShortcutCardLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(0, 135, 78, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    borderColor: 'rgba(0, 135, 78, 0.16)',
     ...Platform.select({
       web: {
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
       },
     }),
@@ -1918,10 +1975,12 @@ const styles = StyleSheet.create({
     color: '#14201A',
   },
   heroCardLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(0, 135, 78, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.80)',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
     ...Platform.select({
       web: {
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
       },
     }),
