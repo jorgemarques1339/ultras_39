@@ -256,6 +256,7 @@ function MainApp() {
               isLoggedIn={isLoggedIn}
               onOpenAuth={openAuthModal}
               onLogout={handleLogout}
+              onUpdateUser={updateUser}
             />
           </View>
         </View>
