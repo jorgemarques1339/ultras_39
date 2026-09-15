@@ -13,47 +13,35 @@ export const INITIAL_USER = {
 };
 
 export const NEXT_MATCH = {
-  id: 'match-real-j06',
+  id: 'match-real-j07',
   competition: 'Liga Portugal Betclic',
-  round: '6.ª Jornada',
-  dateFormatted: '14 Setembro · 18:45',
-  stadium: 'Estádio dos Arcos',
-  city: 'Vila do Conde',
-  weather: '19°C · Brisa Marítima 12km/h',
+  round: '7.ª Jornada',
+  dateFormatted: '19 Setembro · 18:00',
+  stadium: 'Complexo Desportivo FC Alverca',
+  city: 'Alverca do Ribatejo',
+  isHome: false,
+  weather: '22°C · Céu Limpo',
   homeTeam: {
+    name: 'FC Alverca',
+    short: 'ALV',
+    city: 'Alverca',
+    crest: '🔵🔴',
+    color: '#154360',
+  },
+  awayTeam: {
     name: 'Rio Ave FC',
     short: 'RAFC',
     city: 'Vila do Conde',
     crest: '🟢⚪',
     color: '#00874E',
   },
-  awayTeam: {
-    name: 'Estrela da Amadora',
-    short: 'CFEA',
-    city: 'Amadora',
-    crest: '🔴⚪🟢',
-    color: '#D32F2F',
-  },
-  sector: 'Bancada Poente Coberta (Setor Grupo 39)',
+  sector: 'Setor Visitante (Grupo 39)',
   ticketPriceMember: 7.50,
   ticketPricePublic: 10.00,
-  totalAvailableTickets: 120,
+  totalAvailableTickets: 80,
 };
 
 export const CALENDAR_MATCHES = [
-  {
-    id: 'cal-j06',
-    competition: 'Liga Portugal Betclic',
-    round: '6.ª Jornada',
-    date: '14 Set 2026 · 18:45',
-    home: 'Rio Ave FC',
-    away: 'Estrela da Amadora',
-    stadium: 'Estádio dos Arcos, Vila do Conde',
-    isHome: true,
-    status: 'upcoming',
-    ticketAvailable: true,
-    priceMember: 7.50,
-  },
   {
     id: 'cal-j07',
     competition: 'Liga Portugal Betclic',
@@ -98,6 +86,18 @@ export const CALENDAR_MATCHES = [
 ];
 
 export const PAST_RESULTS = [
+  {
+    id: 'res-j06',
+    competition: 'Liga Portugal Betclic · 6.ª Jornada',
+    date: '14 Set 2026',
+    home: 'Rio Ave FC',
+    away: 'Estrela da Amadora',
+    scoreHome: 3,
+    scoreAway: 3,
+    scorers: '⚽ Kiko Bondoso 14\', ⚽ Clayton 43\', ⚽ Martim Neto 79\'',
+    stadium: 'Estádio dos Arcos, Vila do Conde',
+    highlights: 'Jogo eletrizante com 6 golos nos Arcos! A claque esteve incansável até ao último segundo.',
+  },
   {
     id: 'res-j05',
     competition: 'Liga Portugal Betclic · 5.ª Jornada',

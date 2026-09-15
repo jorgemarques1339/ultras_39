@@ -31,6 +31,7 @@ import { FAN_ACHIEVEMENTS } from '../data/mockData';
 import NfcCheckInModal from '../components/NfcCheckInModal';
 import EditProfileModal from '../components/EditProfileModal';
 import AppSettingsModal from '../components/AppSettingsModal';
+import FidelidadeModal from '../components/FidelidadeModal';
 import { useAuth } from '../context/AuthContext';
 
 // Componente isolado para o Cartão Holográfico Compacto de Sócio
@@ -39,6 +40,7 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
   isQuotaPending,
   onPayQuota,
   onEditProfile,
+  onOpenWalletPass,
   isDark = true,
 }) {
   const [tiltAngle, setTiltAngle] = useState({ x: 0, y: 0 });
@@ -179,6 +181,46 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
           )}
         </View>
       </View>
+
+      {/* Botão Compacto: Guardar na Carteira Digital (Apple & Google Wallet) */}
+      {onOpenWalletPass && (
+        <TouchableOpacity
+          style={[
+            styles.cardWalletBtn,
+            !isDark && styles.cardWalletBtnLight,
+          ]}
+          onPress={onOpenWalletPass}
+          activeOpacity={0.82}
+        >
+          <View style={styles.cardWalletLeft}>
+            <View style={styles.cardWalletIconBlack}>
+              <Text style={styles.cardAppleGlyph}></Text>
+            </View>
+            <Text
+              style={[styles.cardWalletText, !isDark && styles.cardWalletTextLight]}
+              numberOfLines={1}
+            >
+              Guardar na Carteira Digital
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.cardWalletBadge,
+              !isDark && styles.cardWalletBadgeLight,
+            ]}
+          >
+            <Download size={11} color={isDark ? '#00E676' : '#00874E'} />
+            <Text
+              style={[
+                styles.cardWalletBadgeText,
+                !isDark && styles.cardWalletBadgeTextLight,
+              ]}
+            >
+              Pass
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 });
@@ -200,7 +242,7 @@ function ProfileScreen({
   const { updateUser: authUpdateUser } = useAuth();
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
-  const [showAllAchievements, setShowAllAchievements] = useState(false);
+  const [fidelidadeModalVisible, setFidelidadeModalVisible] = useState(false);
   const [nfcModalVisible, setNfcModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
@@ -267,7 +309,76 @@ function ProfileScreen({
         </View>
       ) : (
         <>
-          {/* 1. DEFINIÇÕES DA APP (NA PARTE SUPERIOR) */}
+          {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (COMPACTO COM EDIÇÃO DE NOME & AVATAR) */}
+          <View style={styles.cardSection}>
+            <View style={styles.sectionTitleHeaderRow}>
+              <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
+                Cartão Digital
+              </Text>
+            </View>
+
+            <HolographicMemberCard
+              user={user}
+              isQuotaPending={isQuotaPending}
+              onPayQuota={onPayQuota}
+              onEditProfile={() => setEditProfileModalVisible(true)}
+              onOpenWalletPass={onOpenWalletPass}
+              isDark={isDark}
+            />
+          </View>
+
+          {/* 2. FIDELIDADE DE BANCADA & GAMIFICAÇÃO */}
+          <View style={styles.loyaltySection}>
+            <View style={styles.loyaltyHeaderRow}>
+              <View style={styles.loyaltyTitleGroup}>
+                <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
+                <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
+                  Fidelidade de Bancada
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.loyaltyHeaderBtn,
+                  !isDark && styles.loyaltyHeaderBtnLight,
+                ]}
+                onPress={() => setFidelidadeModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.loyaltyHeaderBtnText,
+                    !isDark && styles.loyaltyHeaderBtnTextLight,
+                  ]}
+                >
+                  Ver Mais
+                </Text>
+                <ChevronRight size={13} color={isDark ? '#00E676' : '#00874E'} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Botão de Check-in NFC no Estádio */}
+            <TouchableOpacity
+              style={[styles.checkInBtn, hasCheckedIn && styles.checkInBtnActive]}
+              onPress={handleOpenNfcCheckIn}
+              activeOpacity={0.85}
+            >
+              {hasCheckedIn ? (
+                <>
+                  <CheckCircle2 size={16} color="#FFF" />
+                  <Text style={styles.checkInBtnText}>
+                    Presença Validada via NFC nos Arcos!
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Nfc size={16} color="#FFF" />
+                  <Text style={styles.checkInBtnText}>Faça Check-In via NFC</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* 3. DEFINIÇÕES DA APP (POR BAIXO DA FIDELIDADE DE BANCADA) */}
           <View style={styles.settingsSection}>
             <TouchableOpacity
               style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
@@ -314,240 +425,7 @@ function ProfileScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 2. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (COMPACTO COM EDIÇÃO DE NOME & AVATAR) */}
-          <View style={styles.cardSection}>
-            <View style={styles.sectionTitleHeaderRow}>
-              <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-                Cartão Digital
-              </Text>
-              <TouchableOpacity
-                style={styles.headerEditBtn}
-                onPress={() => setEditProfileModalVisible(true)}
-                activeOpacity={0.7}
-              >
-                <Edit3 size={12} color={isDark ? '#00E676' : '#00874E'} />
-                <Text
-                  style={[
-                    styles.headerEditBtnText,
-                    !isDark && styles.headerEditBtnTextLight,
-                  ]}
-                >
-                  Editar Perfil
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <HolographicMemberCard
-              user={user}
-              isQuotaPending={isQuotaPending}
-              onPayQuota={onPayQuota}
-              onEditProfile={() => setEditProfileModalVisible(true)}
-              isDark={isDark}
-            />
-
-            {/* BOTÃO COMPACTO GUARDAR NA CARTEIRA DIGITAL */}
-            <View style={styles.walletBtnContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.walletCompactBtn,
-                  !isDark && styles.walletCompactBtnLight,
-                ]}
-                onPress={onOpenWalletPass}
-                activeOpacity={0.85}
-              >
-                <View style={styles.walletCompactLeft}>
-                  <View style={styles.walletIconBlack}>
-                    <Text style={styles.appleLogoGlyph}></Text>
-                  </View>
-                  <View>
-                    <Text
-                      style={[styles.walletCompactTitle, !isDark && styles.textDark]}
-                    >
-                      Guardar na Carteira Digital
-                    </Text>
-                    <Text
-                      style={[
-                        styles.walletCompactSub,
-                        !isDark && styles.textMutedDark,
-                      ]}
-                    >
-                      Apple & Google Wallet (Offline)
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={[
-                    styles.walletDownloadBadge,
-                    !isDark && styles.walletDownloadBadgeLight,
-                  ]}
-                >
-                  <Download size={13} color={isDark ? '#00E676' : '#00874E'} />
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* 2. FIDELIDADE DE BANCADA & GAMIFICAÇÃO (MANTIDA SEM ALTERAÇÕES) */}
-          <View style={styles.loyaltySection}>
-            <View style={styles.loyaltyHeaderRow}>
-              <View style={styles.loyaltyTitleGroup}>
-                <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
-                <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-                  Fidelidade de Bancada
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.loyaltyPointsBadge,
-                  !isDark && styles.loyaltyPointsBadgeLight,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.loyaltyPointsText,
-                    !isDark && styles.loyaltyPointsTextLight,
-                  ]}
-                >
-                  {hasCheckedIn ? '15 Presenças' : '14 Presenças'}
-                </Text>
-              </View>
-            </View>
-
-            {/* Botão de Check-in NFC no Estádio */}
-            <TouchableOpacity
-              style={[styles.checkInBtn, hasCheckedIn && styles.checkInBtnActive]}
-              onPress={handleOpenNfcCheckIn}
-              activeOpacity={0.85}
-            >
-              {hasCheckedIn ? (
-                <>
-                  <CheckCircle2 size={16} color="#FFF" />
-                  <Text style={styles.checkInBtnText}>
-                    Presença Validada via NFC nos Arcos!
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Nfc size={16} color="#FFF" />
-                  <Text style={styles.checkInBtnText}>Faça Check-In via NFC</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            {/* Vitrine de Crachás de Sócio (Oculta por defeito para manter o perfil limpo) */}
-            {showAllAchievements && (
-              <View style={styles.achievementsGrid}>
-                {achievements.slice(0, 4).map((ach) => (
-                  <View
-                    key={ach.id}
-                    style={[
-                      styles.achievementCard,
-                      !isDark && styles.achievementCardLight,
-                      ach.unlocked && styles.achievementCardUnlocked,
-                      !isDark && ach.unlocked && styles.achievementCardUnlockedLight,
-                    ]}
-                  >
-                    <View style={styles.achievementTop}>
-                      <View
-                        style={[
-                          styles.achievementIconBox,
-                          !isDark && styles.achievementIconBoxLight,
-                          ach.unlocked && styles.achievementIconBoxUnlocked,
-                          !isDark &&
-                            ach.unlocked &&
-                            styles.achievementIconBoxUnlockedLight,
-                        ]}
-                      >
-                        {ach.unlocked ? (
-                          <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
-                        ) : (
-                          <ShieldCheck
-                            size={16}
-                            color={isDark ? COLORS.textMuted : '#8FA89B'}
-                          />
-                        )}
-                      </View>
-                      <View
-                        style={[
-                          styles.achBadgePill,
-                          ach.unlocked
-                            ? isDark
-                              ? styles.achBadgePillUnlocked
-                              : styles.achBadgePillUnlockedLight
-                            : isDark
-                            ? styles.achBadgePillLocked
-                            : styles.achBadgePillLockedLight,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.achBadgeText,
-                            ach.unlocked
-                              ? isDark
-                                ? styles.achBadgeTextUnlocked
-                                : styles.achBadgeTextUnlockedLight
-                              : isDark
-                              ? styles.achBadgeTextLocked
-                              : styles.achBadgeTextLockedLight,
-                        ]}
-                      >
-                        {ach.unlocked ? 'DESBLOQUEADO' : 'EM CURSO'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Text style={[styles.achTitle, !isDark && styles.textDark]}>
-                    {ach.title}
-                  </Text>
-                  <Text style={[styles.achDesc, !isDark && styles.textMutedDark]}>
-                    {ach.description}
-                  </Text>
-
-                  <View style={styles.achFooter}>
-                    <Text
-                      style={[
-                        styles.achProgress,
-                        !isDark && styles.achProgressLight,
-                      ]}
-                    >
-                      {ach.progress}
-                    </Text>
-                    <Text style={styles.achReward}>🎁 {ach.reward}</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-            )}
-
-            {/* Botão Ver Mais / Ver Menos para Fidelidade */}
-            <TouchableOpacity
-              style={[styles.viewMoreBtn, !isDark && styles.viewMoreBtnLight]}
-              onPress={() => setShowAllAchievements((prev) => !prev)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.viewMoreBtnText,
-                  !isDark && styles.viewMoreBtnTextLight,
-                ]}
-              >
-                {showAllAchievements ? 'Ver Menos' : 'Ver Mais'}
-              </Text>
-              {showAllAchievements ? (
-                <ChevronUp
-                  size={15}
-                  color={isDark ? COLORS.primaryLight : '#00874E'}
-                />
-              ) : (
-                <ChevronDown
-                  size={15}
-                  color={isDark ? COLORS.primaryLight : '#00874E'}
-                />
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* 3. DADOS DO PERFIL & APOIO AO SÓCIO */}
+          {/* 4. DADOS DO PERFIL & APOIO AO SÓCIO */}
           <View style={styles.supportSection}>
             <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
               Apoio ao Sócio do Grupo 39
@@ -576,45 +454,6 @@ function ProfileScreen({
               </View>
             </View>
           </View>
-
-          {/* 5. INSTALAR APP NO SMARTPHONE (PWA) */}
-          {onOpenPwaInstall && (
-            <TouchableOpacity
-              style={[styles.pwaProfileBtn, !isDark && styles.pwaProfileBtnLight]}
-              onPress={onOpenPwaInstall}
-              activeOpacity={0.8}
-            >
-              <View style={styles.pwaProfileLeft}>
-                <View
-                  style={[
-                    styles.pwaProfileIconBox,
-                    !isDark && styles.pwaProfileIconBoxLight,
-                  ]}
-                >
-                  <Smartphone size={16} color={isDark ? '#00B368' : '#00874E'} />
-                </View>
-                <View>
-                  <Text
-                    style={[styles.pwaProfileTitle, !isDark && styles.textDark]}
-                  >
-                    Instalar Aplicação no Ecrã Principal
-                  </Text>
-                  <Text
-                    style={[
-                      styles.pwaProfileSubtitle,
-                      !isDark && styles.textMutedDark,
-                    ]}
-                  >
-                    PWA para iPhone (Safari) e Android (Chrome)
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight
-                size={16}
-                color={isDark ? COLORS.textMuted : '#7E9187'}
-              />
-            </TouchableOpacity>
-          )}
 
           {/* Botão de Terminar Sessão (Logout) */}
           {onLogout && (
@@ -653,6 +492,16 @@ function ProfileScreen({
         visible={settingsModalVisible}
         onClose={() => setSettingsModalVisible(false)}
         isDark={isDark}
+      />
+
+      {/* Modal de Fidelidade de Bancada Descriminada */}
+      <FidelidadeModal
+        visible={fidelidadeModalVisible}
+        onClose={() => setFidelidadeModalVisible(false)}
+        hasCheckedIn={hasCheckedIn}
+        achievements={achievements}
+        isDark={isDark}
+        onOpenNfcCheckIn={handleOpenNfcCheckIn}
       />
 
       <View style={{ height: 140 }} />
@@ -909,71 +758,75 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Botão Compacto Carteira Digital
-  walletBtnContainer: {
-    marginTop: 8,
-  },
-  walletCompactBtn: {
+  // Botão Compacto Carteira Digital Integrado no Cartão
+  cardWalletBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#070D09',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    borderRadius: 7,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.3)',
-      },
-    }),
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    marginTop: 6,
   },
-  walletCompactBtnLight: {
-    backgroundColor: '#F2F6F4',
-    borderColor: 'rgba(0, 135, 78, 0.2)',
+  cardWalletBtnLight: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
   },
-  walletCompactLeft: {
+  cardWalletLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
+    gap: 6,
     flex: 1,
   },
-  walletIconBlack: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
+  cardWalletIconBlack: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
     backgroundColor: '#000000',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
-  appleLogoGlyph: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
+  cardAppleGlyph: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+    lineHeight: 12,
   },
-  walletCompactTitle: {
-    color: '#FFF',
-    fontSize: 11.5,
-    fontWeight: '800',
+  cardWalletText: {
+    color: '#FFFFFF',
+    fontSize: 10.5,
+    fontWeight: '700',
   },
-  walletCompactSub: {
-    color: COLORS.textMuted,
-    fontSize: 9,
-    marginTop: 0.5,
+  cardWalletTextLight: {
+    color: '#0E1712',
   },
-  walletDownloadBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  cardWalletBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
     backgroundColor: 'rgba(0, 230, 118, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 5,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
   },
-  walletDownloadBadgeLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  cardWalletBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  cardWalletBadgeText: {
+    color: '#00E676',
+    fontSize: 8.5,
+    fontWeight: '800',
+  },
+  cardWalletBadgeTextLight: {
+    color: '#00874E',
   },
 
   // 2. Fidelidade de Bancada & Gamificação (Intacta)
@@ -991,24 +844,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  loyaltyPointsBadge: {
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(242, 182, 0, 0.35)',
+  loyaltyHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(0, 230, 118, 0.12)',
+    paddingVertical: 3,
     paddingHorizontal: 8,
-    paddingVertical: 2.5,
-    borderRadius: 8,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
   },
-  loyaltyPointsBadgeLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  loyaltyHeaderBtnLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
     borderColor: 'rgba(0, 135, 78, 0.25)',
   },
-  loyaltyPointsText: {
-    color: COLORS.gold,
-    fontSize: 10.5,
+  loyaltyHeaderBtnText: {
+    color: '#00E676',
+    fontSize: 11,
     fontWeight: '800',
   },
-  loyaltyPointsTextLight: {
+  loyaltyHeaderBtnTextLight: {
     color: '#00874E',
   },
   checkInBtn: {
@@ -1021,7 +877,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#00B368',
-    marginBottom: 12,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 135, 78, 0.3)',
@@ -1037,146 +892,6 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '800',
     letterSpacing: 0.2,
-  },
-  achievementsGrid: {
-    gap: 10,
-  },
-  achievementCard: {
-    backgroundColor: '#111A15',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-  },
-  achievementCardLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: 'rgba(0, 135, 78, 0.12)',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
-      },
-    }),
-  },
-  achievementCardUnlocked: {
-    borderColor: 'rgba(242, 182, 0, 0.25)',
-    backgroundColor: '#131E18',
-  },
-  achievementCardUnlockedLight: {
-    borderColor: 'rgba(0, 135, 78, 0.3)',
-    backgroundColor: '#F8FAF9',
-  },
-  achievementTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  achievementIconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  achievementIconBoxLight: {
-    backgroundColor: '#F0F4F2',
-  },
-  achievementIconBoxUnlocked: {
-    backgroundColor: 'rgba(242, 182, 0, 0.15)',
-  },
-  achievementIconBoxUnlockedLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
-  },
-  achBadgePill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  achBadgePillUnlocked: {
-    backgroundColor: 'rgba(0, 179, 104, 0.15)',
-  },
-  achBadgePillUnlockedLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
-  },
-  achBadgePillLocked: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  achBadgePillLockedLight: {
-    backgroundColor: '#EAEFEA',
-  },
-  achBadgeText: {
-    fontSize: 8.5,
-    fontWeight: '800',
-  },
-  achBadgeTextUnlocked: {
-    color: COLORS.primaryLight,
-  },
-  achBadgeTextUnlockedLight: {
-    color: '#00874E',
-  },
-  achBadgeTextLocked: {
-    color: COLORS.textMuted,
-  },
-  achBadgeTextLockedLight: {
-    color: '#7A9184',
-  },
-  achTitle: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  achDesc: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    lineHeight: 15,
-    marginBottom: 8,
-  },
-  achFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  achProgress: {
-    color: COLORS.primaryLight,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  achProgressLight: {
-    color: '#00874E',
-  },
-  achReward: {
-    color: COLORS.gold,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  viewMoreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    marginTop: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.25)',
-  },
-  viewMoreBtnLight: {
-    backgroundColor: '#F2F6F4',
-    borderColor: 'rgba(0, 135, 78, 0.2)',
-  },
-  viewMoreBtnText: {
-    color: COLORS.primaryLight,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  viewMoreBtnTextLight: {
-    color: '#00874E',
   },
 
   // 3. NOVO: Definições da App
@@ -1284,50 +999,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // 5. PWA & Logout
-  pwaProfileBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#121C16',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.3)',
-    borderRadius: 14,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
-    marginBottom: 12,
-  },
-  pwaProfileBtnLight: {
-    backgroundColor: '#F3F9F5',
-    borderColor: 'rgba(0, 135, 78, 0.22)',
-  },
-  pwaProfileLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  pwaProfileIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    backgroundColor: 'rgba(0, 179, 104, 0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pwaProfileIconBoxLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.12)',
-  },
-  pwaProfileTitle: {
-    color: '#FFF',
-    fontSize: 12.5,
-    fontWeight: '800',
-  },
-  pwaProfileSubtitle: {
-    color: COLORS.textMuted,
-    fontSize: 10.5,
-    marginTop: 1,
-  },
+  // 5. Logout
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',

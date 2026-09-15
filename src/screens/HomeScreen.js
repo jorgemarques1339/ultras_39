@@ -122,7 +122,7 @@ function HomeScreen({
   // Carregar dados oficiais do próximo jogo em tempo real (mesma API dos Jogos)
   useEffect(() => {
     let isMounted = true;
-    getNextMatchData()
+    getNextMatchData(true)
       .then((liveMatch) => {
         if (isMounted && liveMatch) {
           setNextMatch(liveMatch);
@@ -131,7 +131,7 @@ function HomeScreen({
       .catch((err) => console.warn('Erro ao atualizar próximo jogo:', err));
 
     const interval = setInterval(() => {
-      getNextMatchData()
+      getNextMatchData(true)
         .then((liveMatch) => {
           if (isMounted && liveMatch) {
             setNextMatch(liveMatch);
@@ -248,13 +248,13 @@ function HomeScreen({
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
             <Text style={[styles.compName, !isDark && styles.compNameLight]}>{nextMatch.competition || 'LIGA PORTUGAL BETCLIC'}</Text>
-            <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>{nextMatch.round || '6.ª Jornada'}</Text>
+            <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>{nextMatch.round || '7.ª Jornada'}</Text>
           </View>
         </View>
 
         {/* Equipas & Emblemas Reais */}
         <View style={styles.matchTeamsRow}>
-          {/* Rio Ave FC */}
+          {/* Equipa Visitada / Casa */}
           <View style={styles.teamColumn}>
             <ClubBadge
               name={nextMatch.homeTeam.name}
@@ -279,7 +279,7 @@ function HomeScreen({
             <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>{nextMatch.dateFormatted}</Text>
           </View>
 
-          {/* Adversário Real */}
+          {/* Equipa Visitante / Fora */}
           <View style={styles.teamColumn}>
             <ClubBadge
               name={nextMatch.awayTeam.name}
@@ -295,29 +295,36 @@ function HomeScreen({
           </View>
         </View>
 
-        {/* CTA BILHÉTICA INTEGRADO: COMPRA RÁPIDA MB WAY */}
-        {/* DISPONIBILIDADE DE BILHETES DO PRÓXIMO JOGO */}
+        {/* DISPONIBILIDADE DE BILHETES OU DESLOCAÇÃO DO PRÓXIMO JOGO */}
         <View style={styles.heroAvailabilityWrapper}>
           <View style={styles.heroAvailabilityRow}>
             <View style={styles.heroAvailabilityLeft}>
               <View style={styles.heroAvailabilityPulseDot} />
               <Text style={[styles.heroAvailabilityText, !isDark && styles.heroAvailabilityTextLight]}>
-                Bilhetes Disponíveis
+                {nextMatch.isHome ? 'Bilhetes Disponíveis' : 'Lugares na Caravana G39'}
               </Text>
             </View>
             <Text style={[styles.heroAvailabilityPct, !isDark && styles.heroAvailabilityPctLight]}>
-              {matchTicketsPct}%
+              {nextMatch.isHome ? matchTicketsPct : deslocacaoTicketsPct}%
             </Text>
           </View>
           <View style={[styles.heroAvailabilityTrack, !isDark && styles.heroAvailabilityTrackLight]}>
-            <View style={[styles.heroAvailabilityFill, { width: `${matchTicketsPct}%` }]} />
+            <View style={[styles.heroAvailabilityFill, { width: `${nextMatch.isHome ? matchTicketsPct : deslocacaoTicketsPct}%` }]} />
           </View>
         </View>
 
-        {/* CTA BILHÉTICA INTEGRADO: COMPRA RÁPIDA MB WAY */}
+        {/* CTA BILHÉTICA / DESLOCAÇÃO INTEGRADO */}
         <TouchableOpacity
           style={styles.heroBuyBtn}
           onPress={() => {
+            if (!nextMatch.isHome) {
+              if (canAccessDeslocacao) {
+                setDeslocacaoModalVisible(true);
+              } else {
+                setDeslocacaoNoticeVisible(true);
+              }
+              return;
+            }
             const memberPrice = 7.50;
             const nonMemberPrice = 10.00;
             const finalPrice = isLoggedIn ? memberPrice : nonMemberPrice;
@@ -335,10 +342,10 @@ function HomeScreen({
           <View style={styles.heroBuyContent}>
             <View style={styles.heroBuyLeft}>
               <View style={styles.ticketIconBox}>
-                <Ticket size={13} color="#FFF" />
+                {nextMatch.isHome ? <Ticket size={13} color="#FFF" /> : <Bus size={13} color="#FFF" />}
               </View>
               <Text style={styles.heroBuyTitle}>
-                Comprar Bilhete
+                {nextMatch.isHome ? 'Comprar Bilhete' : 'Garantir Deslocação (Autocarro + Bilhete)'}
               </Text>
             </View>
             <ChevronRight size={14} color="#FFF" />

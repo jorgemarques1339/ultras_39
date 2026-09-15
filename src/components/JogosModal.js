@@ -27,30 +27,17 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import ClubBadge from './ClubBadge';
+import { normalizeTeamName } from '../services/matchesService';
 
 // Fallback inicial com jogos reais da época 2026/2027
 const FALLBACK_UPCOMING = [
   {
-    id: 'fix-1',
-    date: '2026-09-14T17:45:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: 'Jornada 6',
-    homeTeam: 'Rio Ave FC',
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    awayTeam: 'Estrela da Amadora',
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3824.png',
-    isHome: true,
-    venue: 'Estádio do Rio Ave FC (Arcos)',
-    city: 'Vila do Conde',
-    ticketPrice: '8,00 €',
-  },
-  {
     id: 'fix-2',
     date: '2026-09-19T17:00:00Z',
     competition: 'Liga Portugal Betclic',
-    round: 'Jornada 7',
+    round: '7.ª Jornada',
     homeTeam: 'FC Alverca',
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3829.png',
+    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/21613.png',
     awayTeam: 'Rio Ave FC',
     awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
     isHome: false,
@@ -104,10 +91,24 @@ const FALLBACK_UPCOMING = [
 
 const FALLBACK_RESULTS = [
   {
+    id: 'res-0',
+    date: '2026-09-14T17:45:00Z',
+    competition: 'Liga Portugal Betclic',
+    round: '6.ª Jornada',
+    homeTeam: 'Rio Ave FC',
+    homeScore: 3,
+    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
+    awayTeam: 'Estrela da Amadora',
+    awayScore: 3,
+    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3824.png',
+    outcome: 'draw',
+    venue: 'Estádio do Rio Ave FC (Arcos)',
+  },
+  {
     id: 'res-1',
     date: '2026-09-06T14:30:00Z',
     competition: 'Liga Portugal Betclic',
-    round: 'Jornada 5',
+    round: '5.ª Jornada',
     homeTeam: 'Santa Clara',
     homeScore: 4,
     homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4260.png',
@@ -269,51 +270,20 @@ function JogosModal({
         fetch(RESULTS_API, { headers: { Accept: 'application/json' } }),
       ]);
 
-      if (fixturesRes.ok) {
-        const fixturesData = await fixturesRes.json();
-        const rawEvents = fixturesData.events || [];
-
-        if (rawEvents.length > 0) {
-          const parsedFixtures = rawEvents.map((e, index) => {
-            const comp = e.competitions?.[0];
-            const home = comp?.competitors?.find((c) => c.homeAway === 'home');
-            const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-            const homeName = home?.team?.displayName || home?.team?.name || 'Clube';
-            const awayName = away?.team?.displayName || away?.team?.name || 'Clube';
-            const isHome = homeName.toLowerCase().includes('rio ave');
-
-            return {
-              id: e.id || `fix-${index}`,
-              date: e.date,
-              competition: e.league?.name || 'Liga Portugal Betclic',
-              round: `Jornada ${index + 6}`,
-              homeTeam: homeName,
-              homeLogo: home?.team?.logos?.[0]?.href || null,
-              awayTeam: awayName,
-              awayLogo: away?.team?.logos?.[0]?.href || null,
-              isHome,
-              venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
-              city: comp?.venue?.address?.city || (isHome ? 'Vila do Conde' : 'Portugal'),
-              ticketPrice: isHome ? '8,00 €' : null,
-              busAvailable: !isHome,
-            };
-          });
-
-          setUpcomingMatches(parsedFixtures);
-        }
-      }
-
+      let completedCount = 6;
       if (resultsRes.ok) {
         const resultsData = await resultsRes.json();
         const rawResults = resultsData.events || [];
-
         if (rawResults.length > 0) {
+          completedCount = rawResults.length;
           const parsedResults = rawResults.map((e, index) => {
             const comp = e.competitions?.[0];
             const home = comp?.competitors?.find((c) => c.homeAway === 'home');
             const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-            const homeName = home?.team?.displayName || home?.team?.name || 'Clube';
-            const awayName = away?.team?.displayName || away?.team?.name || 'Clube';
+            const rawHomeName = home?.team?.displayName || home?.team?.name || 'Clube';
+            const rawAwayName = away?.team?.displayName || away?.team?.name || 'Clube';
+            const homeName = normalizeTeamName(rawHomeName);
+            const awayName = normalizeTeamName(rawAwayName);
             const homeScore = parseInt(home?.score?.displayValue ?? '0', 10);
             const awayScore = parseInt(away?.score?.displayValue ?? '0', 10);
             const isHome = homeName.toLowerCase().includes('rio ave');
@@ -330,8 +300,8 @@ function JogosModal({
             return {
               id: e.id || `res-${index}`,
               date: e.date,
-              competition: e.league?.name || 'Liga Portugal Betclic',
-              round: `Jornada ${5 - index}`,
+              competition: 'Liga Portugal Betclic',
+              round: `${completedCount - index}.ª Jornada`,
               homeTeam: homeName,
               homeScore,
               homeLogo: home?.team?.logos?.[0]?.href || null,
@@ -344,6 +314,42 @@ function JogosModal({
           });
 
           setPastResults(parsedResults);
+        }
+      }
+
+      if (fixturesRes.ok) {
+        const fixturesData = await fixturesRes.json();
+        const rawEvents = fixturesData.events || [];
+
+        if (rawEvents.length > 0) {
+          const parsedFixtures = rawEvents.map((e, index) => {
+            const comp = e.competitions?.[0];
+            const home = comp?.competitors?.find((c) => c.homeAway === 'home');
+            const away = comp?.competitors?.find((c) => c.homeAway === 'away');
+            const rawHomeName = home?.team?.displayName || home?.team?.name || 'Clube';
+            const rawAwayName = away?.team?.displayName || away?.team?.name || 'Clube';
+            const homeName = normalizeTeamName(rawHomeName);
+            const awayName = normalizeTeamName(rawAwayName);
+            const isHome = homeName.toLowerCase().includes('rio ave');
+
+            return {
+              id: e.id || `fix-${index}`,
+              date: e.date,
+              competition: 'Liga Portugal Betclic',
+              round: `${completedCount + 1 + index}.ª Jornada`,
+              homeTeam: homeName,
+              homeLogo: home?.team?.logos?.[0]?.href || null,
+              awayTeam: awayName,
+              awayLogo: away?.team?.logos?.[0]?.href || null,
+              isHome,
+              venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
+              city: comp?.venue?.address?.city || (isHome ? 'Vila do Conde' : 'Portugal'),
+              ticketPrice: isHome ? '8,00 €' : null,
+              busAvailable: !isHome,
+            };
+          });
+
+          setUpcomingMatches(parsedFixtures);
         }
       }
 
