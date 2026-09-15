@@ -70,6 +70,35 @@
         touch-action: manipulation;
         -webkit-user-select: none;
         user-select: none;
+      /* Animação inicial de abertura com logótipo da claque */
+      @keyframes pulseInitialLogo {
+        0%, 100% {
+          transform: scale(0.96);
+          opacity: 0.85;
+          filter: drop-shadow(0 0 10px rgba(0, 230, 118, 0.2));
+        }
+        50% {
+          transform: scale(1.04);
+          opacity: 1;
+          filter: drop-shadow(0 0 25px rgba(0, 230, 118, 0.5));
+        }
+      }
+
+      .initial-splash-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background-color: #0D1310;
+      }
+
+      .initial-splash-logo {
+        width: 160px;
+        height: 160px;
+        object-fit: contain;
+        animation: pulseInitialLogo 1.6s ease-in-out infinite;
       }
     </style>
   </head>
@@ -79,7 +108,11 @@
       É necessário ativar o JavaScript para utilizar a aplicação do Grupo 39.
     </noscript>
 
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-splash-wrapper">
+        <img class="initial-splash-logo" src="/icons/icon-192.png" alt="Grupo 39 - Rio Ave FC" />
+      </div>
+    </div>
 
     <!-- Registo de Service Worker e Gestão do Prompt de Instalação PWA -->
     <script>

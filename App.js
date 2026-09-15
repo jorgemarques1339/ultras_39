@@ -18,6 +18,7 @@ import StoreModal from './src/components/StoreModal';
 import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
 import AuthModal from './src/components/AuthModal';
 import ForumLoginPromptModal from './src/components/ForumLoginPromptModal';
+import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ForumScreen from './src/screens/ForumScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
@@ -54,6 +55,7 @@ function MainApp() {
   const [accessPromptVisible, setAccessPromptVisible] = useState(false);
   const [accessPromptType, setAccessPromptType] = useState('forum');
   const [pendingTabAfterLogin, setPendingTabAfterLogin] = useState(null);
+  const [isSplashDone, setIsSplashDone] = useState(false);
 
   // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (apenas nas restantes páginas; na Home e Fórum permanece sempre visível)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -174,6 +176,11 @@ function MainApp() {
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={theme.bgDark}
       />
+
+      {/* Animação Inicial de Abertura com o Logótipo Oficial da Claque */}
+      {!isSplashDone && (
+        <AnimatedSplashScreen onFinish={() => setIsSplashDone(true)} />
+      )}
 
       <View
         style={[
