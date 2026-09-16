@@ -31,6 +31,7 @@ import {
   Calendar as CalendarIcon,
   Lock,
   CreditCard,
+  CheckCircle2,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
@@ -46,6 +47,7 @@ import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
 import PagamentosModal from '../components/PagamentosModal';
 import HomeSlidingBanner from '../components/HomeSlidingBanner';
 import AlertasModal from '../components/AlertasModal';
+import BilheteModal from '../components/BilheteModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -75,6 +77,7 @@ function HomeScreen({
   transactions = [],
   onBuyTicket,
   onViewReceipt,
+  onDeleteTicket,
   onNavigateTab,
   onScroll,
   onOpenChants,
@@ -112,9 +115,57 @@ function HomeScreen({
   const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
   const [pagamentosNoticeVisible, setPagamentosNoticeVisible] = useState(false);
   const [alertasModalVisible, setAlertasModalVisible] = useState(false);
+  const [bilheteModalVisible, setBilheteModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
+
+  // Verificar se o utilizador já adquiriu bilhete ou autocarro para o jogo
+  const purchasedTicket = useMemo(() => {
+    if (!transactions || transactions.length === 0) return null;
+
+    const opponentName = (nextMatch?.isHome ? nextMatch?.awayTeam?.name : nextMatch?.homeTeam?.name) || '';
+    const opponentKeyword = opponentName.toLowerCase().replace('fc', '').trim();
+
+    return (
+      transactions.find((tx) => {
+        // Ignorar transações de demonstração antigas do mock
+        if (tx.id === 'tx-mbw-9452' || tx.id === 'tx-mbw-8910') return false;
+
+        const isTicketOrBus =
+          tx.type === 'ticket' ||
+          tx.type === 'bus' ||
+          tx.type === 'caravan' ||
+          tx.category?.toLowerCase().includes('bilhética') ||
+          tx.category?.toLowerCase().includes('deslocação') ||
+          tx.title?.toLowerCase().includes('bilhete') ||
+          tx.title?.toLowerCase().includes('deslocação');
+
+        if (!isTicketOrBus) return false;
+
+        // Correspondência por ID do jogo
+        if (tx.matchId && nextMatch?.id && tx.matchId === nextMatch.id) return true;
+
+        // Correspondência por adversário
+        if (opponentKeyword && tx.title?.toLowerCase().includes(opponentKeyword)) return true;
+
+        // Correspondência por Alverca
+        if (tx.title?.toLowerCase().includes('alverca')) return true;
+
+        // Qualquer compra de bilhete/deslocação recém efetuada no app
+        if (
+          tx.id &&
+          tx.id.startsWith('tx-mbw-') &&
+          !['tx-mbw-9821', 'tx-mbw-9452', 'tx-mbw-8910', 'tx-mbw-8712'].includes(tx.id)
+        ) {
+          return true;
+        }
+
+        return false;
+      }) || null
+    );
+  }, [transactions, nextMatch]);
+
   const matchTicketsPct = 78;
   const deslocacaoTicketsPct = 64;
   const mainScrollRef = useRef(null);
@@ -240,6 +291,7 @@ function HomeScreen({
         }}
         onOpenAlertas={() => setAlertasModalVisible(true)}
         isDark={isDark}
+        isLoggedIn={isLoggedIn}
       />
 
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
@@ -313,44 +365,110 @@ function HomeScreen({
           </View>
         </View>
 
-        {/* CTA BILHÉTICA / DESLOCAÇÃO INTEGRADO */}
-        <TouchableOpacity
-          style={styles.heroBuyBtn}
-          onPress={() => {
-            if (!nextMatch.isHome) {
-              if (canAccessDeslocacao) {
-                setDeslocacaoModalVisible(true);
-              } else {
-                setDeslocacaoNoticeVisible(true);
-              }
-              return;
-            }
-            const memberPrice = 7.50;
-            const nonMemberPrice = 10.00;
-            const finalPrice = isLoggedIn ? memberPrice : nonMemberPrice;
-            onBuyTicket({
-              title: `Bilhete Grupo 39 · ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
-              category: 'Bilhética Oficial RAFC',
-              amount: finalPrice,
-              originalPrice: nonMemberPrice,
-              discount: isLoggedIn ? (nonMemberPrice - memberPrice) : 0,
-              type: 'ticket',
-            });
-          }}
-          activeOpacity={0.85}
-        >
-          <View style={styles.heroBuyContent}>
-            <View style={styles.heroBuyLeft}>
-              <View style={styles.ticketIconBox}>
-                {nextMatch.isHome ? <Ticket size={13} color="#FFF" /> : <Bus size={13} color="#FFF" />}
+        {/* CTA BILHÉTICA / DESLOCAÇÃO INTEGRADO OU BOTÃO BILHETE APÓS COMPRA */}
+        {purchasedTicket ? (
+          <TouchableOpacity
+            style={[
+              styles.heroTicketPurchasedCard,
+              !isDark && styles.heroTicketPurchasedCardLight,
+            ]}
+            onPress={() => setBilheteModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.heroTicketPurchasedLeft}>
+              <View
+                style={[
+                  styles.ticketPurchasedIconBox,
+                  !isDark && styles.ticketPurchasedIconBoxLight,
+                ]}
+              >
+                <Ticket size={15} color={isDark ? '#00E676' : '#00874E'} />
               </View>
-              <Text style={styles.heroBuyTitle}>
-                {nextMatch.isHome ? 'Comprar Bilhete' : 'Garantir Deslocação (Autocarro + Bilhete)'}
-              </Text>
+              <View style={styles.ticketPurchasedCol}>
+                <Text
+                  style={[
+                    styles.heroBuyTitlePurchased,
+                    !isDark && styles.heroBuyTitlePurchasedLight,
+                  ]}
+                >
+                  Bilhete
+                </Text>
+                <Text
+                  style={[
+                    styles.heroBuySubPurchased,
+                    !isDark && styles.heroBuySubPurchasedLight,
+                  ]}
+                >
+                  Clique para ver detalhes
+                </Text>
+              </View>
             </View>
-            <ChevronRight size={14} color="#FFF" />
-          </View>
-        </TouchableOpacity>
+
+            <View style={styles.heroTicketPurchasedRight}>
+              <View
+                style={[
+                  styles.ticketPurchasedBadge,
+                  !isDark && styles.ticketPurchasedBadgeLight,
+                ]}
+              >
+                <CheckCircle2 size={11} color={isDark ? '#00E676' : '#00874E'} />
+                <Text
+                  style={[
+                    styles.ticketPurchasedBadgeText,
+                    !isDark && styles.ticketPurchasedBadgeTextLight,
+                  ]}
+                >
+                  Emitido
+                </Text>
+              </View>
+              <ChevronRight size={15} color={isDark ? '#00E676' : '#00874E'} />
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.heroBuyBtn}
+            onPress={() => {
+              if (!nextMatch.isHome) {
+                if (canAccessDeslocacao) {
+                  setDeslocacaoModalVisible(true);
+                } else {
+                  setDeslocacaoNoticeVisible(true);
+                }
+                return;
+              }
+              const memberPrice = 7.50;
+              const nonMemberPrice = 10.00;
+              const finalPrice = isLoggedIn ? memberPrice : nonMemberPrice;
+              onBuyTicket({
+                title: `Bilhete Grupo 39 · ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
+                category: 'Bilhética Oficial RAFC',
+                amount: finalPrice,
+                originalPrice: nonMemberPrice,
+                discount: isLoggedIn ? (nonMemberPrice - memberPrice) : 0,
+                type: 'ticket',
+                matchId: nextMatch.id,
+                matchTitle: `${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
+                matchDate: nextMatch.dateFormatted,
+                stadium: nextMatch.stadium,
+                sector: nextMatch.sector,
+                isHome: nextMatch.isHome,
+              });
+            }}
+            activeOpacity={0.85}
+          >
+            <View style={styles.heroBuyContent}>
+              <View style={styles.heroBuyLeft}>
+                <View style={styles.ticketIconBox}>
+                  {nextMatch.isHome ? <Ticket size={13} color="#FFF" /> : <Bus size={13} color="#FFF" />}
+                </View>
+                <Text style={styles.heroBuyTitle}>
+                  {nextMatch.isHome ? 'Comprar Bilhete' : 'Garantir Deslocação (Autocarro + Bilhete)'}
+                </Text>
+              </View>
+              <ChevronRight size={14} color="#FFF" />
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* 2. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
@@ -634,37 +752,56 @@ function HomeScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 4ª LINHA: SEJA SÓCIO AO LADO DE PAGAMENTOS */}
-          <View style={styles.subShortcutsRow}>
-            <TouchableOpacity
-              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-              onPress={() => setSocioModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.subShortcutIconBgCalendar}>
-                <IdCard size={16} color={COLORS.primaryLight} />
-              </View>
-              <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                Seja Sócio
-              </Text>
-              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-            </TouchableOpacity>
-
-            {/* Pagamentos: Bloqueado sem login com aviso; Com login abre histórico completo */}
-            {isLoggedIn ? (
+          {/* 4ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) AO LADO DE PAGAMENTOS */}
+          {/* 4ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) AO LADO DE PAGAMENTOS */}
+          <View style={[styles.subShortcutsRow, isLoggedIn && styles.subShortcutsRowCentered]}>
+            {!isLoggedIn && (
               <TouchableOpacity
                 style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
+                onPress={() => setSocioModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.subShortcutIconBgCalendar}>
+                  <IdCard size={16} color={COLORS.primaryLight} />
+                </View>
+                <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                  Seja Sócio
+                </Text>
+                <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
+              </TouchableOpacity>
+            )}
+
+            {/* Pagamentos: Compacto, centralizado e com texto centralizado */}
+            {isLoggedIn ? (
+              <TouchableOpacity
+                style={[
+                  styles.pagamentosCardCompact,
+                  !isDark && styles.pagamentosCardCompactLight,
+                ]}
                 onPress={() => setPagamentosModalVisible(true)}
                 activeOpacity={0.8}
               >
                 <View style={styles.subShortcutIconBgCalendar}>
                   <CreditCard size={15} color={COLORS.primaryLight} />
                 </View>
-                <View style={styles.subShortcutTextLockedCol}>
-                  <Text style={[styles.subShortcutTextPagamentos, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                <View style={styles.pagamentosCenterTextCol}>
+                  <Text
+                    style={[
+                      styles.subShortcutTextPagamentosCompact,
+                      !isDark && styles.subShortcutTextLight,
+                    ]}
+                    numberOfLines={1}
+                  >
                     Pagamentos
                   </Text>
-                  <Text style={[styles.subShortcutBadgeSmall, !isDark && styles.textMutedDark]} numberOfLines={1}>
+                  <Text
+                    style={[
+                      styles.subShortcutBadgeSmall,
+                      styles.textCentered,
+                      !isDark && styles.textMutedDark,
+                    ]}
+                    numberOfLines={1}
+                  >
                     {transactions?.length || 0} mov.
                   </Text>
                 </View>
@@ -680,11 +817,18 @@ function HomeScreen({
                 <View style={styles.subShortcutIconBgLocked}>
                   <Lock size={14} color={isDark ? '#F2B600' : '#8A6D00'} />
                 </View>
-                <View style={styles.busTextRowLocked}>
-                  <Text style={[styles.subShortcutTextPagamentos, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
+                <View style={[styles.busTextRowLocked, styles.pagamentosCenterTextCol]}>
+                  <Text
+                    style={[
+                      styles.subShortcutTextPagamentos,
+                      styles.textCentered,
+                      !isDark && styles.subShortcutTextLight,
+                    ]}
+                    numberOfLines={1}
+                  >
                     Pagamentos
                   </Text>
-                  <Text style={styles.lockedBadgeTextPagamentos} numberOfLines={1}>
+                  <Text style={[styles.lockedBadgeTextPagamentos, styles.textCentered]} numberOfLines={1}>
                     Requer Login
                   </Text>
                 </View>
@@ -833,6 +977,18 @@ function HomeScreen({
         }}
         onOpenJogos={() => setJogosModalVisible(true)}
         isDark={isDark}
+      />
+
+      {/* Modal Dedicado de Bilhete Digital Adquirido */}
+      <BilheteModal
+        visible={bilheteModalVisible}
+        onClose={() => setBilheteModalVisible(false)}
+        ticket={purchasedTicket}
+        nextMatch={nextMatch}
+        user={user}
+        isDark={isDark}
+        onViewReceipt={onViewReceipt}
+        onDeleteTicket={onDeleteTicket}
       />
 
     </View>
@@ -1139,6 +1295,105 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '800',
     letterSpacing: 0.2,
+  },
+
+  // Botão "Bilhete" Adquirido em formato Card Organizado
+  heroTicketPurchasedCard: {
+    width: '100%',
+    marginTop: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(12, 28, 19, 0.92)',
+    borderRadius: 13,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderWidth: 1.2,
+    borderColor: 'rgba(0, 230, 118, 0.45)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 0 16px rgba(0, 230, 118, 0.22)',
+      },
+    }),
+  },
+  heroTicketPurchasedCardLight: {
+    backgroundColor: '#EDF9F2',
+    borderColor: 'rgba(0, 135, 78, 0.35)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 135, 78, 0.12)',
+      },
+    }),
+  },
+  heroTicketPurchasedLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    flex: 1,
+  },
+  ticketPurchasedIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0, 230, 118, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ticketPurchasedIconBoxLight: {
+    backgroundColor: '#D1F2E0',
+    borderColor: 'rgba(0, 135, 78, 0.35)',
+  },
+  ticketPurchasedCol: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  heroBuyTitlePurchased: {
+    color: '#00E676',
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.2,
+  },
+  heroBuyTitlePurchasedLight: {
+    color: '#00874E',
+  },
+  heroBuySubPurchased: {
+    color: '#90ADA0',
+    fontSize: 10.5,
+    fontWeight: '600',
+    marginTop: 1.5,
+  },
+  heroBuySubPurchasedLight: {
+    color: '#4C6556',
+  },
+  heroTicketPurchasedRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ticketPurchasedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 230, 118, 0.15)',
+    paddingHorizontal: 7.5,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 0.8,
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+  },
+  ticketPurchasedBadgeLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  ticketPurchasedBadgeText: {
+    color: '#00E676',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  ticketPurchasedBadgeTextLight: {
+    color: '#00874E',
   },
 
   // Headers de Secção
@@ -1640,6 +1895,54 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 10,
     fontWeight: '800',
+  },
+  subShortcutTextPagamentosCompact: {
+    color: '#FFF',
+    fontSize: 11.5,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  pagamentosCardCompact: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(17, 26, 20, 0.85)',
+    borderRadius: 14,
+    paddingVertical: 7,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    gap: 8,
+    minWidth: 155,
+    maxWidth: 200,
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.25)',
+      },
+    }),
+  },
+  pagamentosCardCompactLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+      },
+    }),
+  },
+  pagamentosCenterTextCol: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subShortcutsRowCentered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textCentered: {
+    textAlign: 'center',
   },
   lockedBadgeTextPagamentos: {
     color: '#F2B600',

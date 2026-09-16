@@ -22,6 +22,7 @@ export default function HomeSlidingBanner({
   onOpenDeslocacao,
   onOpenAlertas,
   isDark = true,
+  isLoggedIn = false,
   style,
 }) {
   const { width } = useWindowDimensions();
@@ -34,44 +35,57 @@ export default function HomeSlidingBanner({
   const autoPlayTimer = useRef(null);
   const isAnimating = useRef(false);
 
-  const SLIDES = [
-    {
-      id: 'socios',
-      badge: 'NOVOS SÓCIOS',
-      title: 'Boas-vindas aos novos Sócios!',
-      subtitle: 'Faz parte da família Grupo 39 · Inscreve-te',
-      icon: Users,
-      iconColor: '#00E676',
-      badgeBg: 'rgba(0, 230, 118, 0.16)',
-      badgeBorder: 'rgba(0, 230, 118, 0.4)',
-      badgeText: '#00E676',
-      onPress: onOpenSocio,
-    },
-    {
-      id: 'deslocacao',
-      badge: 'DESLOCAÇÃO',
-      title: 'Próxima Deslocação a Alverca',
-      subtitle: '19 Set · Autocarro desde 7,50 € · Reserva já',
-      icon: Bus,
-      iconColor: '#FFD700',
-      badgeBg: 'rgba(255, 215, 0, 0.18)',
-      badgeBorder: 'rgba(255, 215, 0, 0.45)',
-      badgeText: '#FFD700',
-      onPress: onOpenDeslocacao,
-    },
-    {
-      id: 'alertas',
-      badge: 'ALERTAS',
-      title: 'Alertas Importantes do Grupo 39',
-      subtitle: 'Quotas 2026/27, Apoio na Bancada e Avisos',
-      icon: Flame,
-      iconColor: '#FF5252',
-      badgeBg: 'rgba(255, 82, 82, 0.18)',
-      badgeBorder: 'rgba(255, 82, 82, 0.45)',
-      badgeText: '#FF7070',
-      onPress: onOpenAlertas,
-    },
-  ];
+  const SLIDES = React.useMemo(() => {
+    const list = [];
+    if (!isLoggedIn) {
+      list.push({
+        id: 'socios',
+        badge: 'NOVOS SÓCIOS',
+        title: 'Boas-vindas aos novos Sócios!',
+        subtitle: 'Faz parte da família Grupo 39 · Inscreve-te',
+        icon: Users,
+        iconColor: '#00E676',
+        badgeBg: 'rgba(0, 230, 118, 0.16)',
+        badgeBorder: 'rgba(0, 230, 118, 0.4)',
+        badgeText: '#00E676',
+        onPress: onOpenSocio,
+      });
+    }
+    list.push(
+      {
+        id: 'deslocacao',
+        badge: 'DESLOCAÇÃO',
+        title: 'Próxima Deslocação a Alverca',
+        subtitle: '19 Set · Autocarro desde 7,50 € · Reserva já',
+        icon: Bus,
+        iconColor: '#FFD700',
+        badgeBg: 'rgba(255, 215, 0, 0.18)',
+        badgeBorder: 'rgba(255, 215, 0, 0.45)',
+        badgeText: '#FFD700',
+        onPress: onOpenDeslocacao,
+      },
+      {
+        id: 'alertas',
+        badge: 'ALERTAS',
+        title: 'Alertas Importantes do Grupo 39',
+        subtitle: 'Quotas 2026/27, Apoio na Bancada e Avisos',
+        icon: Flame,
+        iconColor: '#FF5252',
+        badgeBg: 'rgba(255, 82, 82, 0.18)',
+        badgeBorder: 'rgba(255, 82, 82, 0.45)',
+        badgeText: '#FF7070',
+        onPress: onOpenAlertas,
+      }
+    );
+    return list;
+  }, [isLoggedIn, onOpenSocio, onOpenDeslocacao, onOpenAlertas]);
+
+  // Garantir que o index não excede o array caso mude o estado de login
+  useEffect(() => {
+    if (currentIndex >= SLIDES.length) {
+      setCurrentIndex(0);
+    }
+  }, [SLIDES.length, currentIndex]);
 
   const animateToSlide = useCallback(
     (nextIdx, direction = 'left') => {

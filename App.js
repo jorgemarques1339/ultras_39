@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from './src/components/Header';
 import LiquidGlassNavBar from './src/components/LiquidGlassNavBar';
 import MbWayCheckoutModal from './src/components/MbWayCheckoutModal';
@@ -52,6 +53,27 @@ function MainApp() {
 
   const [activeTab, setActiveTab] = useState('home');
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+
+  // Carregar transações persistidas da sessão
+  useEffect(() => {
+    let isMounted = true;
+    AsyncStorage.getItem('@grupo39_transactions')
+      .then((stored) => {
+        if (stored && isMounted) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setTransactions(parsed);
+            }
+          } catch (e) {}
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const [accessPromptVisible, setAccessPromptVisible] = useState(false);
   const [accessPromptType, setAccessPromptType] = useState('forum');
   const [pendingTabAfterLogin, setPendingTabAfterLogin] = useState(null);
@@ -151,7 +173,11 @@ function MainApp() {
 
   // Callback de sucesso no pagamento MB WAY
   const handlePaymentSuccess = useCallback((newTx) => {
-    setTransactions((prev) => [newTx, ...prev]);
+    setTransactions((prev) => {
+      const updated = [newTx, ...prev];
+      AsyncStorage.setItem('@grupo39_transactions', JSON.stringify(updated)).catch(() => {});
+      return updated;
+    });
 
     // Se o pagamento for de quota, atualizar estado do cartão digital do sócio
     if (newTx.type === 'quota') {
@@ -168,6 +194,17 @@ function MainApp() {
   const handleViewReceipt = useCallback((tx) => {
     setSelectedReceipt(tx);
     setReceiptModalVisible(true);
+  }, []);
+
+  // Apagar bilhete / transação (para demonstrações ou cancelamento)
+  const handleDeleteTransaction = useCallback((txOrId) => {
+    const id = typeof txOrId === 'string' ? txOrId : txOrId?.id;
+    if (!id) return;
+    setTransactions((prev) => {
+      const updated = prev.filter((t) => t.id !== id);
+      AsyncStorage.setItem('@grupo39_transactions', JSON.stringify(updated)).catch(() => {});
+      return updated;
+    });
   }, []);
 
   return (
@@ -210,6 +247,7 @@ function MainApp() {
               transactions={transactions}
               onBuyTicket={handleBuyTicket}
               onViewReceipt={handleViewReceipt}
+              onDeleteTicket={handleDeleteTransaction}
               onNavigateTab={handleSelectTab}
               onScroll={undefined}
               onOpenChants={() => setChantsModalVisible(true)}

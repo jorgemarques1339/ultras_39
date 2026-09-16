@@ -35,6 +35,12 @@ function DeslocacaoModal({ visible, onClose, onBuyTicket, isDark = true, isLogge
         originalPrice: originalPrice,
         discount: discount,
         type: 'bus',
+        matchId: 'match-real-j07',
+        matchTitle: 'FC Alverca vs Rio Ave FC',
+        matchDate: '19 Setembro · 18:00',
+        stadium: 'Complexo Desportivo FC Alverca',
+        sector: 'Setor Visitante Oficial Grupo 39',
+        isHome: false,
       });
     }
   };

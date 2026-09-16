@@ -155,6 +155,11 @@ export default function MbWayCheckoutModal({
       status: 'Concluído',
       statusColor: COLORS.success,
       type: safeData.type,
+      matchId: safeData.matchId,
+      matchTitle: safeData.matchTitle,
+      matchDate: safeData.matchDate,
+      stadium: safeData.stadium,
+      sector: safeData.sector,
     };
 
     setLastTransaction(tx);
