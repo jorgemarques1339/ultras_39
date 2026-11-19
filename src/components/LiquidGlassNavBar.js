@@ -1,12 +1,12 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, Image } from 'react-native';
-import { Home, MessageSquare, ShoppingBag, User, Lock } from 'lucide-react-native';
+import { Home, Bot, ShoppingBag, User, Lock } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 const NAV_ITEMS = [
   { id: 'home', icon: Home, label: 'Início' },
   { id: 'store', icon: ShoppingBag, label: 'Loja' },
-  { id: 'apoio', icon: MessageSquare, label: 'Apoio' },
+  { id: 'apoio', icon: Bot, label: 'Apoio' },
   { id: 'profile', icon: User, label: 'Perfil' },
 ];
 

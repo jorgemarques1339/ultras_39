@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0D1310",
-    "primaryColor": "#00874E",
+    "primaryColor": "#0D1310",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -24,13 +24,17 @@
       },
       "package": "pt.grupo39.rioave"
     },
+    "androidNavigationBar": {
+      "backgroundColor": "#0D1310",
+      "barStyle": "light-content"
+    },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "name": "Grupo 39 - Rio Ave FC",
       "shortName": "Grupo 39",
       "backgroundColor": "#0D1310",
-      "themeColor": "#00874E",
+      "themeColor": "#0D1310",
       "display": "standalone",
       "orientation": "portrait"
     }

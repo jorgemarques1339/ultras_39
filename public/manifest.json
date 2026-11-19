@@ -5,7 +5,7 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0D1310",
-  "theme_color": "#00874E",
+  "theme_color": "#0D1310",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -28,13 +28,6 @@
     }
   ],
   "shortcuts": [
-    {
-      "name": "Deslocações",
-      "short_name": "Deslocação",
-      "description": "Inscreve-te na próxima deslocação oficial",
-      "url": "/?tab=home&action=deslocacao",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
-    },
     {
       "name": "Galeria Ultras",
       "short_name": "Galeria",

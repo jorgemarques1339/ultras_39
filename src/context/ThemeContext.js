@@ -160,6 +160,22 @@ export function ThemeProvider({ children }) {
 
   const theme = isDark ? DARK_THEME : LIGHT_THEME;
 
+  // Sincronizar a barra do sistema / navegador (theme-color e fundo do documento) com o tema ativo
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const bgColor = isDark ? '#0D1310' : '#FFFFFF';
+    try {
+      document.documentElement.style.backgroundColor = bgColor;
+      if (document.body) {
+        document.body.style.backgroundColor = bgColor;
+      }
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', bgColor);
+      }
+    } catch (e) {}
+  }, [isDark]);
+
   return (
     <ThemeContext.Provider value={{ theme, isDark, toggleTheme }}>
       {children}

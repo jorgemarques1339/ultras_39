@@ -425,36 +425,6 @@ function ProfileScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 4. DADOS DO PERFIL & APOIO AO SÓCIO */}
-          <View style={styles.supportSection}>
-            <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-              Apoio ao Sócio do Grupo 39
-            </Text>
-            <View style={[styles.supportCard, !isDark && styles.supportCardLight]}>
-              <View style={styles.supportRow}>
-                <Phone size={15} color={isDark ? COLORS.gold : '#00874E'} />
-                <Text style={[styles.supportLabel, !isDark && styles.textMutedDark]}>
-                  Linha Direta WhatsApp Claque:
-                </Text>
-                <Text style={[styles.supportVal, !isDark && styles.textDark]}>
-                  +351 912 345 678
-                </Text>
-              </View>
-              <View style={styles.supportRow}>
-                <Calendar
-                  size={15}
-                  color={isDark ? COLORS.primaryLight : '#00874E'}
-                />
-                <Text style={[styles.supportLabel, !isDark && styles.textMutedDark]}>
-                  Horário da Sede nos Arcos:
-                </Text>
-                <Text style={[styles.supportVal, !isDark && styles.textDark]}>
-                  Ter a Sex: 17h - 20h
-                </Text>
-              </View>
-            </View>
-          </View>
-
           {/* Botão de Terminar Sessão (Logout) */}
           {onLogout && (
             <TouchableOpacity
