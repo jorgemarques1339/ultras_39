@@ -164,6 +164,7 @@ export async function getNextMatchData(force = false) {
       id: next.id,
       competition: 'LIGA PORTUGAL BETCLIC',
       round: next.round,
+      rawDate: next.rawDate,
       dateFormatted: next.dateFormatted,
       time: next.time,
       stadium: next.isHome ? 'Estádio dos Arcos' : next.venue,

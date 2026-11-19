@@ -16,6 +16,7 @@ export const NEXT_MATCH = {
   id: 'match-real-j07',
   competition: 'Liga Portugal Betclic',
   round: '7.ª Jornada',
+  rawDate: '2026-09-19T17:00:00Z',
   dateFormatted: '19 Setembro · 18:00',
   stadium: 'Complexo Desportivo FC Alverca',
   city: 'Alverca do Ribatejo',

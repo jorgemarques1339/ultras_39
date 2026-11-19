@@ -55,10 +55,10 @@ export default function HomeSlidingBanner({
       title: 'Alertas Importantes do Grupo 39',
       subtitle: 'Quotas 2026/27, Apoio na Bancada e Avisos',
       icon: Flame,
-      iconColor: '#FF5252',
-      badgeBg: 'rgba(255, 82, 82, 0.18)',
-      badgeBorder: 'rgba(255, 82, 82, 0.45)',
-      badgeText: '#FF7070',
+      iconColor: '#FF6B6B',
+      badgeBg: 'rgba(255, 82, 82, 0.24)',
+      badgeBorder: 'rgba(255, 118, 118, 0.55)',
+      badgeText: '#FF9A9A',
       onPress: onOpenAlertas,
     });
     return list;
@@ -334,15 +334,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   itemTitle: {
-    color: '#FFF',
+    color: '#FFFFFF',
     fontSize: 12.5,
     fontWeight: '800',
     flexShrink: 1,
+    letterSpacing: 0.1,
   },
   itemSubtitle: {
-    color: COLORS.textMuted,
+    color: '#D5E4DC',
     fontSize: 10.5,
-    fontWeight: '500',
+    fontWeight: '600',
     marginTop: 2,
   },
   rightActionBox: {

@@ -9,11 +9,14 @@ import {
   Animated,
   Image,
   Modal,
+  Linking,
   useWindowDimensions,
 } from 'react-native';
 import Svg, { Circle, Path, Rect, Line } from 'react-native-svg';
 import {
   MapPin,
+  Clock,
+  Navigation,
   ChevronRight,
   Flame,
   Sparkles,
@@ -98,7 +101,70 @@ function HomeScreen({
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
+  const [nowTs, setNowTs] = useState(() => Date.now());
   const mainScrollRef = useRef(null);
+
+  // Atualizar relógio para a contagem decrescente a cada 30 segundos
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowTs(Date.now());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Contagem decrescente dinâmica para o próximo jogo
+  const countdownInfo = useMemo(() => {
+    const targetRaw = nextMatch?.rawDate || nextMatch?.date;
+    if (!targetRaw) return null;
+    const targetMs = new Date(targetRaw).getTime();
+    if (Number.isNaN(targetMs)) return null;
+
+    const diffMs = targetMs - nowTs;
+    if (diffMs <= 0 && diffMs > -2 * 60 * 60 * 1000) {
+      return { text: 'EM DIRETO AGORA', isLive: true };
+    }
+    if (diffMs <= 0) {
+      return null;
+    }
+
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    if (days > 0) {
+      return { text: `Faltam ${days}d ${hours}h ${minutes}m`, isLive: false };
+    }
+    if (hours > 0) {
+      return { text: `É hoje · Faltam ${hours}h ${minutes}m`, isLive: false, isToday: true };
+    }
+    return { text: `Arranca em ${Math.max(1, minutes)}m!`, isLive: false, isToday: true };
+  }, [nextMatch?.rawDate, nextMatch?.date, nowTs]);
+
+  // Diretiva de bancada / Dress Code do jogo
+  const matchDressCode = useMemo(() => {
+    if (nextMatch?.dressCode) return nextMatch.dressCode;
+    return nextMatch?.isHome ? '🟢 Todos de Verde' : '🧣 Levar Cachecol';
+  }, [nextMatch?.dressCode, nextMatch?.isHome]);
+
+  // Ponto de Encontro / Convívio oficial no Estádio dos Arcos
+  const meetingPointInfo = useMemo(() => {
+    const mapQuery = 'Estádio do Rio Ave FC, Vila do Conde';
+    return {
+      timeLabel: '12:30',
+      location: 'Estádio dos Arcos',
+      mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`,
+    };
+  }, []);
+
+  const handleOpenMeetingMap = useCallback(() => {
+    if (!meetingPointInfo?.mapsUrl) return;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(meetingPointInfo.mapsUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      Linking.openURL(meetingPointInfo.mapsUrl).catch(() => {});
+    }
+  }, [meetingPointInfo]);
 
   // Carregar dados oficiais do próximo jogo em tempo real (mesma API dos Jogos)
   useEffect(() => {
@@ -197,11 +263,16 @@ function HomeScreen({
 
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <View style={[styles.heroCard, !isDark && styles.heroCardLight, isSmallScreen && styles.heroCardSmall]}>
-        {/* Header do Confronto */}
+        {/* Header do Confronto + Dress Code da Bancada */}
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
             <Text style={[styles.compName, !isDark && styles.compNameLight]}>{nextMatch.competition || 'LIGA PORTUGAL BETCLIC'}</Text>
             <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>{nextMatch.round || '7.ª Jornada'}</Text>
+          </View>
+          <View style={[styles.dressCodePill, !isDark && styles.dressCodePillLight]}>
+            <Text style={[styles.dressCodeText, !isDark && styles.dressCodeTextLight]} numberOfLines={1}>
+              {matchDressCode}
+            </Text>
           </View>
         </View>
 
@@ -222,7 +293,7 @@ function HomeScreen({
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Anfitrião</Text>
           </View>
 
-          {/* VS & Detalhes */}
+          {/* VS & Detalhes + Contagem Decrescente */}
           <View style={styles.vsColumn}>
             <Text style={[styles.vsText, !isDark && styles.vsTextLight]}>VS</Text>
             <View style={[styles.stadiumTag, !isDark && styles.stadiumTagLight]}>
@@ -230,6 +301,30 @@ function HomeScreen({
               <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]} numberOfLines={1}>{nextMatch.stadium}</Text>
             </View>
             <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>{nextMatch.dateFormatted}</Text>
+            {countdownInfo && (
+              <View
+                style={[
+                  styles.countdownPill,
+                  !isDark && styles.countdownPillLight,
+                  countdownInfo.isLive && styles.countdownPillLive,
+                ]}
+              >
+                <Clock
+                  size={9.5}
+                  color={countdownInfo.isLive ? '#FF5252' : (isDark ? '#00E676' : '#00874E')}
+                />
+                <Text
+                  style={[
+                    styles.countdownText,
+                    !isDark && styles.countdownTextLight,
+                    countdownInfo.isLive && styles.countdownTextLive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {countdownInfo.text}
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Equipa Visitante / Fora */}
@@ -247,6 +342,37 @@ function HomeScreen({
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
+
+        {/* Ponto de Encontro / Convívio da Claque */}
+        <TouchableOpacity
+          style={[styles.meetingPointBar, !isDark && styles.meetingPointBarLight]}
+          onPress={handleOpenMeetingMap}
+          activeOpacity={0.8}
+          accessibilityLabel="Abrir ponto de encontro no mapa"
+        >
+          <View style={styles.meetingPointBarTop}>
+            <View style={[styles.meetingPointIconBox, !isDark && styles.meetingPointIconBoxLight]}>
+              <Navigation size={11} color={isDark ? '#00E676' : '#00874E'} />
+            </View>
+            <Text
+              style={[styles.meetingPointBarText, !isDark && styles.meetingPointBarTextLight]}
+              numberOfLines={1}
+            >
+              <Text style={[styles.meetingPointBarBold, !isDark && styles.meetingPointBarBoldLight]}>
+                Concentração: {meetingPointInfo.timeLabel}
+              </Text>
+              {' · '}
+              {meetingPointInfo.location}
+            </Text>
+          </View>
+          <View style={styles.meetingMapTag}>
+            <MapPin size={11} color="#FFFFFF" />
+            <Text style={styles.meetingMapTagText}>
+              Ver Mapa
+            </Text>
+            <ChevronRight size={12} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* 2. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
@@ -456,8 +582,7 @@ function HomeScreen({
           </View>
 
           {/* 4ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) AO LADO DE PAGAMENTOS */}
-          {/* 4ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) AO LADO DE PAGAMENTOS */}
-          <View style={[styles.subShortcutsRow, isLoggedIn && styles.subShortcutsRowCentered]}>
+          <View style={styles.subShortcutsRow}>
             {!isLoggedIn && (
               <TouchableOpacity
                 style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
@@ -474,41 +599,49 @@ function HomeScreen({
               </TouchableOpacity>
             )}
 
-            {/* Pagamentos: Compacto, centralizado e com texto centralizado */}
+            {/* Pagamentos: Largura total quando autenticado para alinhar com a grelha de 2 colunas */}
             {isLoggedIn ? (
               <TouchableOpacity
                 style={[
-                  styles.pagamentosCardCompact,
-                  !isDark && styles.pagamentosCardCompactLight,
+                  styles.pagamentosCardFull,
+                  !isDark && styles.pagamentosCardFullLight,
                 ]}
                 onPress={() => setPagamentosModalVisible(true)}
                 activeOpacity={0.8}
               >
-                <View style={styles.subShortcutIconBgCalendar}>
-                  <CreditCard size={15} color={COLORS.primaryLight} />
+                <View style={styles.pagamentosFullLeft}>
+                  <View style={styles.subShortcutIconBgCalendar}>
+                    <CreditCard size={16} color={COLORS.primaryLight} />
+                  </View>
+                  <View style={styles.pagamentosFullTextCol}>
+                    <Text
+                      style={[
+                        styles.pagamentosFullTitle,
+                        !isDark && styles.subShortcutTextLight,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      Pagamentos
+                    </Text>
+                    <Text
+                      style={[
+                        styles.pagamentosFullSub,
+                        !isDark && styles.textMutedDark,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      Histórico de quotas e comprovativos SIBS
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.pagamentosCenterTextCol}>
-                  <Text
-                    style={[
-                      styles.subShortcutTextPagamentosCompact,
-                      !isDark && styles.subShortcutTextLight,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    Pagamentos
-                  </Text>
-                  <Text
-                    style={[
-                      styles.subShortcutBadgeSmall,
-                      styles.textCentered,
-                      !isDark && styles.textMutedDark,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {transactions?.length || 0} mov.
-                  </Text>
+                <View style={styles.pagamentosFullRight}>
+                  <View style={[styles.pagamentosCountPill, !isDark && styles.pagamentosCountPillLight]}>
+                    <Text style={[styles.pagamentosCountText, !isDark && styles.pagamentosCountTextLight]}>
+                      {transactions?.length || 0} mov.
+                    </Text>
+                  </View>
+                  <ChevronRight size={14} color={isDark ? COLORS.primaryLight : '#00874E'} />
                 </View>
-                <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -837,6 +970,168 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
+  },
+
+  // Dress Code / Estado da Bancada no Header do Hero Card
+  dressCodePill: {
+    backgroundColor: 'rgba(0, 179, 104, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    maxWidth: '48%',
+  },
+  dressCodePillLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.09)',
+    borderColor: 'rgba(0, 135, 78, 0.28)',
+  },
+  dressCodeText: {
+    color: '#00E676',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  dressCodeTextLight: {
+    color: '#00874E',
+  },
+
+  // Contagem Decrescente (Countdown) por baixo da data/hora
+  countdownPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+    backgroundColor: 'rgba(0, 179, 104, 0.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
+    borderRadius: 999,
+  },
+  countdownPillLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.08)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  countdownPillLive: {
+    backgroundColor: 'rgba(255, 82, 82, 0.16)',
+    borderColor: 'rgba(255, 82, 82, 0.45)',
+  },
+  countdownText: {
+    color: '#00E676',
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  countdownTextLight: {
+    color: '#00874E',
+  },
+  countdownTextLive: {
+    color: '#FF5252',
+  },
+
+  // Secção Ponto de Encontro / Convívio no Rodapé do Hero Card
+  meetingPointBar: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    marginTop: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 13,
+    backgroundColor: 'rgba(0, 179, 104, 0.18)',
+    borderWidth: 1.4,
+    borderColor: 'rgba(0, 230, 118, 0.55)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 179, 104, 0.22)',
+      },
+      default: {
+        shadowColor: '#00B368',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.28,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    }),
+  },
+  meetingPointBarLight: {
+    backgroundColor: '#E7F7EE',
+    borderColor: 'rgba(0, 135, 78, 0.42)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 12px rgba(0, 135, 78, 0.12)',
+      },
+    }),
+  },
+  meetingPointBarTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    width: '100%',
+  },
+  meetingPointIconBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    backgroundColor: 'rgba(0, 230, 118, 0.24)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  meetingPointIconBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.16)',
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+  },
+  meetingPointBarText: {
+    color: '#E6F4EC',
+    fontSize: 11.5,
+    fontWeight: '700',
+    textAlign: 'center',
+    flexShrink: 1,
+  },
+  meetingPointBarTextLight: {
+    color: '#1C3527',
+  },
+  meetingPointBarBold: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+  },
+  meetingPointBarBoldLight: {
+    color: '#006B3E',
+  },
+  meetingMapTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    gap: 5,
+    backgroundColor: '#00874E',
+    borderWidth: 1,
+    borderColor: '#00C86F',
+    paddingHorizontal: 16,
+    paddingVertical: 5.5,
+    borderRadius: 999,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 2px 10px rgba(0, 179, 104, 0.4)',
+      },
+    }),
+  },
+  meetingMapTagLight: {
+    backgroundColor: '#00874E',
+  },
+  meetingMapTagText: {
+    color: '#FFFFFF',
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.25,
+  },
+  meetingMapTagTextLight: {
+    color: '#FFFFFF',
   },
 
   // Disponibilidade de Bilhetes no Hero Card
@@ -1543,20 +1838,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center',
   },
-  pagamentosCardCompact: {
-    alignSelf: 'center',
+  pagamentosCardFull: {
+    flex: 1,
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(17, 26, 20, 0.85)',
-    borderRadius: 14,
-    paddingVertical: 7,
-    paddingHorizontal: 16,
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(17, 26, 20, 0.84)',
+    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.3)',
-    gap: 8,
-    minWidth: 155,
-    maxWidth: 200,
+    gap: 10,
     ...Platform.select({
       web: {
         backdropFilter: 'blur(8px)',
@@ -1565,7 +1859,7 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  pagamentosCardCompactLight: {
+  pagamentosCardFullLight: {
     backgroundColor: '#FFFFFF',
     borderColor: 'rgba(0, 135, 78, 0.2)',
     ...Platform.select({
@@ -1573,6 +1867,52 @@ const styles = StyleSheet.create({
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
       },
     }),
+  },
+  pagamentosFullLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  pagamentosFullTextCol: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  pagamentosFullTitle: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  pagamentosFullSub: {
+    color: '#A0B4AA',
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  pagamentosFullRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  pagamentosCountPill: {
+    backgroundColor: 'rgba(0, 179, 104, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.28)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  pagamentosCountPillLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.09)',
+    borderColor: 'rgba(0, 135, 78, 0.24)',
+  },
+  pagamentosCountText: {
+    color: '#00E676',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  pagamentosCountTextLight: {
+    color: '#00874E',
   },
   pagamentosCenterTextCol: {
     alignItems: 'center',
