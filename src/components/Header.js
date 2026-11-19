@@ -5,6 +5,7 @@ import { COLORS } from '../theme/colors';
 
 function Header({
   onOpenNotifications,
+  unreadCount = 0,
   visible = true,
   isDark = true,
   onToggleTheme,
@@ -89,15 +90,21 @@ function Header({
             )}
           </TouchableOpacity>
 
-          {/* Sino de Notificações */}
+          {/* Sino de Alertas & Comunicados */}
           <TouchableOpacity
             style={[styles.notifButton, !isDark && styles.notifButtonLight]}
             onPress={onOpenNotifications}
             activeOpacity={0.7}
-            accessibilityLabel="Ver Notificações"
+            accessibilityLabel="Ver Alertas e Comunicados"
           >
             <Bell size={18} color={isDark ? COLORS.textSecondary : '#4A5D53'} />
-            <View style={styles.notifDot} />
+            {unreadCount > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -255,14 +262,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  notifDot: {
+  notifBadge: {
     position: 'absolute',
-    top: 7,
-    right: 7,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: COLORS.primaryLight,
+    top: -3,
+    right: -3,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3.5,
+    backgroundColor: '#FF5252',
+    borderWidth: 1.5,
+    borderColor: '#0D1310',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    lineHeight: 11,
   },
   headerAnimatedWrapperLight: {
     backgroundColor: '#FFFFFF',

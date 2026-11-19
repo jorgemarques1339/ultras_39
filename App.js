@@ -5,6 +5,7 @@ import {
   View,
   StatusBar,
   Platform,
+  Linking,
   useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,7 +13,7 @@ import Header from './src/components/Header';
 import LiquidGlassNavBar from './src/components/LiquidGlassNavBar';
 import MbWayCheckoutModal from './src/components/MbWayCheckoutModal';
 import ReceiptModal from './src/components/ReceiptModal';
-import NotificationsModal from './src/components/NotificationsModal';
+import AlertasModal from './src/components/AlertasModal';
 import WalletPassModal from './src/components/WalletPassModal';
 import ChantsModal from './src/components/ChantsModal';
 import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
@@ -31,6 +32,7 @@ import {
 import { COLORS } from './src/theme/colors';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { AlertsProvider, useAlerts } from './src/context/AlertsContext';
 
 function MainApp() {
   const { width } = useWindowDimensions();
@@ -48,6 +50,12 @@ function MainApp() {
     logout,
     updateUser,
   } = useAuth();
+  const {
+    unreadCount,
+    alertsModalVisible,
+    openAlertsModal,
+    closeAlertsModal,
+  } = useAlerts();
 
   const [activeTab, setActiveTab] = useState('home');
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
@@ -115,7 +123,6 @@ function MainApp() {
   const [checkoutData, setCheckoutData] = useState(null);
   const [receiptModalVisible, setReceiptModalVisible] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
   const [walletPassModalVisible, setWalletPassModalVisible] = useState(false);
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
@@ -227,7 +234,8 @@ function MainApp() {
       >
         {/* Cabeçalho Superior Retrátil com Animação Fluida & Alternador de Tema (Fixo na Página Inicial e Fórum) */}
         <Header
-          onOpenNotifications={() => setNotificationsVisible(true)}
+          onOpenNotifications={() => openAlertsModal('all')}
+          unreadCount={unreadCount}
           visible={(activeTab === 'home' || activeTab === 'forum') ? true : isHeaderVisible}
           isDark={isDark}
           onToggleTheme={toggleTheme}
@@ -390,10 +398,10 @@ function MainApp() {
           isDark={isDark}
         />
 
-        {/* Modal de Notificações / Avisos */}
-        <NotificationsModal
-          visible={notificationsVisible}
-          onClose={() => setNotificationsVisible(false)}
+        {/* Central Unificada de Alertas & Comunicados do Grupo 39 */}
+        <AlertasModal
+          visible={alertsModalVisible}
+          onClose={closeAlertsModal}
           isDark={isDark}
           onSelectAction={(action) => {
             if (action === 'pay_quota') {
@@ -403,6 +411,17 @@ function MainApp() {
                 amount: user?.quotaAmount || 12.00,
                 type: 'quota',
               });
+            } else if (action === 'open_store') {
+              handleSelectTab('store');
+            } else if (action === 'open_chants') {
+              setChantsModalVisible(true);
+            } else if (action === 'open_map') {
+              const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Estádio do Rio Ave FC, Vila do Conde')}`;
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                window.open(mapUrl, '_blank', 'noopener,noreferrer');
+              } else {
+                Linking.openURL(mapUrl).catch(() => {});
+              }
             }
           }}
         />
@@ -415,7 +434,9 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <MainApp />
+        <AlertsProvider>
+          <MainApp />
+        </AlertsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

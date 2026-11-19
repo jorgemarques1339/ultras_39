@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,72 +11,147 @@ import {
 import {
   X,
   Bell,
+  BellRing,
   IdCard,
   Flame,
-  CreditCard,
+  ShoppingBag,
+  MapPin,
   ChevronRight,
-  ShieldAlert,
-  Info,
-  Sparkles,
+  CheckCheck,
+  CircleCheckBig,
+  Send,
+  Clock,
+  Pin,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
+import { useAlerts } from '../context/AlertsContext';
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestNotificationPermission,
+  sendSmartphoneNotification,
+} from '../services/notificationService';
+
+const CATEGORY_FILTERS = [
+  { id: 'all', label: 'Todos' },
+  { id: 'jogo', label: 'Dia de Jogo' },
+  { id: 'bancada', label: 'Bancada' },
+  { id: 'quota', label: 'Quotas' },
+  { id: 'loja', label: 'Loja' },
+];
+
+function getAlertVisuals(alert, isDark) {
+  switch (alert.category) {
+    case 'jogo':
+      return {
+        Icon: MapPin,
+        accent: '#FF6B6B',
+        badgeBg: isDark ? 'rgba(255, 82, 82, 0.2)' : 'rgba(220, 38, 38, 0.1)',
+        badgeText: isDark ? '#FF9A9A' : '#C62828',
+      };
+    case 'bancada':
+      return {
+        Icon: Flame,
+        accent: '#00E676',
+        badgeBg: isDark ? 'rgba(0, 179, 104, 0.2)' : 'rgba(0, 135, 78, 0.1)',
+        badgeText: isDark ? '#00E676' : '#00874E',
+      };
+    case 'quota':
+      return {
+        Icon: IdCard,
+        accent: '#00B368',
+        badgeBg: isDark ? 'rgba(0, 179, 104, 0.18)' : 'rgba(0, 135, 78, 0.1)',
+        badgeText: isDark ? '#00E676' : '#00874E',
+      };
+    case 'loja':
+      return {
+        Icon: ShoppingBag,
+        accent: '#38BDF8',
+        badgeBg: isDark ? 'rgba(56, 189, 248, 0.18)' : 'rgba(2, 132, 199, 0.1)',
+        badgeText: isDark ? '#7DD3FC' : '#0369A1',
+      };
+    default:
+      return {
+        Icon: Bell,
+        accent: COLORS.primaryLight,
+        badgeBg: isDark ? 'rgba(0, 179, 104, 0.18)' : 'rgba(0, 135, 78, 0.1)',
+        badgeText: isDark ? COLORS.primaryLight : '#00874E',
+      };
+  }
+}
 
 export default function AlertasModal({
   visible,
   onClose,
-  onOpenSocio,
-  onOpenJogos,
+  onSelectAction,
   isDark = true,
 }) {
-  const ALERTS = [
-    {
-      id: 'alert-2',
-      type: 'socio',
-      badge: 'QUOTAS 2026/2027',
-      title: 'Regularização de Quotas Obrigatória',
-      description:
-        'A quota anual de 12,00 € é essencial para garantir o apoio às bancadas e dá direito a descontos exclusivos na Loja Oficial do Grupo 39 e acesso completo ao Fórum.',
-      actionText: 'Inscrever ou Regularizar Quota',
-      onPress: () => {
-        onClose();
-        if (onOpenSocio) onOpenSocio();
-      },
-      icon: IdCard,
-      iconColor: COLORS.primaryLight,
-      badgeBg: 'rgba(0, 179, 104, 0.18)',
-      badgeText: COLORS.primaryLight,
-    },
-    {
-      id: 'alert-3',
-      type: 'info',
-      badge: 'BANCADA POENTE',
-      title: 'Regras de Apoio nos Jogos em Casa',
-      description:
-        'No Estádio dos Arcos, a concentração faz-se na Porta 4. Todos os elementos devem apresentar-se com adereços verdes e brancos, cachecol bem visível e apoiar ativamente os 90 minutos ao ritmo da bateria.',
-      actionText: 'Consultar Calendário de Jogos',
-      onPress: () => {
-        onClose();
-        if (onOpenJogos) onOpenJogos();
-      },
-      icon: Flame,
-      iconColor: '#FF5252',
-      badgeBg: 'rgba(255, 82, 82, 0.18)',
-      badgeText: '#FF7676',
-    },
-    {
-      id: 'alert-4',
-      type: 'tech',
-      badge: 'PAGAMENTOS',
-      title: 'Pagamento Seguro com MB WAY',
-      description:
-        'Podes regularizar a tua quota anual e adquirir merchandising oficial na Loja G39 de forma 100% segura e instantânea. Todos os recibos ficam arquivados na tua área pessoal.',
-      actionText: null,
-      icon: CreditCard,
-      iconColor: '#00A3E0',
-      badgeBg: 'rgba(0, 163, 224, 0.18)',
-      badgeText: '#38BDF8',
-    },
-  ];
+  const {
+    alerts,
+    unreadCount,
+    selectedCategoryFilter,
+    markAsRead,
+    markAllAsRead,
+  } = useAlerts();
+
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [permStatus, setPermStatus] = useState('default');
+
+  useEffect(() => {
+    if (visible) {
+      setActiveFilter(selectedCategoryFilter || 'all');
+      setPermStatus(getNotificationPermission());
+    }
+  }, [visible, selectedCategoryFilter]);
+
+  const filteredAlerts = useMemo(() => {
+    const base =
+      activeFilter === 'all'
+        ? alerts
+        : alerts.filter((a) => a.category === activeFilter);
+    return [...base].sort((a, b) => {
+      if (Boolean(b.pinned) !== Boolean(a.pinned)) {
+        return Number(Boolean(b.pinned)) - Number(Boolean(a.pinned));
+      }
+      if (a.isRead !== b.isRead) {
+        return Number(a.isRead) - Number(b.isRead);
+      }
+      return 0;
+    });
+  }, [alerts, activeFilter]);
+
+  const handleActivatePush = async () => {
+    const res = await requestNotificationPermission();
+    setPermStatus(res);
+    if (res === 'granted') {
+      sendSmartphoneNotification('🟢⚪️ Alertas Grupo 39 Ativos!', {
+        body: 'Receberás comunicados da claque, avisos de dia de jogo e golos no teu smartphone.',
+      });
+    }
+  };
+
+  const handleTestNotification = async () => {
+    await sendSmartphoneNotification('⚽️ GOLO DO RIO AVE FC!', {
+      body: 'Golaço nos Arcos! A Bancada Poente do Grupo 39 em festa!',
+      tag: 'test-goal',
+    });
+  };
+
+  const handleCardPress = (item) => {
+    if (!item.isRead) {
+      markAsRead(item.id);
+    }
+  };
+
+  const handleActionPress = (item) => {
+    markAsRead(item.id);
+    onClose();
+    if (onSelectAction && item.actionType) {
+      onSelectAction(item.actionType, item);
+    }
+  };
+
+  if (!visible) return null;
 
   return (
     <Modal
@@ -87,76 +162,221 @@ export default function AlertasModal({
     >
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, !isDark && styles.modalContentLight]}>
-          {/* Header */}
+          {/* Header Unificado */}
           <View style={[styles.modalHeader, !isDark && styles.modalHeaderLight]}>
             <View style={styles.headerTitleRow}>
-              <View style={styles.headerIconWrapper}>
-                <Bell size={18} color={COLORS.primaryLight} />
+              <View style={[styles.headerIconWrapper, !isDark && styles.headerIconWrapperLight]}>
+                <Bell size={18} color={isDark ? COLORS.primaryLight : '#00874E'} />
               </View>
-              <View>
-                <Text style={[styles.headerTitle, !isDark && styles.textDark]}>
-                  Alertas & Avisos
-                </Text>
-                <Text style={[styles.headerSubtitle, !isDark && styles.textMutedDark]}>
-                  Comunicados Oficiais do Grupo 39
+              <View style={styles.headerTextCol}>
+                <View style={styles.headerTitleLine}>
+                  <Text style={[styles.headerTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                    Alertas & Comunicados
+                  </Text>
+                  {unreadCount > 0 && (
+                    <View style={styles.headerUnreadPill}>
+                      <Text style={styles.headerUnreadText}>{unreadCount} novos</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.headerSubtitle, !isDark && styles.textMutedDark]} numberOfLines={1}>
+                  Central Oficial do Grupo 39
                 </Text>
               </View>
             </View>
+
             <TouchableOpacity
               style={[styles.closeButton, !isDark && styles.closeButtonLight]}
               onPress={onClose}
               activeOpacity={0.7}
+              accessibilityLabel="Fechar alertas"
             >
               <X size={18} color={isDark ? '#FFF' : '#333'} />
             </TouchableOpacity>
           </View>
 
-          {/* Body */}
+          {/* Barra de Filtros + Marcar Todos como Lidos */}
+          <View style={[styles.filtersBar, !isDark && styles.filtersBarLight]}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filtersScrollContent}
+            >
+              {CATEGORY_FILTERS.map((cat) => {
+                const isSelected = activeFilter === cat.id;
+                const count =
+                  cat.id === 'all'
+                    ? alerts.length
+                    : alerts.filter((a) => a.category === cat.id).length;
+                if (cat.id !== 'all' && count === 0) return null;
+
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.filterChip,
+                      !isDark && styles.filterChipLight,
+                      isSelected && styles.filterChipActive,
+                    ]}
+                    onPress={() => setActiveFilter(cat.id)}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        !isDark && styles.filterChipTextLight,
+                        isSelected && styles.filterChipTextActive,
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {unreadCount > 0 && (
+              <TouchableOpacity
+                style={[styles.markAllBtn, !isDark && styles.markAllBtnLight]}
+                onPress={markAllAsRead}
+                activeOpacity={0.75}
+              >
+                <CheckCheck size={13} color={isDark ? '#00E676' : '#00874E'} />
+                <Text style={[styles.markAllText, !isDark && { color: '#00874E' }]}>
+                  Ler todos
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Corpo Scrollável */}
           <ScrollView
             style={styles.scrollArea}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {ALERTS.map((item) => {
-              const IconComp = item.icon;
+            {/* Card Compacto de Notificações Push no Smartphone */}
+            {isNotificationSupported() && (
+              <View style={[styles.pushCompactCard, !isDark && styles.pushCompactCardLight]}>
+                <View style={styles.pushLeft}>
+                  <View style={[styles.pushIconCircle, !isDark && styles.pushIconCircleLight]}>
+                    {permStatus === 'granted' ? (
+                      <CircleCheckBig size={15} color="#00E676" />
+                    ) : (
+                      <BellRing size={15} color={isDark ? '#00E676' : '#00874E'} />
+                    )}
+                  </View>
+                  <View style={styles.pushTextCol}>
+                    <Text style={[styles.pushTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                      {permStatus === 'granted'
+                        ? 'Alertas no Smartphone Ativos'
+                        : 'Ativar Alertas no Smartphone'}
+                    </Text>
+                    <Text style={[styles.pushSub, !isDark && styles.textMutedDark]} numberOfLines={1}>
+                      {permStatus === 'denied'
+                        ? 'Permissão bloqueada nas definições do browser'
+                        : permStatus === 'granted'
+                        ? 'Recebes avisos de golos e comunicados'
+                        : 'Recebe avisos urgentes da claque em tempo real'}
+                    </Text>
+                  </View>
+                </View>
+
+                {permStatus === 'granted' ? (
+                  <TouchableOpacity
+                    style={[styles.pushTestBtn, !isDark && styles.pushTestBtnLight]}
+                    onPress={handleTestNotification}
+                    activeOpacity={0.8}
+                  >
+                    <Send size={11} color={isDark ? '#00E676' : '#00874E'} />
+                    <Text style={[styles.pushTestText, !isDark && { color: '#00874E' }]}>
+                      Testar
+                    </Text>
+                  </TouchableOpacity>
+                ) : permStatus !== 'denied' ? (
+                  <TouchableOpacity
+                    style={styles.pushEnableBtn}
+                    onPress={handleActivatePush}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.pushEnableText}>Ativar</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            )}
+
+            {/* Lista de Comunicados */}
+            {filteredAlerts.map((item) => {
+              const { Icon, accent, badgeBg, badgeText } = getAlertVisuals(item, isDark);
+
               return (
-                <View
+                <TouchableOpacity
                   key={item.id}
-                  style={[styles.alertCard, !isDark && styles.alertCardLight]}
+                  style={[
+                    styles.alertCard,
+                    !isDark && styles.alertCardLight,
+                    !item.isRead && styles.alertCardUnread,
+                    !item.isRead && !isDark && styles.alertCardUnreadLight,
+                    { borderLeftColor: accent },
+                  ]}
+                  onPress={() => handleCardPress(item)}
+                  activeOpacity={0.88}
                 >
                   <View style={styles.cardTopRow}>
-                    <View
-                      style={[
-                        styles.cardBadge,
-                        { backgroundColor: item.badgeBg },
-                      ]}
-                    >
-                      <Text style={[styles.cardBadgeText, { color: item.badgeText }]}>
-                        {item.badge}
+                    <View style={styles.cardBadgesGroup}>
+                      <View style={[styles.cardBadge, { backgroundColor: badgeBg }]}>
+                        <Text style={[styles.cardBadgeText, { color: badgeText }]}>
+                          {item.badge}
+                        </Text>
+                      </View>
+                      {item.pinned && (
+                        <View style={[styles.pinnedChip, !isDark && styles.pinnedChipLight]}>
+                          <Pin size={9} color={isDark ? '#D5E4DC' : '#4A5D53'} />
+                          <Text style={[styles.pinnedChipText, !isDark && styles.textMutedDark]}>
+                            Fixado
+                          </Text>
+                        </View>
+                      )}
+                      {!item.isRead && (
+                        <View style={styles.unreadDotPill}>
+                          <View style={[styles.unreadDot, { backgroundColor: accent }]} />
+                          <Text style={[styles.unreadLabel, { color: badgeText }]}>Novo</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.cardTimeRow}>
+                      <Clock size={10} color={isDark ? '#7E9187' : '#6A7E74'} />
+                      <Text style={[styles.cardTimeText, !isDark && styles.textMutedDark]}>
+                        {item.timeLabel}
                       </Text>
                     </View>
-                    <IconComp size={16} color={item.iconColor} />
                   </View>
 
-                  <Text style={[styles.cardTitle, !isDark && styles.textDark]}>
-                    {item.title}
-                  </Text>
+                  <View style={styles.cardTitleRow}>
+                    <Icon size={15} color={accent} style={{ marginTop: 2 }} />
+                    <Text style={[styles.cardTitle, !isDark && styles.textDark]}>
+                      {item.title}
+                    </Text>
+                  </View>
 
                   <Text style={[styles.cardDesc, !isDark && styles.cardDescLight]}>
                     {item.description}
                   </Text>
 
-                  {item.actionText && (
+                  {item.actionLabel && (
                     <TouchableOpacity
                       style={[styles.cardActionBtn, !isDark && styles.cardActionBtnLight]}
-                      onPress={item.onPress}
+                      onPress={() => handleActionPress(item)}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.cardActionText}>{item.actionText}</Text>
-                      <ChevronRight size={14} color={COLORS.primaryLight} />
+                      <Text style={[styles.cardActionText, !isDark && { color: '#00874E' }]}>
+                        {item.actionLabel}
+                      </Text>
+                      <ChevronRight size={14} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </TouchableOpacity>
                   )}
-                </View>
+                </TouchableOpacity>
               );
             })}
           </ScrollView>
@@ -168,7 +388,7 @@ export default function AlertasModal({
               onPress={onClose}
               activeOpacity={0.85}
             >
-              <Text style={styles.closeFooterBtnText}>Compreendi</Text>
+              <Text style={styles.closeFooterBtnText}>Fechar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -183,12 +403,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.78)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
   },
   modalContent: {
     width: '100%',
-    maxWidth: 440,
-    maxHeight: '85%',
+    maxWidth: 450,
+    maxHeight: '88%',
     backgroundColor: '#121A15',
     borderRadius: 20,
     borderWidth: 1,
@@ -196,7 +416,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       web: {
-        boxShadow: '0 12px 36px rgba(0,0,0,0.6)',
+        boxShadow: '0 14px 40px rgba(0,0,0,0.65)',
       },
     }),
   },
@@ -208,8 +428,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
@@ -220,23 +440,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flex: 1,
+    marginRight: 8,
   },
   headerIconWrapper: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(0, 179, 104, 0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 179, 104, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerIconWrapperLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  headerTextCol: {
+    flex: 1,
+  },
+  headerTitleLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
   headerTitle: {
-    fontSize: 16,
+    color: '#FFFFFF',
+    fontSize: 15.5,
     fontWeight: '800',
-    color: '#FFF',
+  },
+  headerUnreadPill: {
+    backgroundColor: 'rgba(255, 82, 82, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 118, 118, 0.5)',
+    paddingHorizontal: 6.5,
+    paddingVertical: 1.5,
+    borderRadius: 999,
+  },
+  headerUnreadText: {
+    color: '#FF9A9A',
+    fontSize: 9.5,
+    fontWeight: '800',
   },
   headerSubtitle: {
+    color: '#9BB0A5',
     fontSize: 11,
-    color: COLORS.textMuted,
     marginTop: 1,
   },
   closeButton: {
@@ -248,71 +497,277 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonLight: {
-    backgroundColor: '#EDF2EE',
+    backgroundColor: '#F0F4F1',
+  },
+  filtersBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    gap: 8,
+  },
+  filtersBarLight: {
+    backgroundColor: '#F8FAF9',
+    borderBottomColor: '#E6ECE8',
+  },
+  filtersScrollContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  filterChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  filterChipLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#D6E3DC',
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: '#00C86F',
+  },
+  filterChipText: {
+    color: '#B8C9C0',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  filterChipTextLight: {
+    color: '#4A5D53',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
+  },
+  markAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 179, 104, 0.14)',
+    flexShrink: 0,
+  },
+  markAllBtnLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+  },
+  markAllText: {
+    color: '#00E676',
+    fontSize: 10.5,
+    fontWeight: '800',
   },
   scrollArea: {
     flexGrow: 0,
   },
   scrollContent: {
     padding: 14,
-    gap: 12,
+    gap: 11,
+  },
+  pushCompactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    backgroundColor: 'rgba(0, 179, 104, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.28)',
+    borderRadius: 13,
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+  },
+  pushCompactCardLight: {
+    backgroundColor: '#EEF8F2',
+    borderColor: 'rgba(0, 135, 78, 0.22)',
+  },
+  pushLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    flex: 1,
+  },
+  pushIconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0, 230, 118, 0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pushIconCircleLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  pushTextCol: {
+    flex: 1,
+  },
+  pushTitle: {
+    color: '#FFFFFF',
+    fontSize: 11.5,
+    fontWeight: '800',
+  },
+  pushSub: {
+    color: '#B5C8BE',
+    fontSize: 10,
+    marginTop: 1,
+  },
+  pushEnableBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 9,
+  },
+  pushEnableText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  pushTestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 230, 118, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  pushTestBtnLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.3)',
+  },
+  pushTestText: {
+    color: '#00E676',
+    fontSize: 10.5,
+    fontWeight: '800',
   },
   alertCard: {
-    backgroundColor: '#17241D',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderRadius: 14,
-    padding: 14,
+    padding: 13,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderLeftWidth: 3.5,
   },
   alertCardLight: {
-    backgroundColor: '#F5F9F6',
-    borderColor: '#DEE8E2',
+    backgroundColor: '#F9FBFA',
+    borderColor: '#E1EBE5',
+  },
+  alertCardUnread: {
+    backgroundColor: 'rgba(0, 179, 104, 0.08)',
+    borderColor: 'rgba(0, 230, 118, 0.24)',
+  },
+  alertCardUnreadLight: {
+    backgroundColor: '#F3FAF6',
+    borderColor: '#C5E3D2',
   },
   cardTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
     marginBottom: 8,
   },
+  cardBadgesGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+    flex: 1,
+  },
   cardBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 7.5,
+    paddingVertical: 2.5,
     borderRadius: 6,
   },
   cardBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 9.5,
+    fontWeight: '900',
     letterSpacing: 0.4,
   },
-  cardTitle: {
-    fontSize: 14,
+  pinnedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  pinnedChipLight: {
+    backgroundColor: '#E9F0EC',
+  },
+  pinnedChipText: {
+    color: '#D5E4DC',
+    fontSize: 9,
     fontWeight: '700',
-    color: '#FFF',
-    marginBottom: 6,
+  },
+  unreadDotPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  unreadDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  unreadLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+  },
+  cardTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  cardTimeText: {
+    color: '#8EA398',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 7,
+    marginBottom: 5,
+  },
+  cardTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    flex: 1,
+    lineHeight: 19,
   },
   cardDesc: {
+    color: '#C5D5CC',
     fontSize: 12,
-    lineHeight: 17,
-    color: COLORS.textSecondary,
-    marginBottom: 10,
+    lineHeight: 17.5,
   },
   cardDescLight: {
-    color: '#496053',
+    color: '#495E52',
   },
   cardActionBtn: {
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(0, 179, 104, 0.12)',
-    paddingVertical: 8,
+    backgroundColor: 'rgba(0, 179, 104, 0.14)',
     paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 8.5,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(0, 179, 104, 0.25)',
+    borderColor: 'rgba(0, 179, 104, 0.3)',
   },
   cardActionBtnLight: {
     backgroundColor: '#EAF5EE',
-    borderColor: '#BFE3CE',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
   },
   cardActionText: {
     color: COLORS.primaryLight,
@@ -320,7 +775,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   modalFooter: {
-    padding: 14,
+    padding: 13,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
@@ -328,20 +783,20 @@ const styles = StyleSheet.create({
     borderTopColor: '#E6ECE8',
   },
   closeFooterBtn: {
-    backgroundColor: '#00874E',
+    backgroundColor: COLORS.primary,
     paddingVertical: 11,
     borderRadius: 12,
     alignItems: 'center',
   },
   closeFooterBtnText: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '800',
   },
   textDark: {
-    color: '#0E2319',
+    color: '#112219',
   },
   textMutedDark: {
-    color: '#577263',
+    color: '#5E7266',
   },
 });

@@ -45,7 +45,6 @@ import EventosModal from '../components/EventosModal';
 import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
 import PagamentosModal from '../components/PagamentosModal';
 import HomeSlidingBanner from '../components/HomeSlidingBanner';
-import AlertasModal from '../components/AlertasModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -97,7 +96,6 @@ function HomeScreen({
   const [eventosModalVisible, setEventosModalVisible] = useState(false);
   const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
   const [pagamentosNoticeVisible, setPagamentosNoticeVisible] = useState(false);
-  const [alertasModalVisible, setAlertasModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
@@ -140,12 +138,6 @@ function HomeScreen({
     }
     return { text: `Arranca em ${Math.max(1, minutes)}m!`, isLive: false, isToday: true };
   }, [nextMatch?.rawDate, nextMatch?.date, nowTs]);
-
-  // Diretiva de bancada / Dress Code do jogo
-  const matchDressCode = useMemo(() => {
-    if (nextMatch?.dressCode) return nextMatch.dressCode;
-    return nextMatch?.isHome ? '🟢 Todos de Verde' : '🧣 Levar Cachecol';
-  }, [nextMatch?.dressCode, nextMatch?.isHome]);
 
   // Ponto de Encontro / Convívio oficial no Estádio dos Arcos
   const meetingPointInfo = useMemo(() => {
@@ -253,26 +245,20 @@ function HomeScreen({
         <View style={[styles.backgroundOverlay, !isDark && styles.backgroundOverlayLight]} />
       </View>
 
-      {/* BOTÃO DESLIZANTE INFORMATIVO: BOAS-VINDAS A SÓCIOS E ALERTAS */}
+      {/* BANNER DINÂMICO DE COMUNICADOS & ALERTAS ATIVOS */}
       <HomeSlidingBanner
         onOpenSocio={() => setSocioModalVisible(true)}
-        onOpenAlertas={() => setAlertasModalVisible(true)}
         isDark={isDark}
         isLoggedIn={isLoggedIn}
       />
 
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <View style={[styles.heroCard, !isDark && styles.heroCardLight, isSmallScreen && styles.heroCardSmall]}>
-        {/* Header do Confronto + Dress Code da Bancada */}
+        {/* Header do Confronto */}
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
             <Text style={[styles.compName, !isDark && styles.compNameLight]}>{nextMatch.competition || 'LIGA PORTUGAL BETCLIC'}</Text>
             <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>{nextMatch.round || '7.ª Jornada'}</Text>
-          </View>
-          <View style={[styles.dressCodePill, !isDark && styles.dressCodePillLight]}>
-            <Text style={[styles.dressCodeText, !isDark && styles.dressCodeTextLight]} numberOfLines={1}>
-              {matchDressCode}
-            </Text>
           </View>
         </View>
 
@@ -756,15 +742,6 @@ function HomeScreen({
         }}
       />
 
-      {/* Modal Dedicado de Alertas & Comunicados do Grupo 39 */}
-      <AlertasModal
-        visible={alertasModalVisible}
-        onClose={() => setAlertasModalVisible(false)}
-        onOpenSocio={() => setSocioModalVisible(true)}
-        onOpenJogos={() => setJogosModalVisible(true)}
-        isDark={isDark}
-      />
-
     </View>
   );
 }
@@ -930,15 +907,15 @@ const styles = StyleSheet.create({
   },
   teamName: {
     color: COLORS.white,
-    fontSize: 11.5,
+    fontSize: 12.5,
     fontWeight: '800',
     textAlign: 'center',
-    lineHeight: 14.5,
+    lineHeight: 15.5,
   },
   teamRole: {
     color: COLORS.textMuted,
-    fontSize: 9,
-    marginTop: 1,
+    fontSize: 9.5,
+    marginTop: 1.5,
   },
   vsColumn: {
     alignItems: 'center',
@@ -946,54 +923,30 @@ const styles = StyleSheet.create({
   },
   vsText: {
     color: '#FFF',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '900',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   stadiumTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 3.5,
     backgroundColor: '#1A2922',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     borderRadius: 6,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   stadiumTagText: {
     color: COLORS.white,
-    fontSize: 9.5,
+    fontSize: 10,
     fontWeight: '600',
   },
   matchTime: {
     color: COLORS.textSecondary,
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textAlign: 'center',
-  },
-
-  // Dress Code / Estado da Bancada no Header do Hero Card
-  dressCodePill: {
-    backgroundColor: 'rgba(0, 179, 104, 0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 230, 118, 0.35)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-    maxWidth: '48%',
-  },
-  dressCodePillLight: {
-    backgroundColor: 'rgba(0, 135, 78, 0.09)',
-    borderColor: 'rgba(0, 135, 78, 0.28)',
-  },
-  dressCodeText: {
-    color: '#00E676',
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-  },
-  dressCodeTextLight: {
-    color: '#00874E',
   },
 
   // Contagem Decrescente (Countdown) por baixo da data/hora
@@ -1019,7 +972,7 @@ const styles = StyleSheet.create({
   },
   countdownText: {
     color: '#00E676',
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
@@ -1088,7 +1041,7 @@ const styles = StyleSheet.create({
   },
   meetingPointBarText: {
     color: '#E6F4EC',
-    fontSize: 11.5,
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
     flexShrink: 1,
@@ -1126,7 +1079,7 @@ const styles = StyleSheet.create({
   },
   meetingMapTagText: {
     color: '#FFFFFF',
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.25,
   },
@@ -1466,9 +1419,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#00874E',
-    borderRadius: 13,
-    paddingVertical: 6.5,
-    paddingHorizontal: 12,
+    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 13,
     borderWidth: 1,
     borderColor: '#00B368',
     gap: 10,
@@ -1482,13 +1435,13 @@ const styles = StyleSheet.create({
     }),
   },
   chantsCenteredBtnSmall: {
-    paddingVertical: 5.5,
+    paddingVertical: 6.5,
     gap: 8,
   },
   chantsLogoWrapper: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     alignItems: 'center',
@@ -1497,9 +1450,9 @@ const styles = StyleSheet.create({
     borderColor: '#00B368',
   },
   chantsLogoImage: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
   },
   chantsTextBoxCentered: {
     flex: 1,
@@ -1515,7 +1468,7 @@ const styles = StyleSheet.create({
   },
   shortcutTitleCentered: {
     color: '#FFF',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '900',
     textAlign: 'center',
     letterSpacing: 0.3,
@@ -1775,12 +1728,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(17, 26, 20, 0.80)',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 11,
+    borderRadius: 13,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    gap: 8,
+    gap: 9,
     ...Platform.select({
       web: {
         backdropFilter: 'blur(8px)',
@@ -1806,17 +1759,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subShortcutIconBgCalendar: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
+    width: 30,
+    height: 30,
+    borderRadius: 8.5,
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   subShortcutIconBgCamera: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
+    width: 30,
+    height: 30,
+    borderRadius: 8.5,
     backgroundColor: 'rgba(0, 179, 104, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1824,7 +1777,7 @@ const styles = StyleSheet.create({
   subShortcutText: {
     flex: 1,
     color: '#FFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
   },
   subShortcutTextPagamentos: {
@@ -1880,12 +1833,12 @@ const styles = StyleSheet.create({
   },
   pagamentosFullTitle: {
     color: '#FFFFFF',
-    fontSize: 12.5,
+    fontSize: 13,
     fontWeight: '800',
   },
   pagamentosFullSub: {
     color: '#A0B4AA',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
     marginTop: 1,
   },
@@ -1898,8 +1851,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 179, 104, 0.14)',
     borderWidth: 1,
     borderColor: 'rgba(0, 230, 118, 0.28)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 8.5,
+    paddingVertical: 3.5,
     borderRadius: 999,
   },
   pagamentosCountPillLight: {
@@ -1908,7 +1861,7 @@ const styles = StyleSheet.create({
   },
   pagamentosCountText: {
     color: '#00E676',
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '800',
   },
   pagamentosCountTextLight: {
