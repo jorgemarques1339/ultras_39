@@ -497,7 +497,7 @@ export const FAN_ACHIEVEMENTS = [
   {
     id: 'ach-4',
     title: 'Voz da Bancada',
-    description: 'Publicar no Fórum e ensaiar cânticos na app',
+    description: 'Participar na app e ensaiar cânticos da claque',
     icon: 'Flame',
     unlocked: false,
     progress: '1/3 Ações',

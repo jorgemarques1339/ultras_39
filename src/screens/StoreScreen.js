@@ -7,8 +7,9 @@ import {
   ActivityIndicator,
   Platform,
   Linking,
-  useWindowDimensions,
+  Image,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { RefreshCw, ExternalLink, WifiOff } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -17,10 +18,23 @@ const STORE_URL = 'https://verdant-ember-d4vt.here.now/';
 const NativeWebView =
   Platform.OS !== 'web' ? require('react-native-webview').WebView : null;
 
-function StoreScreen({ isDark = true, isActive = false }) {
-  const { width } = useWindowDimensions();
-  const isTablet = width >= 650;
+// CSS/JS injetado em Android/iOS para dar sensação 100% nativa à loja embutida
+const NATIVE_EMBED_JS = `
+  (function() {
+    try {
+      var style = document.createElement('style');
+      style.innerHTML = [
+        'html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }',
+        'body { padding-bottom: 92px !important; }',
+        '::-webkit-scrollbar { display: none; }'
+      ].join(' ');
+      document.head.appendChild(style);
+    } catch (e) {}
+  })();
+  true;
+`;
 
+function StoreScreen({ isDark = true, isActive = false }) {
   const [hasActivated, setHasActivated] = useState(isActive);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -32,6 +46,19 @@ function StoreScreen({ isDark = true, isActive = false }) {
       setHasActivated(true);
     }
   }, [isActive, hasActivated]);
+
+  // Fallback de segurança para nunca deixar o ecrã de carregamento preso
+  useEffect(() => {
+    if (!hasActivated || !isLoading) return;
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => clearTimeout(safetyTimer);
+  }, [hasActivated, isLoading, reloadKey]);
+
+  const handleLoadFinished = useCallback(() => {
+    setIsLoading(false);
+  }, []);
 
   const handleReload = useCallback(() => {
     setHasError(false);
@@ -52,14 +79,8 @@ function StoreScreen({ isDark = true, isActive = false }) {
   }, []);
 
   return (
-    <View
-      style={[
-        styles.container,
-        !isDark && styles.containerLight,
-        { paddingBottom: isTablet ? 86 : 78 },
-      ]}
-    >
-      {/* Área Principal do WebView */}
+    <View style={[styles.container, !isDark && styles.containerLight]}>
+      {/* Área Edge-to-Edge Imersiva da Loja */}
       <View style={styles.webViewWrapper}>
         {hasError ? (
           <View style={[styles.errorState, !isDark && styles.errorStateLight]}>
@@ -100,13 +121,19 @@ function StoreScreen({ isDark = true, isActive = false }) {
               src={STORE_URL}
               title="Loja Oficial Grupo 39"
               style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 width: '100%',
                 height: '100%',
                 border: 'none',
+                display: 'block',
                 backgroundColor: isDark ? '#0D1310' : '#FFFFFF',
               }}
               allow="payment; clipboard-write; fullscreen"
-              onLoad={() => setIsLoading(false)}
+              onLoad={handleLoadFinished}
               onError={() => {
                 setIsLoading(false);
                 setHasError(true);
@@ -120,30 +147,58 @@ function StoreScreen({ isDark = true, isActive = false }) {
                 style={[styles.nativeWebView, !isDark && styles.nativeWebViewLight]}
                 javaScriptEnabled
                 domStorageEnabled
+                injectedJavaScript={NATIVE_EMBED_JS}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                bounces={false}
+                overScrollMode="never"
+                pullToRefreshEnabled
+                allowsInlineMediaPlayback
+                allowsBackForwardNavigationGestures
                 startInLoadingState={false}
                 onLoadStart={() => {
                   setIsLoading(true);
                   setHasError(false);
                 }}
-                onLoadEnd={() => setIsLoading(false)}
+                onLoadEnd={handleLoadFinished}
                 onError={() => {
                   setIsLoading(false);
                   setHasError(true);
                 }}
-                allowsBackForwardNavigationGestures
               />
             )
           )
         ) : null}
 
+        {/* Degradê inferior subtil para fundir a loja com a barra de navegação flutuante */}
+        {!hasError && (
+          <LinearGradient
+            colors={
+              isDark
+                ? ['rgba(13, 19, 16, 0)', 'rgba(13, 19, 16, 0.72)', 'rgba(13, 19, 16, 0.95)']
+                : ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.72)', 'rgba(255, 255, 255, 0.96)']
+            }
+            style={styles.bottomNavFade}
+            pointerEvents="none"
+          />
+        )}
+
+        {/* Ecrã de transição nativo com logótipo Grupo 39 enquanto a loja carrega */}
         {isLoading && !hasError && hasActivated && (
           <View
             style={[styles.loadingOverlay, !isDark && styles.loadingOverlayLight]}
             pointerEvents="none"
           >
-            <ActivityIndicator size="large" color={COLORS.primaryLight} />
+            <View style={[styles.loaderLogoCircle, !isDark && styles.loaderLogoCircleLight]}>
+              <Image
+                source={require('../../assets/logo_39.png')}
+                style={styles.loaderLogo}
+                resizeMode="contain"
+              />
+            </View>
+            <ActivityIndicator size="small" color={COLORS.primaryLight} style={{ marginTop: 6 }} />
             <Text style={[styles.loadingText, !isDark && styles.textMutedDark]}>
-              A carregar Loja Oficial G39...
+              A preparar Loja Oficial...
             </Text>
           </View>
         )}
@@ -155,6 +210,8 @@ function StoreScreen({ isDark = true, isActive = false }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#0D1310',
   },
   containerLight: {
@@ -162,6 +219,8 @@ const styles = StyleSheet.create({
   },
   webViewWrapper: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -172,26 +231,55 @@ const styles = StyleSheet.create({
   nativeWebViewLight: {
     backgroundColor: '#FFFFFF',
   },
+  bottomNavFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 86,
+    zIndex: 5,
+  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(13, 19, 16, 0.92)',
+    backgroundColor: '#0D1310',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
+    zIndex: 10,
   },
   loadingOverlayLight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    backgroundColor: '#FFFFFF',
+  },
+  loaderLogoCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(0, 179, 104, 0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loaderLogoCircleLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.08)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  loaderLogo: {
+    width: 48,
+    height: 48,
   },
   loadingText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12.5,
+    fontWeight: '700',
     color: '#A0B4AA',
+    letterSpacing: 0.2,
   },
   errorState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 28,
+    paddingBottom: 80,
     backgroundColor: '#0D1310',
   },
   errorStateLight: {

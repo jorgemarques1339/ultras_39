@@ -21,7 +21,7 @@ import AuthModal from './src/components/AuthModal';
 import ForumLoginPromptModal from './src/components/ForumLoginPromptModal';
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import ForumScreen from './src/screens/ForumScreen';
+import ApoioScreen from './src/screens/ApoioScreen';
 import CalendarScreen from './src/screens/CalendarScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import StoreScreen from './src/screens/StoreScreen';
@@ -81,16 +81,16 @@ function MainApp() {
   }, []);
 
   const [accessPromptVisible, setAccessPromptVisible] = useState(false);
-  const [accessPromptType, setAccessPromptType] = useState('forum');
+  const [accessPromptType, setAccessPromptType] = useState('apoio');
   const [pendingTabAfterLogin, setPendingTabAfterLogin] = useState(null);
   const [isSplashDone, setIsSplashDone] = useState(false);
 
-  // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (apenas nas restantes páginas; na Home e Fórum permanece sempre visível)
+  // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (na Home e Apoio permanece sempre visível; na Loja fica oculto)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
 
   const handleScroll = useCallback((event) => {
-    if (activeTab === 'home' || activeTab === 'forum') return;
+    if (activeTab === 'home' || activeTab === 'apoio') return;
 
     const currentY = event.nativeEvent.contentOffset.y;
     const diff = currentY - lastScrollY.current;
@@ -107,8 +107,8 @@ function MainApp() {
 
   const handleSelectTab = useCallback((tab) => {
     // Páginas de livre acesso sem login: Início e Loja.
-    // Fórum e Perfil requerem autenticação do adepto/sócio.
-    if (!isLoggedIn && (tab === 'forum' || tab === 'profile')) {
+    // Apoio e Perfil requerem autenticação do adepto/sócio.
+    if (!isLoggedIn && (tab === 'apoio' || tab === 'profile')) {
       setAccessPromptType(tab);
       setAccessPromptVisible(true);
       return;
@@ -232,11 +232,17 @@ function MainApp() {
           !isDark && !isTablet && styles.appContainerMobileLight,
         ]}
       >
-        {/* Cabeçalho Superior Retrátil com Animação Fluida & Alternador de Tema (Fixo na Página Inicial e Fórum) */}
+        {/* Cabeçalho Superior Retrátil (Oculto na Loja e no Apoio para experiência imersiva; fixo na Home) */}
         <Header
           onOpenNotifications={() => openAlertsModal('all')}
           unreadCount={unreadCount}
-          visible={(activeTab === 'home' || activeTab === 'forum') ? true : isHeaderVisible}
+          visible={
+            activeTab === 'store' || activeTab === 'apoio'
+              ? false
+              : activeTab === 'home'
+                ? true
+                : isHeaderVisible
+          }
           isDark={isDark}
           onToggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
@@ -263,11 +269,11 @@ function MainApp() {
             />
           </View>
 
-          <View style={[styles.tabContentPane, activeTab !== 'forum' && styles.hiddenPane]}>
-            <ForumScreen
+          <View style={[styles.tabContentPane, activeTab !== 'apoio' && styles.hiddenPane]}>
+            <ApoioScreen
               user={user}
-              onScroll={undefined}
               isDark={isDark}
+              isActive={activeTab === 'apoio'}
             />
           </View>
 
@@ -346,7 +352,7 @@ function MainApp() {
           onAuthSuccess={handleAuthSuccess}
         />
 
-        {/* Modal de Aviso para Fazer Login (Fórum ou Perfil da Claque) */}
+        {/* Modal de Aviso para Fazer Login (Apoio ou Perfil da Claque) */}
         <ForumLoginPromptModal
           visible={accessPromptVisible}
           type={accessPromptType}
@@ -359,7 +365,7 @@ function MainApp() {
               message:
                 accessPromptType === 'profile'
                   ? 'Inicia sessão para acederes ao teu Cartão Digital de Sócio e Perfil.'
-                  : 'Inicia sessão para que possas participar no Fórum da Claque.',
+                  : 'Inicia sessão para acederes ao Assistente de Apoio do Grupo 39.',
             });
           }}
           onOpenRegister={() => {
@@ -370,7 +376,7 @@ function MainApp() {
               message:
                 accessPromptType === 'profile'
                   ? 'Cria a tua conta para teres acesso ao teu Cartão Digital de Sócio e Perfil.'
-                  : 'Cria a tua conta para que possas participar no Fórum da Claque.',
+                  : 'Cria a tua conta para acederes ao Assistente de Apoio do Grupo 39.',
             });
           }}
           isDark={isDark}

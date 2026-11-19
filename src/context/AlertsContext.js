@@ -59,7 +59,7 @@ export const INITIAL_ALERTS = [
     title: 'Quota Anual Grupo 39 (12,00 €)',
     summary: 'Regulariza via MB WAY em segundos e mantém o cartão ativo',
     description:
-      'A quota anual de 12,00 € é essencial para sustentar o material de bancada e as iniciativas da claque. Mantém o teu cartão digital de sócio ativo e acede ao Fórum oficial do Grupo 39.',
+      'A quota anual de 12,00 € é essencial para sustentar o material de bancada e as iniciativas da claque. Mantém o teu cartão digital de sócio ativo e acede ao Apoio oficial do Grupo 39.',
     timeLabel: 'Ontem',
     pinned: false,
     active: true,

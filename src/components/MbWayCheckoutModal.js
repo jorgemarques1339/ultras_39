@@ -516,7 +516,7 @@ export default function MbWayCheckoutModal({
                       </View>
                       <View style={styles.welcomePerkItem}>
                         <CheckCircle2 size={12} color="#00E676" />
-                        <Text style={styles.welcomePerkText}>Cartão digital e acesso imediato ao Fórum</Text>
+                        <Text style={styles.welcomePerkText}>Cartão digital e acesso imediato ao Apoio ao Adepto</Text>
                       </View>
                     </View>
                   </View>

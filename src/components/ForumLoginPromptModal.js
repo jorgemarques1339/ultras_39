@@ -37,18 +37,18 @@ function ForumLoginPromptModal({
   const IconComponent = isProfile ? User : (isPagamentos ? CreditCard : MessageSquare);
   const tagLabel = isProfile
     ? 'CARTÃO DE SÓCIO DIGITAL'
-    : (isPagamentos ? 'ÁREA RESERVADA · GRUPO 39' : 'COMUNIDADE GRUPO 39');
+    : (isPagamentos ? 'ÁREA RESERVADA · GRUPO 39' : 'ASSISTENTE VIRTUAL · G39');
   const title = isProfile
     ? 'Perfil do Sócio & Adepto'
-    : (isPagamentos ? 'Os Meus Pagamentos' : 'Fórum da Claque');
+    : (isPagamentos ? 'Os Meus Pagamentos' : 'Apoio ao Adepto');
   const subtitle = isProfile
     ? 'Cartão Digital & Quotas'
-    : (isPagamentos ? 'Histórico & Recibos SIBS' : 'Voz da Bancada Poente');
+    : (isPagamentos ? 'Histórico & Recibos SIBS' : 'Dúvidas Frequentes & Suporte');
   const description = isProfile
     ? 'Para acederes ao teu Perfil, Cartão Digital de Sócio, histórico de quotas e encomendas, precisas de iniciar sessão.'
     : (isPagamentos
       ? 'Para visualizar os Pagamentos e o histórico de transações executadas, tem que ter Login feito.'
-      : 'Para que possas participar no Fórum da Claque, precisas de iniciar sessão na tua conta de adepto ou sócio.');
+      : 'Para acederes ao Assistente de Apoio e esclarecer dúvidas sobre o Grupo 39, precisas de iniciar sessão na tua conta.');
 
   return (
     <Modal
@@ -186,7 +186,7 @@ function ForumLoginPromptModal({
                       <Flame size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Publica e responde a tópicos de bancada
+                      Respostas rápidas 24/7 às perguntas mais frequentes
                     </Text>
                   </View>
 
@@ -195,7 +195,7 @@ function ForumLoginPromptModal({
                       <MessageSquare size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Acompanha comunicados e iniciativas da claque
+                      Informações sobre quotas, bancada, jogos e sede
                     </Text>
                   </View>
 
@@ -204,7 +204,7 @@ function ForumLoginPromptModal({
                       <ShieldCheck size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Espaço oficial e moderado reservado a membros
+                      Atendimento oficial dedicado a sócios e adeptos
                     </Text>
                   </View>
                 </>

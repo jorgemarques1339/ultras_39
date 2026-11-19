@@ -29,8 +29,8 @@ const BENEFITS = [
   },
   {
     icon: MessageSquare,
-    title: 'Acesso ao Fórum da Claque',
-    desc: 'Participa nos debates, comunicados oficiais e organização de iniciativas na Bancada Poente.',
+    title: 'Acesso ao Apoio ao Adepto',
+    desc: 'Assistente virtual disponível 24/7 para responder às tuas dúvidas sobre o Grupo 39 e a Bancada Poente.',
   },
   {
     icon: Calendar,

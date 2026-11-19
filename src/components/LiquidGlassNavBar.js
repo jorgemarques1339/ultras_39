@@ -6,7 +6,7 @@ import { COLORS } from '../theme/colors';
 const NAV_ITEMS = [
   { id: 'home', icon: Home, label: 'Início' },
   { id: 'store', icon: ShoppingBag, label: 'Loja' },
-  { id: 'forum', icon: MessageSquare, label: 'Fórum', badge: '2' },
+  { id: 'apoio', icon: MessageSquare, label: 'Apoio' },
   { id: 'profile', icon: User, label: 'Perfil' },
 ];
 
@@ -35,7 +35,7 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
         {NAV_ITEMS.map((item) => {
           const IconComponent = item.icon;
           const isActive = activeTab === item.id;
-          const isItemLocked = (item.id === 'forum' || item.id === 'profile') && !isLoggedIn;
+          const isItemLocked = (item.id === 'apoio' || item.id === 'profile') && !isLoggedIn;
 
           return (
             <TouchableOpacity
