@@ -141,7 +141,7 @@ function PagamentosModal({
                   Nenhum pagamento efetuado ainda
                 </Text>
                 <Text style={[styles.emptyDesc, !isDark && styles.textMutedDark]}>
-                  As quotas, bilhetes de jogo e deslocações que pagares via MB WAY aparecerão detalhadas aqui.
+                  As quotas e encomendas da Loja Oficial que pagares via MB WAY aparecerão detalhadas aqui.
                 </Text>
               </View>
             ) : (

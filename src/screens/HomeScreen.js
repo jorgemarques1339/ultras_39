@@ -14,10 +14,8 @@ import {
 import Svg, { Circle, Path, Rect, Line } from 'react-native-svg';
 import {
   MapPin,
-  Ticket,
   ChevronRight,
   Flame,
-  Bus,
   Sparkles,
   Users,
   Drum,
@@ -31,13 +29,11 @@ import {
   Calendar as CalendarIcon,
   Lock,
   CreditCard,
-  CheckCircle2,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
 import { getNextMatchData } from '../services/matchesService';
 import ClubBadge from '../components/ClubBadge';
-import DeslocacaoModal from '../components/DeslocacaoModal';
 import TabelaModal from '../components/TabelaModal';
 import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
@@ -47,7 +43,6 @@ import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
 import PagamentosModal from '../components/PagamentosModal';
 import HomeSlidingBanner from '../components/HomeSlidingBanner';
 import AlertasModal from '../components/AlertasModal';
-import BilheteModal from '../components/BilheteModal';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -75,9 +70,8 @@ function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
 function HomeScreen({
   user,
   transactions = [],
-  onBuyTicket,
+  onCheckout,
   onViewReceipt,
-  onDeleteTicket,
   onNavigateTab,
   onScroll,
   onOpenChants,
@@ -93,20 +87,6 @@ function HomeScreen({
 
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
-  const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
-  const [deslocacaoNoticeVisible, setDeslocacaoNoticeVisible] = useState(false);
-  const [simulatedUnlocked, setSimulatedUnlocked] = useState(false);
-
-  // Regra da Deslocação: Para utilizadores sem login, o botão só fica ativo 3 dias antes do jogo (19 de Setembro -> 16 de Setembro).
-  // Para utilizadores com login (Sócios), está SEMPRE ativo por 7,50€.
-  const isGuestDeslocacaoUnlocked = useMemo(() => {
-    if (simulatedUnlocked) return true;
-    const now = new Date();
-    const unlockDate = new Date('2026-09-16T00:00:00');
-    return now >= unlockDate;
-  }, [simulatedUnlocked]);
-
-  const canAccessDeslocacao = isLoggedIn || isGuestDeslocacaoUnlocked;
   const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [socioModalVisible, setSocioModalVisible] = useState(false);
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
@@ -115,59 +95,9 @@ function HomeScreen({
   const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
   const [pagamentosNoticeVisible, setPagamentosNoticeVisible] = useState(false);
   const [alertasModalVisible, setAlertasModalVisible] = useState(false);
-  const [bilheteModalVisible, setBilheteModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
-
-  // Verificar se o utilizador já adquiriu bilhete ou autocarro para o jogo
-  const purchasedTicket = useMemo(() => {
-    if (!transactions || transactions.length === 0) return null;
-
-    const opponentName = (nextMatch?.isHome ? nextMatch?.awayTeam?.name : nextMatch?.homeTeam?.name) || '';
-    const opponentKeyword = opponentName.toLowerCase().replace('fc', '').trim();
-
-    return (
-      transactions.find((tx) => {
-        // Ignorar transações de demonstração antigas do mock
-        if (tx.id === 'tx-mbw-9452' || tx.id === 'tx-mbw-8910') return false;
-
-        const isTicketOrBus =
-          tx.type === 'ticket' ||
-          tx.type === 'bus' ||
-          tx.type === 'caravan' ||
-          tx.category?.toLowerCase().includes('bilhética') ||
-          tx.category?.toLowerCase().includes('deslocação') ||
-          tx.title?.toLowerCase().includes('bilhete') ||
-          tx.title?.toLowerCase().includes('deslocação');
-
-        if (!isTicketOrBus) return false;
-
-        // Correspondência por ID do jogo
-        if (tx.matchId && nextMatch?.id && tx.matchId === nextMatch.id) return true;
-
-        // Correspondência por adversário
-        if (opponentKeyword && tx.title?.toLowerCase().includes(opponentKeyword)) return true;
-
-        // Correspondência por Alverca
-        if (tx.title?.toLowerCase().includes('alverca')) return true;
-
-        // Qualquer compra de bilhete/deslocação recém efetuada no app
-        if (
-          tx.id &&
-          tx.id.startsWith('tx-mbw-') &&
-          !['tx-mbw-9821', 'tx-mbw-9452', 'tx-mbw-8910', 'tx-mbw-8712'].includes(tx.id)
-        ) {
-          return true;
-        }
-
-        return false;
-      }) || null
-    );
-  }, [transactions, nextMatch]);
-
-  const matchTicketsPct = 78;
-  const deslocacaoTicketsPct = 64;
   const mainScrollRef = useRef(null);
 
   // Carregar dados oficiais do próximo jogo em tempo real (mesma API dos Jogos)
@@ -197,28 +127,6 @@ function HomeScreen({
     };
   }, []);
 
-  // Efeito de pulso contínuo no botão Deslocações
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 750,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1.0,
-          duration: 750,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ])
-    );
-    pulseLoop.start();
-    return () => pulseLoop.stop();
-  }, [pulseAnim]);
-
   const handleVoteMotm = useCallback((playerId) => {
     setVotedPlayerId((current) => {
       if (current === playerId) return current;
@@ -245,8 +153,8 @@ function HomeScreen({
         });
       }
     } else {
-      if (onBuyTicket) {
-        onBuyTicket({
+      if (onCheckout) {
+        onCheckout({
           title: 'Inscrição de Sócio · Quota Anual 2026/2027',
           category: 'Quota Oficial Grupo 39',
           amount: 12.00,
@@ -257,7 +165,7 @@ function HomeScreen({
         });
       }
     }
-  }, [isLoggedIn, onOpenAuth, onBuyTicket, user?.phone]);
+  }, [isLoggedIn, onOpenAuth, onCheckout, user?.phone]);
 
   return (
     <View
@@ -279,16 +187,9 @@ function HomeScreen({
         <View style={[styles.backgroundOverlay, !isDark && styles.backgroundOverlayLight]} />
       </View>
 
-      {/* BOTÃO DESLIZANTE INFORMATIVO: BOAS-VINDAS A SÓCIOS, PRÓXIMA DESLOCAÇÃO E ALERTAS */}
+      {/* BOTÃO DESLIZANTE INFORMATIVO: BOAS-VINDAS A SÓCIOS E ALERTAS */}
       <HomeSlidingBanner
         onOpenSocio={() => setSocioModalVisible(true)}
-        onOpenDeslocacao={() => {
-          if (canAccessDeslocacao) {
-            setDeslocacaoModalVisible(true);
-          } else {
-            setDeslocacaoNoticeVisible(true);
-          }
-        }}
         onOpenAlertas={() => setAlertasModalVisible(true)}
         isDark={isDark}
         isLoggedIn={isLoggedIn}
@@ -346,129 +247,6 @@ function HomeScreen({
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
-
-        {/* DISPONIBILIDADE DE BILHETES OU DESLOCAÇÃO DO PRÓXIMO JOGO */}
-        <View style={styles.heroAvailabilityWrapper}>
-          <View style={styles.heroAvailabilityRow}>
-            <View style={styles.heroAvailabilityLeft}>
-              <View style={styles.heroAvailabilityPulseDot} />
-              <Text style={[styles.heroAvailabilityText, !isDark && styles.heroAvailabilityTextLight]}>
-                {nextMatch.isHome ? 'Bilhetes Disponíveis' : 'Lugares na Caravana G39'}
-              </Text>
-            </View>
-            <Text style={[styles.heroAvailabilityPct, !isDark && styles.heroAvailabilityPctLight]}>
-              {nextMatch.isHome ? matchTicketsPct : deslocacaoTicketsPct}%
-            </Text>
-          </View>
-          <View style={[styles.heroAvailabilityTrack, !isDark && styles.heroAvailabilityTrackLight]}>
-            <View style={[styles.heroAvailabilityFill, { width: `${nextMatch.isHome ? matchTicketsPct : deslocacaoTicketsPct}%` }]} />
-          </View>
-        </View>
-
-        {/* CTA BILHÉTICA / DESLOCAÇÃO INTEGRADO OU BOTÃO BILHETE APÓS COMPRA */}
-        {purchasedTicket ? (
-          <TouchableOpacity
-            style={[
-              styles.heroTicketPurchasedCard,
-              !isDark && styles.heroTicketPurchasedCardLight,
-            ]}
-            onPress={() => setBilheteModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <View style={styles.heroTicketPurchasedLeft}>
-              <View
-                style={[
-                  styles.ticketPurchasedIconBox,
-                  !isDark && styles.ticketPurchasedIconBoxLight,
-                ]}
-              >
-                <Ticket size={15} color={isDark ? '#00E676' : '#00874E'} />
-              </View>
-              <View style={styles.ticketPurchasedCol}>
-                <Text
-                  style={[
-                    styles.heroBuyTitlePurchased,
-                    !isDark && styles.heroBuyTitlePurchasedLight,
-                  ]}
-                >
-                  Bilhete
-                </Text>
-                <Text
-                  style={[
-                    styles.heroBuySubPurchased,
-                    !isDark && styles.heroBuySubPurchasedLight,
-                  ]}
-                >
-                  Clique para ver detalhes
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.heroTicketPurchasedRight}>
-              <View
-                style={[
-                  styles.ticketPurchasedBadge,
-                  !isDark && styles.ticketPurchasedBadgeLight,
-                ]}
-              >
-                <CheckCircle2 size={11} color={isDark ? '#00E676' : '#00874E'} />
-                <Text
-                  style={[
-                    styles.ticketPurchasedBadgeText,
-                    !isDark && styles.ticketPurchasedBadgeTextLight,
-                  ]}
-                >
-                  Emitido
-                </Text>
-              </View>
-              <ChevronRight size={15} color={isDark ? '#00E676' : '#00874E'} />
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={styles.heroBuyBtn}
-            onPress={() => {
-              if (!nextMatch.isHome) {
-                if (canAccessDeslocacao) {
-                  setDeslocacaoModalVisible(true);
-                } else {
-                  setDeslocacaoNoticeVisible(true);
-                }
-                return;
-              }
-              const memberPrice = 7.50;
-              const nonMemberPrice = 10.00;
-              const finalPrice = isLoggedIn ? memberPrice : nonMemberPrice;
-              onBuyTicket({
-                title: `Bilhete Grupo 39 · ${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
-                category: 'Bilhética Oficial RAFC',
-                amount: finalPrice,
-                originalPrice: nonMemberPrice,
-                discount: isLoggedIn ? (nonMemberPrice - memberPrice) : 0,
-                type: 'ticket',
-                matchId: nextMatch.id,
-                matchTitle: `${nextMatch.homeTeam.name} vs ${nextMatch.awayTeam.name}`,
-                matchDate: nextMatch.dateFormatted,
-                stadium: nextMatch.stadium,
-                sector: nextMatch.sector,
-                isHome: nextMatch.isHome,
-              });
-            }}
-            activeOpacity={0.85}
-          >
-            <View style={styles.heroBuyContent}>
-              <View style={styles.heroBuyLeft}>
-                <View style={styles.ticketIconBox}>
-                  {nextMatch.isHome ? <Ticket size={13} color="#FFF" /> : <Bus size={13} color="#FFF" />}
-                </View>
-                <Text style={styles.heroBuyTitle}>
-                  {nextMatch.isHome ? 'Comprar Bilhete' : 'Garantir Deslocação (Autocarro + Bilhete)'}
-                </Text>
-              </View>
-              <ChevronRight size={14} color="#FFF" />
-            </View>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* 2. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
@@ -588,82 +366,7 @@ function HomeScreen({
 
         {/* GRELHA UNIFICADA E COMPACTA */}
         <View style={styles.shortcutsGridContainer}>
-          {/* 1ª LINHA: BOTÃO DESLOCAÇÃO SOZINHO */}
-          <View style={styles.singleShortcutRow}>
-            {canAccessDeslocacao ? (
-              <Animated.View
-                style={[
-                  styles.animatedBusWrapperSingle,
-                  { transform: [{ scale: pulseAnim }] },
-                ]}
-              >
-                <TouchableOpacity
-                  style={[styles.subShortcutCardPulsingSingle, !isDark && styles.subShortcutCardPulsingLight]}
-                  onPress={() => setDeslocacaoModalVisible(true)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.busLeftCol}>
-                    <View style={styles.subShortcutIconBgBus}>
-                      <Bus size={16} color={COLORS.primaryLight} />
-                    </View>
-                    <View style={styles.busTextRowSingle}>
-                      <Text style={[styles.subShortcutTextPulsingSingle, !isDark && styles.subShortcutTextPulsingLight]} numberOfLines={1}>
-                        Deslocação
-                      </Text>
-                      <View style={styles.livePulseDot} />
-                    </View>
-                  </View>
-                  {/* A MEIO: DISPONIBILIDADE DE BILHETES / LUGARES */}
-                  <View style={[styles.busAvailabilityBadge, !isDark && styles.busAvailabilityBadgeLight]}>
-                    <View style={styles.busAvailabilityMiniTrack}>
-                      <View style={[styles.busAvailabilityMiniFill, { width: `${deslocacaoTicketsPct}%` }]} />
-                    </View>
-                    <Text style={[styles.busAvailabilityText, !isDark && styles.busAvailabilityTextLight]}>
-                      {deslocacaoTicketsPct}% disp.
-                    </Text>
-                  </View>
-                  <View style={styles.singleRowRight}>
-                    <Text style={styles.singleRowPriceBadge}>19 Set · 7,50 €</Text>
-                    <ChevronRight size={14} color={COLORS.primaryLight} />
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.subShortcutCardLockedSingle, !isDark && styles.subShortcutCardLockedLight]}
-                onPress={() => setDeslocacaoNoticeVisible(true)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.busLeftCol}>
-                  <View style={styles.subShortcutIconBgLocked}>
-                    <Lock size={15} color={isDark ? '#F2B600' : '#8A6D00'} />
-                  </View>
-                  <View style={styles.busTextRowSingle}>
-                    <Text style={[styles.subShortcutTextSingle, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                      Deslocação
-                    </Text>
-                  </View>
-                </View>
-                {/* A MEIO: DISPONIBILIDADE DE BILHETES / LUGARES */}
-                <View style={[styles.busAvailabilityBadge, !isDark && styles.busAvailabilityBadgeLight]}>
-                  <View style={styles.busAvailabilityMiniTrack}>
-                    <View style={[styles.busAvailabilityMiniFill, { width: `${deslocacaoTicketsPct}%` }]} />
-                  </View>
-                  <Text style={[styles.busAvailabilityText, !isDark && styles.busAvailabilityTextLight]}>
-                    {deslocacaoTicketsPct}% disp.
-                  </Text>
-                </View>
-                <View style={styles.singleRowRight}>
-                  <Text style={styles.lockedBadgeTextSingle}>
-                    19 Set · 10€
-                  </Text>
-                  <ChevronRight size={14} color={isDark ? '#7E9187' : '#5A6E63'} />
-                </View>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* 2ª LINHA: JOGOS AO LADO DE TABELA */}
+          {/* 1ª LINHA: JOGOS AO LADO DE TABELA */}
           <View style={styles.subShortcutsRow}>
             <TouchableOpacity
               style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
@@ -839,53 +542,10 @@ function HomeScreen({
         </View>
       </View>
 
-      {/* Modal Dedicado da Deslocação Oficial */}
-      <DeslocacaoModal
-        visible={deslocacaoModalVisible}
-        onClose={() => setDeslocacaoModalVisible(false)}
-        onBuyTicket={onBuyTicket}
-        isDark={isDark}
-        isLoggedIn={isLoggedIn}
-        onOpenAuth={onOpenAuth}
-      />
-
-      {/* Modal de Aviso: Deslocação Bloqueada para Não-Sócios (Layout idêntico ao Fórum) */}
-      <ForumLoginPromptModal
-        visible={deslocacaoNoticeVisible}
-        onClose={() => setDeslocacaoNoticeVisible(false)}
-        type="deslocacao"
-        isDark={isDark}
-        onOpenLogin={() => {
-          setDeslocacaoNoticeVisible(false);
-          if (onOpenAuth) {
-            onOpenAuth({
-              initialTab: 'login',
-              message: 'Inicia sessão como Sócio para acederes à Deslocação a Alverca por apenas 7,50 €.',
-            });
-          }
-        }}
-        onOpenRegister={() => {
-          setDeslocacaoNoticeVisible(false);
-          if (onOpenAuth) {
-            onOpenAuth({
-              initialTab: 'register',
-              message: 'Cria a tua conta para te fazeres Sócio do Grupo 39 e acederes à Deslocação a Alverca.',
-            });
-          }
-        }}
-        onSimulateUnlock={() => {
-          setSimulatedUnlocked(true);
-          setDeslocacaoNoticeVisible(false);
-          setDeslocacaoModalVisible(true);
-        }}
-      />
-
       {/* Modal de Jogos e Calendário Oficial em Direto */}
       <JogosModal
         visible={jogosModalVisible}
         onClose={() => setJogosModalVisible(false)}
-        onBuyTicket={onBuyTicket}
-        onOpenDeslocacao={() => setDeslocacaoModalVisible(true)}
         isDark={isDark}
       />
 
@@ -968,27 +628,8 @@ function HomeScreen({
         visible={alertasModalVisible}
         onClose={() => setAlertasModalVisible(false)}
         onOpenSocio={() => setSocioModalVisible(true)}
-        onOpenDeslocacao={() => {
-          if (canAccessDeslocacao) {
-            setDeslocacaoModalVisible(true);
-          } else {
-            setDeslocacaoNoticeVisible(true);
-          }
-        }}
         onOpenJogos={() => setJogosModalVisible(true)}
         isDark={isDark}
-      />
-
-      {/* Modal Dedicado de Bilhete Digital Adquirido */}
-      <BilheteModal
-        visible={bilheteModalVisible}
-        onClose={() => setBilheteModalVisible(false)}
-        ticket={purchasedTicket}
-        nextMatch={nextMatch}
-        user={user}
-        isDark={isDark}
-        onViewReceipt={onViewReceipt}
-        onDeleteTicket={onDeleteTicket}
       />
 
     </View>

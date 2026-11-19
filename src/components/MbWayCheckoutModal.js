@@ -56,13 +56,13 @@ export default function MbWayCheckoutModal({
   const timerRef = useRef(null);
 
   const safeData = checkoutData || {
-    title: 'Bilhete Bancada Grupo 39',
-    category: 'Bilhética Oficial RAFC',
-    amount: 7.50,
-    originalPrice: 10.00,
-    discount: 2.50,
+    title: 'Quota Oficial Grupo 39',
+    category: 'Quota Anual de Sócio',
+    amount: 12.00,
+    originalPrice: 12.00,
+    discount: 0,
     phone: '912 345 678',
-    type: 'ticket',
+    type: 'quota',
   };
 
   // Reiniciar estado ao abrir
@@ -508,11 +508,11 @@ export default function MbWayCheckoutModal({
                     <View style={styles.welcomePerksBox}>
                       <View style={styles.welcomePerkItem}>
                         <CheckCircle2 size={12} color="#00E676" />
-                        <Text style={styles.welcomePerkText}>Desconto nos bilhetes em todos os jogos nos Arcos</Text>
+                        <Text style={styles.welcomePerkText}>Desconto exclusivo de sócio na Loja Oficial G39</Text>
                       </View>
                       <View style={styles.welcomePerkItem}>
                         <CheckCircle2 size={12} color="#00E676" />
-                        <Text style={styles.welcomePerkText}>Prioridade e preço exclusivo em autocarros oficiais</Text>
+                        <Text style={styles.welcomePerkText}>Prioridade em convívios, eventos e iniciativas da claque</Text>
                       </View>
                       <View style={styles.welcomePerkItem}>
                         <CheckCircle2 size={12} color="#00E676" />

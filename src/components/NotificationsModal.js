@@ -11,9 +11,7 @@ import {
 import {
   X,
   Bell,
-  Ticket,
   CreditCard,
-  Bus,
   Sparkles,
   Check,
   BellRing,
@@ -43,7 +41,7 @@ export default function NotificationsModal({ visible, onClose, onSelectAction, i
     setPermStatus(res);
     if (res === 'granted') {
       sendSmartphoneNotification('🟢⚪️ Notificações Ativas!', {
-        body: 'Receberás avisos de golos, autocarros e bilhetes no teu smartphone.',
+        body: 'Receberás avisos de golos, jogos e novidades do Grupo 39 no teu smartphone.',
       });
     }
   };
@@ -65,26 +63,6 @@ export default function NotificationsModal({ visible, onClose, onSelectAction, i
       time: 'Há 1 hora',
       unread: true,
       action: 'pay_quota',
-    },
-    {
-      id: 'notif-2',
-      type: 'ticket',
-      icon: Ticket,
-      title: 'Bancada Poente: vs Estrela da Amadora',
-      desc: 'Segunda-feira nos Arcos às 20h15. 120 bilhetes restantes para sócios G39.',
-      time: 'Há 3 horas',
-      unread: true,
-      action: 'buy_ticket',
-    },
-    {
-      id: 'notif-3',
-      type: 'bus',
-      icon: Bus,
-      title: 'Caravana a Alverca Confirmada',
-      desc: 'Autocarro para a 7.ª Jornada a 19 de Setembro com 60% dos lugares reservados.',
-      time: 'Ontem',
-      unread: false,
-      action: 'bus_trip',
     },
   ];
 

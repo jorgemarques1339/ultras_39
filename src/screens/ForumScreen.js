@@ -34,7 +34,7 @@ import {
 import { COLORS } from '../theme/colors';
 import { FORUM_CATEGORIES, INITIAL_FORUM_POSTS } from '../data/mockData';
 
-function ForumScreen({ user, onBuyTicket, onScroll, isDark = true }) {
+function ForumScreen({ user, onScroll, isDark = true }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 

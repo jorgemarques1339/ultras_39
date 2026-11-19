@@ -411,7 +411,7 @@ function AuthModal({
 
             <View style={styles.infoFooter}>
               <Text style={[styles.infoFooterText, !isDark && styles.textMutedDark]}>
-                Acesso livre sem login às páginas Início e Loja. O Fórum, Perfil e Deslocações antecipadas com preço de sócio (7,50 €) requerem sessão iniciada.
+                Acesso livre sem login às páginas Início e Loja. O Fórum e o Perfil de Sócio requerem sessão iniciada.
               </Text>
             </View>
           </ScrollView>

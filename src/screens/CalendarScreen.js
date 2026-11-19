@@ -11,8 +11,6 @@ import {
   Calendar as CalendarIcon,
   MapPin,
   Clock,
-  Ticket,
-  ChevronRight,
   Trophy,
   Navigation,
   ArrowLeft,
@@ -21,7 +19,7 @@ import { COLORS } from '../theme/colors';
 import { CALENDAR_MATCHES, PAST_RESULTS } from '../data/mockData';
 import ClubBadge from '../components/ClubBadge';
 
-function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
+function CalendarScreen({ onScroll, onBack, isDark = true }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
 
   return (
@@ -178,51 +176,6 @@ function CalendarScreen({ onBuyTicket, onScroll, onBack, isDark = true }) {
                       {match.stadium}
                     </Text>
                   </View>
-                </View>
-
-                {/* Ação de Bilhética / Autocarro */}
-                <View style={styles.matchActions}>
-                  {match.isHome ? (
-                    <TouchableOpacity
-                      style={styles.ticketButton}
-                      onPress={() =>
-                        onBuyTicket({
-                          title: `Bilhete ${match.home} vs ${match.away}`,
-                          category: 'Bilhética Liga Portugal',
-                          amount: match.priceMember,
-                          originalPrice: match.priceMember + 10,
-                          discount: 10,
-                          type: 'ticket',
-                        })
-                      }
-                      activeOpacity={0.8}
-                    >
-                      <Ticket size={15} color="#FFF" />
-                      <Text style={styles.ticketButtonText}>
-                        Garantir Bilhete MB WAY ({match.priceMember.toFixed(2)} €)
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={[styles.ticketButton, styles.busButton]}
-                      onPress={() =>
-                        onBuyTicket({
-                          title: `Pack Deslocação + Bilhete ${match.home} vs ${match.away}`,
-                          category: 'Deslocação Oficial Grupo 39',
-                          amount: match.busPrice || 7.50,
-                          originalPrice: (match.busPrice || 7.50) + 7.50,
-                          discount: 7.50,
-                          type: 'bus',
-                        })
-                      }
-                      activeOpacity={0.8}
-                    >
-                      <Navigation size={15} color="#FFF" />
-                      <Text style={styles.ticketButtonText}>
-                        Caravana Autocarro MB WAY ({(match.busPrice || 7.50).toFixed(2)} €)
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                 </View>
               </View>
             ))}

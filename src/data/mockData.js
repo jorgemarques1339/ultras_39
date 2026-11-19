@@ -36,9 +36,6 @@ export const NEXT_MATCH = {
     color: '#00874E',
   },
   sector: 'Setor Visitante (Grupo 39)',
-  ticketPriceMember: 7.50,
-  ticketPricePublic: 10.00,
-  totalAvailableTickets: 80,
 };
 
 export const CALENDAR_MATCHES = [
@@ -52,10 +49,6 @@ export const CALENDAR_MATCHES = [
     stadium: 'Complexo Desportivo do FC Alverca',
     isHome: false,
     status: 'upcoming',
-    busOrganized: true,
-    busPrice: 7.50,
-    ticketAvailable: true,
-    priceMember: 10.00,
   },
   {
     id: 'cal-j08',
@@ -67,8 +60,6 @@ export const CALENDAR_MATCHES = [
     stadium: 'Estádio dos Arcos, Vila do Conde',
     isHome: true,
     status: 'upcoming',
-    ticketAvailable: true,
-    priceMember: 7.50,
   },
   {
     id: 'cal-j09',
@@ -80,8 +71,6 @@ export const CALENDAR_MATCHES = [
     stadium: 'Estádio dos Arcos, Vila do Conde',
     isHome: true,
     status: 'upcoming',
-    ticketAvailable: true,
-    priceMember: 8.50,
   },
 ];
 
@@ -164,13 +153,13 @@ export const FORUM_CATEGORIES = [
   },
   {
     id: 'deslocacao',
-    title: 'Deslocações',
-    desc: 'Autocarros organizados, bilhética fora de portas, pontos de concentração e viagens da caravana verde e branca.',
+    title: 'Jogos Fora & Encontros',
+    desc: 'Pontos de concentração, partilha de boleias e coordenação entre sócios nos jogos fora de casa.',
     icon: 'Bus',
     topicsCount: 8,
     postsCount: 54,
     lastPost: {
-      title: '🚌 Autocarro para Alverca (7.ª Jornada · 19 Setembro) - Inscrições Abertas',
+      title: '📍 Ponto de encontro em Alverca (7.ª Jornada · 19 Setembro)',
       author: 'Tiago Arcos',
       time: 'Há 1 hora',
     },
@@ -254,23 +243,23 @@ export const INITIAL_FORUM_POSTS = [
   {
     id: 'post-2',
     categoryId: 'deslocacao',
-    categoryName: 'Deslocações',
+    categoryName: 'Jogos Fora & Encontros',
     author: 'Tiago Arcos',
-    authorBadge: 'Comissão Deslocações',
+    authorBadge: 'Sócio 018',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     timeAgo: 'Há 1 hora',
-    title: '🚌 Autocarro para Alverca (7.ª Jornada · 19 Setembro) - Inscrições Abertas',
-    content: 'A caravana do Grupo 39 ruma ao Ribatejo no sábado 19 de Setembro! Saída do Cais da Alfândega às 11h30. O pack inclui autocarro ida/volta + bilhete no setor visitante por apenas 7,50 € para sócios (15,00 € público). Reserva imediata com MB WAY!',
+    title: '📍 Ponto de encontro em Alverca (7.ª Jornada · 19 Setembro)',
+    content: 'Para quem vai acompanhar o Rio Ave FC a Alverca no sábado 19 de Setembro, o ponto de concentração dos adeptos do Grupo 39 será junto ao parque exterior às 16h30 para entrarmos todos juntos no setor visitante.',
     upvotes: 38,
     hasUpvoted: false,
     commentsCount: 14,
-    tag: 'DESLOCAÇÃO',
+    tag: 'ENCONTRO',
     tagColor: '#F2B600',
     replies: [
       {
         id: 'rep-3',
         author: 'André Poente',
-        text: 'Lugar já reservado via MB WAY na app! Excelente organização.',
+        text: 'Lá estarei com o pessoal de Vila do Conde! Força Rio Ave!',
         time: 'Há 45 min',
       },
     ],
@@ -376,30 +365,6 @@ export const INITIAL_TRANSACTIONS = [
     statusColor: '#00C853',
   },
   {
-    id: 'tx-mbw-9452',
-    title: 'Bilhete Bancada Poente vs FC Porto',
-    category: 'Bilhética Oficial RAFC',
-    amount: 10.00,
-    date: '15 Ago 2026 · 17:45',
-    method: 'MB WAY',
-    phone: '912 345 678',
-    sibsRef: 'MBW-2026-RAFC-9452',
-    status: 'Concluído',
-    statusColor: '#00C853',
-  },
-  {
-    id: 'tx-mbw-8910',
-    title: 'Autocarro Caravana ao Estoril Praia',
-    category: 'Deslocações Claque',
-    amount: 7.50,
-    date: '22 Ago 2026 · 14:10',
-    method: 'MB WAY',
-    phone: '912 345 678',
-    sibsRef: 'MBW-2026-RAFC-8910',
-    status: 'Concluído',
-    statusColor: '#00C853',
-  },
-  {
     id: 'tx-mbw-8712',
     title: 'Cachecol Oficial Grupo 39',
     category: 'Loja Oficial G39',
@@ -448,105 +413,7 @@ export const MATCHDAY_DATA = {
 };
 
 // ==========================================
-// 2. LOJA OFICIAL DA CLAQUE (G39 STORE)
-// ==========================================
-export const STORE_PRODUCTS = [
-  {
-    id: 'prod-scarf-26',
-    title: 'Cachecol Oficial Época 2026/2027',
-    category: 'Cachecóis',
-    price: 12.00,
-    publicPrice: 15.00,
-    memberDiscount: 'Preço Sócio: 12,00 € (Público: 15,00 €)',
-    badge: 'OFICIAL G39',
-    image: 'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&w=400&q=70',
-    images: [
-      'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?auto=format&fit=crop&w=480&q=70',
-      'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&w=480&q=70',
-    ],
-    description: 'Tecido duplo acetinado de alta densidade com franjas verdes e brancas. Edição oficial comemorativa Grupo 39, ideal para erguer nos Arcos e levar nas deslocações da claque.',
-    sizes: ['Tamanho Único (140x18cm)'],
-    specs: [
-      { label: 'Material', value: '100% Acrílico Alta Densidade Acetinado' },
-      { label: 'Dimensões', value: '140 cm x 18 cm com franjas' },
-      { label: 'Fabrico', value: 'Produzido em Portugal' },
-      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
-    ],
-    inStock: true,
-  },
-  {
-    id: 'prod-tshirt-vdc',
-    title: 'T-Shirt "Vila do Conde no Coração"',
-    category: 'Vestuário',
-    price: 18.00,
-    publicPrice: 22.00,
-    memberDiscount: 'Preço Sócio: 18,00 € (Público: 22,00 €)',
-    badge: 'LANÇAMENTO',
-    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=400&q=70',
-    images: [
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=480&q=70',
-      'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=480&q=70',
-    ],
-    description: '100% Algodão Premium orgânico 190g com serigrafia de alta resistência. Emblema do Grupo 39 no peito e barco poveiro/vilacondense estilizado nas costas.',
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    specs: [
-      { label: 'Material', value: '100% Algodão Orgânico 190g' },
-      { label: 'Estampa', value: 'Serigrafia Têxtil Resistente' },
-      { label: 'Corte', value: 'Regular Fit Confortável' },
-      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
-    ],
-    inStock: true,
-  },
-  {
-    id: 'prod-cap-g39',
-    title: 'Boné Bordado G39 Trucker Green',
-    category: 'Acessórios',
-    price: 10.00,
-    publicPrice: 13.00,
-    memberDiscount: 'Preço Sócio: 10,00 € (Público: 13,00 €)',
-    badge: 'POPULAR',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=400&q=70',
-    images: [
-      'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=480&q=70',
-      'https://images.unsplash.com/photo-1575428652377-a2d80e2277fc?auto=format&fit=crop&w=480&q=70',
-    ],
-    description: 'Boné estilo trucker com rede respirável para dias de jogo sob sol e pala curva. Bordado 3D de alta definição com símbolo oficial Grupo 39.',
-    sizes: ['Ajustável (Snapback)'],
-    specs: [
-      { label: 'Tipo', value: 'Trucker com rede respirável' },
-      { label: 'Bordado', value: 'Logótipo G39 em Relevo 3D' },
-      { label: 'Fecho', value: 'Ajuste Snapback Traseiro' },
-      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
-    ],
-    inStock: true,
-  },
-  {
-    id: 'prod-stickers-pack',
-    title: 'Pack 10 Autocolantes Ultra G39',
-    category: 'Autocolantes',
-    price: 3.00,
-    publicPrice: 5.00,
-    memberDiscount: 'Pack Sócio: 3,00 € (Público: 5,00 €)',
-    badge: 'COLEÇÃO',
-    image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=70',
-    images: [
-      'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=480&q=70',
-      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=480&q=70',
-    ],
-    description: 'Vinil impermeável ultra resistente aos raios UV e intempéries. 10 designs exclusivos comemorativos da história e força do Grupo 39.',
-    sizes: ['10 Unidades Sortidas'],
-    specs: [
-      { label: 'Material', value: 'Vinil Adesivo Resistente à Água e UV' },
-      { label: 'Quantidade', value: '10 autocolantes variados' },
-      { label: 'Uso', value: 'Interior e Exterior' },
-      { label: 'Levantamento', value: 'Sede Grupo 39 ou Bancada Poente' },
-    ],
-    inStock: true,
-  },
-];
-
-// ==========================================
-// 3. CANCIONEIRO & REPRODUTOR DE CÂNTICOS
+// 2. CANCIONEIRO & REPRODUTOR DE CÂNTICOS
 // ==========================================
 export const CHANTS_DATA = [
   {

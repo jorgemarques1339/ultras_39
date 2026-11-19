@@ -140,10 +140,6 @@ export async function fetchLiveSchedule(force = false) {
         isHome,
         venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
         city: comp?.venue?.address?.city || (isHome ? 'Vila do Conde' : 'Portugal'),
-        ticketPriceMember: isHome ? 7.50 : null,
-        ticketPricePublic: isHome ? 10.00 : null,
-        ticketPrice: isHome ? '8,00 €' : null,
-        busAvailable: !isHome,
       };
     });
 
@@ -183,8 +179,6 @@ export async function getNextMatchData(force = false) {
         short: next.awayTeam.short,
         logo: next.awayTeam.logo,
       },
-      ticketPriceMember: next.ticketPriceMember || NEXT_MATCH.ticketPriceMember,
-      ticketPricePublic: next.ticketPricePublic || NEXT_MATCH.ticketPricePublic,
     };
   }
   return NEXT_MATCH;

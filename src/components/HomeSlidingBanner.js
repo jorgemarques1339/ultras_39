@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import {
   Users,
-  Bus,
   Flame,
   ChevronRight,
   Sparkles,
@@ -19,7 +18,6 @@ import { COLORS } from '../theme/colors';
 
 export default function HomeSlidingBanner({
   onOpenSocio,
-  onOpenDeslocacao,
   onOpenAlertas,
   isDark = true,
   isLoggedIn = false,
@@ -51,34 +49,20 @@ export default function HomeSlidingBanner({
         onPress: onOpenSocio,
       });
     }
-    list.push(
-      {
-        id: 'deslocacao',
-        badge: 'DESLOCAÇÃO',
-        title: 'Próxima Deslocação a Alverca',
-        subtitle: '19 Set · Autocarro desde 7,50 € · Reserva já',
-        icon: Bus,
-        iconColor: '#FFD700',
-        badgeBg: 'rgba(255, 215, 0, 0.18)',
-        badgeBorder: 'rgba(255, 215, 0, 0.45)',
-        badgeText: '#FFD700',
-        onPress: onOpenDeslocacao,
-      },
-      {
-        id: 'alertas',
-        badge: 'ALERTAS',
-        title: 'Alertas Importantes do Grupo 39',
-        subtitle: 'Quotas 2026/27, Apoio na Bancada e Avisos',
-        icon: Flame,
-        iconColor: '#FF5252',
-        badgeBg: 'rgba(255, 82, 82, 0.18)',
-        badgeBorder: 'rgba(255, 82, 82, 0.45)',
-        badgeText: '#FF7070',
-        onPress: onOpenAlertas,
-      }
-    );
+    list.push({
+      id: 'alertas',
+      badge: 'ALERTAS',
+      title: 'Alertas Importantes do Grupo 39',
+      subtitle: 'Quotas 2026/27, Apoio na Bancada e Avisos',
+      icon: Flame,
+      iconColor: '#FF5252',
+      badgeBg: 'rgba(255, 82, 82, 0.18)',
+      badgeBorder: 'rgba(255, 82, 82, 0.45)',
+      badgeText: '#FF7070',
+      onPress: onOpenAlertas,
+    });
     return list;
-  }, [isLoggedIn, onOpenSocio, onOpenDeslocacao, onOpenAlertas]);
+  }, [isLoggedIn, onOpenSocio, onOpenAlertas]);
 
   // Garantir que o index não excede o array caso mude o estado de login
   useEffect(() => {

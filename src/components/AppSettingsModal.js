@@ -172,7 +172,7 @@ export default function AppSettingsModal({ visible, onClose, isDark = true }) {
                     </View>
                   </View>
                   <Text style={[styles.settingDesc, !isDark && styles.textMutedDark]}>
-                    Alertas em tempo real de golos, convocatórias de bancada, bilhetes e avisos da claque.
+                    Alertas em tempo real de golos, convocatórias de bancada e avisos da claque.
                   </Text>
                 </View>
               </View>

@@ -15,7 +15,6 @@ import ReceiptModal from './src/components/ReceiptModal';
 import NotificationsModal from './src/components/NotificationsModal';
 import WalletPassModal from './src/components/WalletPassModal';
 import ChantsModal from './src/components/ChantsModal';
-import StoreModal from './src/components/StoreModal';
 import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
 import AuthModal from './src/components/AuthModal';
 import ForumLoginPromptModal from './src/components/ForumLoginPromptModal';
@@ -28,7 +27,6 @@ import StoreScreen from './src/screens/StoreScreen';
 import {
   INITIAL_USER,
   INITIAL_TRANSACTIONS,
-  NEXT_MATCH,
 } from './src/data/mockData';
 import { COLORS } from './src/theme/colors';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
@@ -120,11 +118,10 @@ function MainApp() {
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const [walletPassModalVisible, setWalletPassModalVisible] = useState(false);
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
-  const [storeModalVisible, setStoreModalVisible] = useState(false);
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
 
-  // Iniciar fluxo de compra de bilhete
-  const handleBuyTicket = useCallback((itemData) => {
+  // Iniciar fluxo de checkout MB WAY (Loja Oficial e Quotas)
+  const handleCheckout = useCallback((itemData) => {
     setCheckoutData({
       ...itemData,
       phone: user?.phone || '912 345 678',
@@ -135,7 +132,7 @@ function MainApp() {
   const handleAuthSuccess = useCallback(() => {
     if (authModalOptions?.pendingAction === 'pay_quota') {
       setTimeout(() => {
-        handleBuyTicket({
+        handleCheckout({
           title: 'Inscrição de Sócio · Quota Anual 2026/2027',
           category: 'Quota Oficial Grupo 39',
           amount: 12.00,
@@ -151,7 +148,7 @@ function MainApp() {
       setActiveTab(pendingTabAfterLogin);
       setPendingTabAfterLogin(null);
     }
-  }, [authModalOptions, handleBuyTicket, pendingTabAfterLogin, user?.phone]);
+  }, [authModalOptions, handleCheckout, pendingTabAfterLogin, user?.phone]);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -245,9 +242,8 @@ function MainApp() {
             <HomeScreen
               user={user}
               transactions={transactions}
-              onBuyTicket={handleBuyTicket}
+              onCheckout={handleCheckout}
               onViewReceipt={handleViewReceipt}
-              onDeleteTicket={handleDeleteTransaction}
               onNavigateTab={handleSelectTab}
               onScroll={undefined}
               onOpenChants={() => setChantsModalVisible(true)}
@@ -262,7 +258,6 @@ function MainApp() {
           <View style={[styles.tabContentPane, activeTab !== 'forum' && styles.hiddenPane]}>
             <ForumScreen
               user={user}
-              onBuyTicket={handleBuyTicket}
               onScroll={undefined}
               isDark={isDark}
             />
@@ -270,18 +265,13 @@ function MainApp() {
 
           <View style={[styles.tabContentPane, activeTab !== 'store' && styles.hiddenPane]}>
             <StoreScreen
-              user={user}
-              onCheckoutItem={handleBuyTicket}
-              onScroll={handleScroll}
               isDark={isDark}
-              isLoggedIn={isLoggedIn}
-              onOpenAuth={openAuthModal}
+              isActive={activeTab === 'store'}
             />
           </View>
 
           <View style={[styles.tabContentPane, activeTab !== 'calendar' && styles.hiddenPane]}>
             <CalendarScreen
-              onBuyTicket={handleBuyTicket}
               onScroll={handleScroll}
               onBack={() => handleSelectTab('home')}
               isDark={isDark}
@@ -393,14 +383,6 @@ function MainApp() {
           isDark={isDark}
         />
 
-        {/* Modal da Loja Oficial G39 */}
-        <StoreModal
-          visible={storeModalVisible}
-          onClose={() => setStoreModalVisible(false)}
-          onCheckoutItem={handleBuyTicket}
-          isDark={isDark}
-        />
-
         {/* Modal de Instalação PWA (Safari iOS & Chrome Android) */}
         <PwaInstallPromptModal
           visible={pwaModalVisible}
@@ -421,17 +403,6 @@ function MainApp() {
                 amount: user?.quotaAmount || 12.00,
                 type: 'quota',
               });
-            } else if (action === 'buy_ticket') {
-              handleBuyTicket({
-                title: `Bilhete Bancada Grupo 39 · Rio Ave FC vs ${NEXT_MATCH.awayTeam.name}`,
-                category: 'Bilhética Oficial RAFC',
-                amount: NEXT_MATCH.ticketPriceMember,
-                originalPrice: NEXT_MATCH.ticketPricePublic,
-                discount: NEXT_MATCH.ticketPricePublic - NEXT_MATCH.ticketPriceMember,
-                type: 'ticket',
-              });
-            } else if (action === 'bus_trip') {
-              setActiveTab('home');
             }
           }}
         />

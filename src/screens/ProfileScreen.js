@@ -294,7 +294,7 @@ function ProfileScreen({
           </Text>
           <Text style={[styles.guestDesc, !isDark && styles.textMutedDark]}>
             Inicia sessão com a tua conta para acederes ao cartão digital de
-            bancada, crachás de presença nos Arcos e prioridade em deslocações.
+            bancada, crachás de presença nos Arcos e vantagens exclusivas de sócio.
           </Text>
           <TouchableOpacity
             style={styles.guestLoginBtn}

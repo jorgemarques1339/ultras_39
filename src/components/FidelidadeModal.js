@@ -302,10 +302,10 @@ export default function FidelidadeModal({
                   • <Text style={styles.ruleBold}>Jogos em Casa:</Text> +1 presença validada por NFC na Bancada Poente.
                 </Text>
                 <Text style={[styles.ruleItem, !isDark && styles.textMutedDark]}>
-                  • <Text style={styles.ruleBold}>Deslocações Oficiais:</Text> +2 presenças em viagens com a Caravana G39.
+                  • <Text style={styles.ruleBold}>Jogos Fora:</Text> +2 presenças validadas em jogos fora de casa.
                 </Text>
                 <Text style={[styles.ruleItem, !isDark && styles.textMutedDark]}>
-                  • <Text style={styles.ruleBold}>Vantagens Exclusivas:</Text> Prioridade máxima em bilhetes para clássicos e finais de taça.
+                  • <Text style={styles.ruleBold}>Vantagens Exclusivas:</Text> Crachás oficiais de fidelidade e acesso prioritário a eventos da claque.
                 </Text>
               </View>
             </View>

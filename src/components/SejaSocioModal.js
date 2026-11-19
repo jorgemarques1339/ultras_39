@@ -12,8 +12,8 @@ import {
   X,
   IdCard,
   CheckCircle2,
-  Ticket,
-  Bus,
+  MessageSquare,
+  Calendar,
   ShoppingBag,
   Sparkles,
   ChevronRight,
@@ -23,19 +23,19 @@ import { COLORS } from '../theme/colors';
 
 const BENEFITS = [
   {
-    icon: Ticket,
-    title: 'Bilhética a Preço Reduzido',
-    desc: 'Desconto nos bilhetes em todos os jogos no Estádio dos Arcos',
-  },
-  {
-    icon: Bus,
-    title: 'Prioridade em Deslocações',
-    desc: 'Lugar garantido e valor subvencionado nos autocarros oficiais do Grupo 39 fora de casa.',
-  },
-  {
     icon: ShoppingBag,
-    title: 'Merchandising Oficial Exclusivo',
-    desc: 'Acesso antecipado a t-shirts, hoodies, cachecóis e material de edição limitada da claque.',
+    title: 'Descontos na Loja Oficial G39',
+    desc: 'Preço exclusivo de sócio em t-shirts, hoodies, cachecóis e material de edição limitada da claque.',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Acesso ao Fórum da Claque',
+    desc: 'Participa nos debates, comunicados oficiais e organização de iniciativas na Bancada Poente.',
+  },
+  {
+    icon: Calendar,
+    title: 'Eventos & Convívios Exclusivos',
+    desc: 'Acesso prioritário aos convívios, cortejos e iniciativas oficiais do Grupo 39.',
   },
   {
     icon: IdCard,

@@ -11,10 +11,9 @@ import {
 import {
   X,
   Bell,
-  Bus,
   IdCard,
   Flame,
-  Ticket,
+  CreditCard,
   ChevronRight,
   ShieldAlert,
   Info,
@@ -26,35 +25,17 @@ export default function AlertasModal({
   visible,
   onClose,
   onOpenSocio,
-  onOpenDeslocacao,
   onOpenJogos,
   isDark = true,
 }) {
   const ALERTS = [
-    {
-      id: 'alert-1',
-      type: 'warning',
-      badge: 'URGENTE · DESLOCAÇÃO',
-      title: 'Autocarro para Alverca (19 Setembro)',
-      description:
-        'As inscrições para a caravana a Alverca estão a decorrer a ritmo elevado. Os lugares no autocarro oficial são limitados à lotação disponível. Garante o teu bilhete + transporte o quanto antes.',
-      actionText: 'Ver Detalhes da Deslocação',
-      onPress: () => {
-        onClose();
-        if (onOpenDeslocacao) onOpenDeslocacao();
-      },
-      icon: Bus,
-      iconColor: '#F2B600',
-      badgeBg: 'rgba(242, 182, 0, 0.18)',
-      badgeText: '#FFD700',
-    },
     {
       id: 'alert-2',
       type: 'socio',
       badge: 'QUOTAS 2026/2027',
       title: 'Regularização de Quotas Obrigatória',
       description:
-        'A quota anual de 12,00 € é essencial para garantir o apoio às bancadas e dá direito a descontos exclusivos em bilhetes, autocarros e na Loja Oficial do Grupo 39.',
+        'A quota anual de 12,00 € é essencial para garantir o apoio às bancadas e dá direito a descontos exclusivos na Loja Oficial do Grupo 39 e acesso completo ao Fórum.',
       actionText: 'Inscrever ou Regularizar Quota',
       onPress: () => {
         onClose();
@@ -88,9 +69,9 @@ export default function AlertasModal({
       badge: 'PAGAMENTOS',
       title: 'Pagamento Seguro com MB WAY',
       description:
-        'Podes adquirir bilhetes e pagar deslocações de forma 100% segura e instantânea na aplicação. Todos os recibos ficam arquivados na tua área pessoal.',
+        'Podes regularizar a tua quota anual e adquirir merchandising oficial na Loja G39 de forma 100% segura e instantânea. Todos os recibos ficam arquivados na tua área pessoal.',
       actionText: null,
-      icon: Ticket,
+      icon: CreditCard,
       iconColor: '#00A3E0',
       badgeBg: 'rgba(0, 163, 224, 0.18)',
       badgeText: '#38BDF8',

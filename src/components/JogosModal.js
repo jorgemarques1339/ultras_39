@@ -15,12 +15,9 @@ import {
   Calendar as CalendarIcon,
   Clock,
   MapPin,
-  Ticket,
-  ChevronRight,
   Trophy,
   RefreshCw,
   WifiOff,
-  Bus,
   CheckCircle2,
   XCircle,
   MinusCircle,
@@ -43,7 +40,6 @@ const FALLBACK_UPCOMING = [
     isHome: false,
     venue: 'Complexo Desportivo FC Alverca',
     city: 'Alverca',
-    busAvailable: true,
   },
   {
     id: 'fix-3',
@@ -57,7 +53,6 @@ const FALLBACK_UPCOMING = [
     isHome: true,
     venue: 'Estádio do Rio Ave FC (Arcos)',
     city: 'Vila do Conde',
-    ticketPrice: '7,50 €',
   },
   {
     id: 'fix-4',
@@ -71,7 +66,6 @@ const FALLBACK_UPCOMING = [
     isHome: true,
     venue: 'Estádio do Rio Ave FC (Arcos)',
     city: 'Vila do Conde',
-    ticketPrice: '10,00 €',
   },
   {
     id: 'fix-5',
@@ -85,7 +79,6 @@ const FALLBACK_UPCOMING = [
     isHome: false,
     venue: 'Estádio do Fontelo',
     city: 'Viseu',
-    busAvailable: true,
   },
 ];
 
@@ -223,8 +216,6 @@ function formatDatePt(dateString) {
 function JogosModal({
   visible,
   onClose,
-  onBuyTicket,
-  onOpenDeslocacao,
   isDark = true,
 }) {
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
@@ -344,8 +335,6 @@ function JogosModal({
               isHome,
               venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
               city: comp?.venue?.address?.city || (isHome ? 'Vila do Conde' : 'Portugal'),
-              ticketPrice: isHome ? '8,00 €' : null,
-              busAvailable: !isHome,
             };
           });
 
@@ -635,55 +624,6 @@ function JogosModal({
                           </Text>
                         </View>
                       </View>
-
-                      {/* Botão de Ação / Bilhete / Deslocação */}
-                      {m.isHome ? (
-                        <TouchableOpacity
-                          style={styles.cardActionBtn}
-                          onPress={() => {
-                            onClose();
-                            if (onBuyTicket) {
-                              onBuyTicket({
-                                title: `Bilhete ${m.homeTeam} vs ${m.awayTeam}`,
-                                category: 'Bilheteira Oficial · Bancada Poente',
-                                amount: 8.0,
-                                type: 'ticket',
-                              });
-                            }
-                          }}
-                          activeOpacity={0.85}
-                        >
-                          <Ticket size={15} color="#FFF" />
-                          <Text style={styles.cardActionBtnText}>
-                            Comprar Bilhete · Bancada Poente
-                          </Text>
-                          <ChevronRight size={15} color="#FFF" />
-                        </TouchableOpacity>
-                      ) : (
-                        <TouchableOpacity
-                          style={[styles.cardActionBtn, styles.cardActionBtnAway]}
-                          onPress={() => {
-                            onClose();
-                            if (onOpenDeslocacao) {
-                              onOpenDeslocacao();
-                            } else if (onBuyTicket) {
-                              onBuyTicket({
-                                title: `Caravana Grupo 39 · ${m.awayTeam} vs ${m.homeTeam}`,
-                                category: 'Deslocação Oficial G39',
-                                amount: 7.50,
-                                type: 'caravan',
-                              });
-                            }
-                          }}
-                          activeOpacity={0.85}
-                        >
-                          <Bus size={15} color="#FFF" />
-                          <Text style={styles.cardActionBtnText}>
-                            Caravana Grupo 39 (Autocarro + Bilhete)
-                          </Text>
-                          <ChevronRight size={15} color="#FFF" />
-                        </TouchableOpacity>
-                      )}
                     </View>
                   );
                 })}

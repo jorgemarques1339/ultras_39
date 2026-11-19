@@ -16,11 +16,8 @@ import {
   X,
   ShieldCheck,
   Flame,
-  Bus,
   User,
   CreditCard,
-  Ticket,
-  Sparkles,
   Receipt,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
@@ -30,32 +27,28 @@ function ForumLoginPromptModal({
   onClose,
   onOpenLogin,
   onOpenRegister,
-  onSimulateUnlock,
   isDark = true,
-  type = 'forum', // 'forum' | 'profile' | 'deslocacao' | 'pagamentos'
+  type = 'forum', // 'forum' | 'profile' | 'pagamentos'
 }) {
   if (!visible) return null;
 
   const isProfile = type === 'profile';
-  const isDeslocacao = type === 'deslocacao';
   const isPagamentos = type === 'pagamentos';
-  const IconComponent = isDeslocacao ? Bus : (isProfile ? User : (isPagamentos ? CreditCard : MessageSquare));
-  const tagLabel = isDeslocacao
-    ? 'DESLOCAÇÃO OFICIAL · ALVERCA'
-    : (isProfile ? 'CARTÃO DE SÓCIO DIGITAL' : (isPagamentos ? 'ÁREA RESERVADA · GRUPO 39' : 'COMUNIDADE GRUPO 39'));
-  const title = isDeslocacao
-    ? 'Deslocação a Alverca'
-    : (isProfile ? 'Perfil do Sócio & Adepto' : (isPagamentos ? 'Os Meus Pagamentos' : 'Fórum da Claque'));
-  const subtitle = isDeslocacao
-    ? 'Acesso Antecipado & Sócios'
-    : (isProfile ? 'Cartão Digital & Quotas' : (isPagamentos ? 'Histórico & Recibos SIBS' : 'Voz da Bancada Poente'));
-  const description = isDeslocacao
-    ? 'As inscrições antecipadas em autocarro são exclusivas para Sócios do Grupo 39 por apenas 7,50 €. Para quem não tem login, as vagas abrem a 16 de Setembro (10,00 €).'
-    : (isProfile
-      ? 'Para acederes ao teu Perfil, Cartão Digital de Sócio, histórico de quotas e bilhetes, precisas de iniciar sessão.'
-      : (isPagamentos
-        ? 'Para visualizar os Pagamentos e o histórico de transações executadas, tem que ter Login feito.'
-        : 'Para que possas participar no Fórum da Claque, precisas de iniciar sessão na tua conta de adepto ou sócio.'));
+  const IconComponent = isProfile ? User : (isPagamentos ? CreditCard : MessageSquare);
+  const tagLabel = isProfile
+    ? 'CARTÃO DE SÓCIO DIGITAL'
+    : (isPagamentos ? 'ÁREA RESERVADA · GRUPO 39' : 'COMUNIDADE GRUPO 39');
+  const title = isProfile
+    ? 'Perfil do Sócio & Adepto'
+    : (isPagamentos ? 'Os Meus Pagamentos' : 'Fórum da Claque');
+  const subtitle = isProfile
+    ? 'Cartão Digital & Quotas'
+    : (isPagamentos ? 'Histórico & Recibos SIBS' : 'Voz da Bancada Poente');
+  const description = isProfile
+    ? 'Para acederes ao teu Perfil, Cartão Digital de Sócio, histórico de quotas e encomendas, precisas de iniciar sessão.'
+    : (isPagamentos
+      ? 'Para visualizar os Pagamentos e o histórico de transações executadas, tem que ter Login feito.'
+      : 'Para que possas participar no Fórum da Claque, precisas de iniciar sessão na tua conta de adepto ou sócio.');
 
   return (
     <Modal
@@ -116,7 +109,7 @@ function ForumLoginPromptModal({
                 <View style={[styles.statusBadge, !isDark && styles.statusBadgeLight]}>
                   <Lock size={10} color={isDark ? '#F2B600' : '#8A6D00'} />
                   <Text style={[styles.statusBadgeText, !isDark && styles.statusBadgeTextLight]}>
-                    {isDeslocacao ? 'EXCLUSIVO SÓCIOS' : 'REQUER LOGIN'}
+                    REQUER LOGIN
                   </Text>
                 </View>
               </View>
@@ -126,67 +119,9 @@ function ForumLoginPromptModal({
               </Text>
             </View>
 
-            {/* Comparativo de Preços Exclusivo para Deslocação */}
-            {isDeslocacao && (
-              <View style={[styles.priceCompareBox, !isDark && styles.priceCompareBoxLight]}>
-                <View style={styles.priceCol}>
-                  <Text style={[styles.priceColLabel, !isDark && styles.textMutedDark]}>
-                    SÓCIOS G39
-                  </Text>
-                  <View style={styles.priceValueRow}>
-                    <Text style={styles.priceValueHighlight}>7,50 €</Text>
-                  </View>
-                  <Text style={styles.priceAvailableNow}>✓ Disponível com login</Text>
-                </View>
-
-                <View style={[styles.priceDivider, !isDark && styles.priceDividerLight]} />
-
-                <View style={styles.priceCol}>
-                  <Text style={[styles.priceColLabel, !isDark && styles.textMutedDark]}>
-                    NÃO SÓCIOS
-                  </Text>
-                  <View style={styles.priceValueRow}>
-                    <Text style={[styles.priceValueStandard, !isDark && styles.textDark]}>10,00 €</Text>
-                  </View>
-                  <Text style={[styles.priceUnlockDate, !isDark && styles.priceUnlockDateLight]}>
-                    Abre 16 Set · 3 dias antes
-                  </Text>
-                </View>
-              </View>
-            )}
-
             {/* Caixa de Benefícios / Destaques com Cantos Arredondados */}
             <View style={[styles.benefitsCard, !isDark && styles.benefitsCardLight]}>
-              {isDeslocacao ? (
-                <>
-                  <View style={styles.benefitRow}>
-                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
-                      <Bus size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                    </View>
-                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Pack autocarro ida/volta + bilhete setor visitante incluído
-                    </Text>
-                  </View>
-
-                  <View style={styles.benefitRow}>
-                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
-                      <ShieldCheck size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                    </View>
-                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Preço exclusivo de 7,50 € reservado a Sócios do Grupo 39
-                    </Text>
-                  </View>
-
-                  <View style={styles.benefitRow}>
-                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
-                      <Ticket size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                    </View>
-                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Vagas para público geral abrem a 16 de Setembro (10,00 €)
-                    </Text>
-                  </View>
-                </>
-              ) : isProfile ? (
+              {isProfile ? (
                 <>
                   <View style={styles.benefitRow}>
                     <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
@@ -208,10 +143,10 @@ function ForumLoginPromptModal({
 
                   <View style={styles.benefitRow}>
                     <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
-                      <Ticket size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                      <Receipt size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Histórico de compras, bilhetes e comprovativos
+                      Histórico de compras na Loja Oficial e comprovativos
                     </Text>
                   </View>
                 </>
@@ -240,7 +175,7 @@ function ForumLoginPromptModal({
                       <CreditCard size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Regularização de quotas de época e bilhetes via MB WAY
+                      Regularização de quotas de época e Loja Oficial via MB WAY
                     </Text>
                   </View>
                 </>
@@ -257,10 +192,10 @@ function ForumLoginPromptModal({
 
                   <View style={styles.benefitRow}>
                     <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
-                      <Bus size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
+                      <MessageSquare size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Organiza e participa em viagens e deslocações
+                      Acompanha comunicados e iniciativas da claque
                     </Text>
                   </View>
 
@@ -285,7 +220,7 @@ function ForumLoginPromptModal({
               >
                 <LogIn size={17} color="#0D1310" strokeWidth={2.4} />
                 <Text style={styles.primaryBtnText}>
-                  {isDeslocacao ? 'Iniciar Sessão como Sócio (7,50 €)' : 'Fazer Login'}
+                  Fazer Login
                 </Text>
               </TouchableOpacity>
 
@@ -300,26 +235,13 @@ function ForumLoginPromptModal({
                 </Text>
               </TouchableOpacity>
 
-              {isDeslocacao && onSimulateUnlock && (
-                <TouchableOpacity
-                  style={[styles.simulateBtn, !isDark && styles.simulateBtnLight]}
-                  onPress={onSimulateUnlock}
-                  activeOpacity={0.75}
-                >
-                  <Sparkles size={14} color="#F2B600" />
-                  <Text style={styles.simulateBtnText}>
-                    Simular Data a partir de 16 Setembro (10,00 €)
-                  </Text>
-                </TouchableOpacity>
-              )}
-
               <TouchableOpacity
                 style={styles.cancelBtn}
                 onPress={onClose}
                 activeOpacity={0.7}
               >
                 <Text style={[styles.cancelBtnText, !isDark && styles.cancelBtnTextLight]}>
-                  {isDeslocacao ? 'Fechar' : 'Mais Tarde'}
+                  Mais Tarde
                 </Text>
               </TouchableOpacity>
             </View>
