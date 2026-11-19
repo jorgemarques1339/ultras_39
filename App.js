@@ -232,17 +232,11 @@ function MainApp() {
           !isDark && !isTablet && styles.appContainerMobileLight,
         ]}
       >
-        {/* Cabeçalho Superior Retrátil (Oculto na Loja e no Apoio para experiência imersiva; fixo na Home) */}
+        {/* Cabeçalho Superior: visível apenas na aba Principal (Início) */}
         <Header
           onOpenNotifications={() => openAlertsModal('all')}
           unreadCount={unreadCount}
-          visible={
-            activeTab === 'store' || activeTab === 'apoio'
-              ? false
-              : activeTab === 'home'
-                ? true
-                : isHeaderVisible
-          }
+          visible={activeTab === 'home'}
           isDark={isDark}
           onToggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}

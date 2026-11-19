@@ -8,8 +8,8 @@ import {
   Platform,
   Linking,
   Image,
-  useWindowDimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { RefreshCw, ExternalLink, WifiOff } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
@@ -29,7 +29,8 @@ function buildNativeThemeScript(isDark) {
           existing.id = id;
           document.head.appendChild(existing);
         }
-        existing.innerHTML = ${
+        var base = 'html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; } body { padding-bottom: 84px !important; } ::-webkit-scrollbar { display: none; } #lite-badge, a[href*="typebot.io"], [id*="badge"] { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; }';
+        existing.innerHTML = base + ' ' + ${
           isDark
             ? "'html { filter: invert(0.95) hue-rotate(180deg); background: #FFFFFF !important; } img, video { filter: invert(1) hue-rotate(180deg); }'"
             : "'html { filter: none; background: #FFFFFF !important; } img, video { filter: none; }'"
@@ -41,9 +42,6 @@ function buildNativeThemeScript(isDark) {
 }
 
 function ApoioScreen({ user, isDark = true, isActive = false }) {
-  const { width } = useWindowDimensions();
-  const isTablet = width >= 650;
-
   const [hasActivated, setHasActivated] = useState(isActive);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -106,14 +104,8 @@ function ApoioScreen({ user, isDark = true, isActive = false }) {
   }, [botUrl]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        !isDark && styles.containerLight,
-        // Espaço inferior para que a caixa de resposta/botões do Typebot fiquem sempre acima da barra flutuante
-        { paddingBottom: isTablet ? 86 : 78 },
-      ]}
-    >
+    <View style={[styles.container, !isDark && styles.containerLight]}>
+      {/* Área Edge-to-Edge Imersiva em Full Screen (igual à secção Loja) */}
       <View style={styles.webViewWrapper}>
         {hasError ? (
           <View style={[styles.errorState, !isDark && styles.errorStateLight]}>
@@ -157,10 +149,9 @@ function ApoioScreen({ user, isDark = true, isActive = false }) {
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                right: 0,
-                bottom: 0,
                 width: '100%',
-                height: '100%',
+                // Altura total + 52px para empurrar o selo "Made with Typebot" para fora da área visível
+                height: 'calc(100% + 52px)',
                 border: 'none',
                 display: 'block',
                 backgroundColor: '#FFFFFF',
@@ -204,6 +195,19 @@ function ApoioScreen({ user, isDark = true, isActive = false }) {
           )
         ) : null}
 
+        {/* Degradê inferior subtil para fundir o ecrã com a barra de navegação flutuante (igual à Loja) */}
+        {!hasError && (
+          <LinearGradient
+            colors={
+              isDark
+                ? ['rgba(13, 13, 13, 0)', 'rgba(13, 13, 13, 0.78)', 'rgba(13, 13, 13, 0.98)']
+                : ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.78)', 'rgba(255, 255, 255, 0.98)']
+            }
+            style={styles.bottomNavFade}
+            pointerEvents="none"
+          />
+        )}
+
         {/* Botão flutuante discreto para reiniciar a conversa */}
         {!hasError && !isLoading && hasActivated && (
           <TouchableOpacity
@@ -245,7 +249,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    // Cor exata resultante de #FFFFFF com invert(0.95) -> rgb(13, 13, 13) para eliminar qualquer corte visual
     backgroundColor: '#0D0D0D',
   },
   containerLight: {
@@ -265,10 +268,18 @@ const styles = StyleSheet.create({
   nativeWebViewLight: {
     backgroundColor: '#FFFFFF',
   },
+  bottomNavFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 86,
+    zIndex: 5,
+  },
   restartFab: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 12,
+    right: 12,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -292,7 +303,7 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0D1310',
+    backgroundColor: '#0D0D0D',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
@@ -330,7 +341,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 28,
-    backgroundColor: '#0D1310',
+    paddingBottom: 80,
+    backgroundColor: '#0D0D0D',
   },
   errorStateLight: {
     backgroundColor: '#FFFFFF',
