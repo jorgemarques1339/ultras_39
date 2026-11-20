@@ -21,6 +21,7 @@ import {
   Trophy,
   Play,
   Newspaper,
+  Bus,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
@@ -35,6 +36,7 @@ import {
 import ClubBadge from '../components/ClubBadge';
 import JogosModal from '../components/JogosModal';
 import ResultadoModal from '../components/ResultadoModal';
+import DeslocacaoModal from '../components/DeslocacaoModal';
 
 function HomeScreen({
   user,
@@ -42,6 +44,7 @@ function HomeScreen({
   onOpenChants,
   isDark = true,
   isActive = true,
+  isLoggedIn = false,
 }) {
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 650;
@@ -51,6 +54,7 @@ function HomeScreen({
   const isMatchdayActive = false;
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [resultadoModalVisible, setResultadoModalVisible] = useState(false);
+  const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
@@ -684,18 +688,22 @@ function HomeScreen({
           >
             <View style={styles.meetingPointBarTop}>
               <View style={[styles.meetingPointIconBox, !isDark && styles.meetingPointIconBoxLight]}>
-                <Navigation size={11} color={isDark ? '#00E676' : '#00874E'} />
+                <Navigation size={12} color={isDark ? '#00E676' : '#00874E'} />
               </View>
-              <Text
-                style={[styles.meetingPointBarText, !isDark && styles.meetingPointBarTextLight]}
-                numberOfLines={1}
-              >
-                <Text style={[styles.meetingPointBarBold, !isDark && styles.meetingPointBarBoldLight]}>
-                  Concentração: {meetingPointInfo.timeLabel}
+              <View style={styles.meetingPointTextCol}>
+                <Text
+                  style={[styles.meetingPointBarBold, !isDark && styles.meetingPointBarBoldLight]}
+                  numberOfLines={1}
+                >
+                  Concentração · {meetingPointInfo.timeLabel}
                 </Text>
-                {' · '}
-                {meetingPointInfo.location}
-              </Text>
+                <Text
+                  style={[styles.meetingPointSubText, !isDark && styles.meetingPointBarTextLight]}
+                  numberOfLines={1}
+                >
+                  {meetingPointInfo.location}
+                </Text>
+              </View>
             </View>
             <View style={styles.meetingMapTag}>
               <MapPin size={11} color="#FFFFFF" />
@@ -784,8 +792,56 @@ function HomeScreen({
         </View>
       )}
 
+      {/* 2.5 COMPRAR BILHETE + DESLOCAÇÃO (VISÍVEL APENAS EM JOGOS FORA) */}
+      {!nextMatch?.isHome && (
+        <TouchableOpacity
+          onPress={() => setDeslocacaoModalVisible(true)}
+          activeOpacity={0.86}
+          accessibilityLabel="Comprar bilhete e deslocação por transferência bancária"
+        >
+          <LinearGradient
+            colors={
+              isDark
+                ? ['#183424', '#0F2217']
+                : ['#E7F8EE', '#FDF7E3']
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.deslocacaoCard, !isDark && styles.deslocacaoCardLight]}
+          >
+            <View style={styles.deslocacaoLeft}>
+              <View style={[styles.deslocacaoIconBox, !isDark && styles.deslocacaoIconBoxLight]}>
+                <Bus size={18} color={isDark ? '#F2B600' : '#00874E'} />
+              </View>
+              <View style={styles.deslocacaoTextCol}>
+                <Text style={[styles.deslocacaoTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                  Bilhete + Deslocação
+                </Text>
+                <Text style={[styles.deslocacaoSub, !isDark && styles.deslocacaoSubLight]} numberOfLines={1}>
+                  Reserva o teu lugar
+                </Text>
+              </View>
+            </View>
+            <View style={styles.deslocacaoCtaPill}>
+              <Text style={styles.deslocacaoCtaText}>Comprar</Text>
+              <ChevronRight size={13} color="#0D1310" />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+
       {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 (PLAYER / CÂNTICO DA SEMANA) */}
       <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleWithIcon}>
+            <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
+              <Drum size={13} color={isDark ? '#00E676' : '#00874E'} />
+            </View>
+            <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
+              Cânticos
+            </Text>
+          </View>
+        </View>
         <TouchableOpacity
           onPress={onOpenChants}
           activeOpacity={0.86}
@@ -842,6 +898,16 @@ function HomeScreen({
         isDark={isDark}
       />
 
+      {/* Modal de Compra de Bilhete + Deslocação (Transferência Bancária) */}
+      <DeslocacaoModal
+        visible={deslocacaoModalVisible}
+        onClose={() => setDeslocacaoModalVisible(false)}
+        nextMatch={nextMatch}
+        user={user}
+        isDark={isDark}
+        isLoggedIn={isLoggedIn}
+      />
+
     </View>
   );
 }
@@ -860,10 +926,20 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-evenly',
+    justifyContent: 'flex-start',
     paddingHorizontal: 14,
-    paddingTop: 12,
-    gap: 14,
+    paddingTop: 14,
+    gap: 16,
+  },
+  sectionIconBoxGreen: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    backgroundColor: 'rgba(0, 230, 118, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.32)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   lastResultSection: {
     width: '100%',
@@ -1518,43 +1594,43 @@ const styles = StyleSheet.create({
 
   // Secção Ponto de Encontro / Convívio no Rodapé do Hero Card
   meetingPointBar: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
+    justifyContent: 'space-between',
+    gap: 8,
     marginTop: 2,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingHorizontal: 11,
+    paddingVertical: 8,
     borderRadius: 12,
-    borderWidth: 1.4,
-    borderColor: 'rgba(0, 230, 118, 0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.42)',
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 16px rgba(0, 179, 104, 0.22)',
+        boxShadow: '0 4px 16px rgba(0, 179, 104, 0.16)',
       },
       default: {
         shadowColor: '#00B368',
         shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.28,
+        shadowOpacity: 0.2,
         shadowRadius: 8,
-        elevation: 4,
+        elevation: 3,
       },
     }),
   },
   meetingPointBarLight: {
-    borderColor: 'rgba(0, 135, 78, 0.42)',
+    borderColor: 'rgba(0, 135, 78, 0.32)',
     ...Platform.select({
       web: {
-        boxShadow: '0 3px 12px rgba(0, 135, 78, 0.12)',
+        boxShadow: '0 3px 12px rgba(0, 135, 78, 0.1)',
       },
     }),
   },
   meetingPointBarTop: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: 7,
-    width: '100%',
   },
   meetingPointIconBox: {
     width: 22,
@@ -1570,12 +1646,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 135, 78, 0.16)',
     borderColor: 'rgba(0, 135, 78, 0.3)',
   },
+  meetingPointTextCol: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   meetingPointBarText: {
     color: '#E6F4EC',
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '700',
-    textAlign: 'center',
+    textAlign: 'left',
     flexShrink: 1,
+  },
+  meetingPointSubText: {
+    color: '#C7E2D2',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1,
   },
   meetingPointBarTextLight: {
     color: '#1C3527',
@@ -1937,6 +2023,90 @@ const styles = StyleSheet.create({
   },
 
   // Atalhos Rápidos da Claque
+  // Cartão Bilhete + Deslocação
+  deslocacaoCard: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1.2,
+    borderColor: 'rgba(242, 182, 0, 0.38)',
+    gap: 10,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+      },
+      default: {
+        elevation: 4,
+      },
+    }),
+  },
+  deslocacaoCardLight: {
+    borderColor: 'rgba(0, 135, 78, 0.28)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 12px rgba(0, 135, 78, 0.1)',
+      },
+    }),
+  },
+  deslocacaoLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+  },
+  deslocacaoIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: 'rgba(242, 182, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deslocacaoIconBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  deslocacaoTextCol: {
+    flex: 1,
+  },
+  deslocacaoTitle: {
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    fontWeight: '900',
+  },
+  deslocacaoSub: {
+    color: '#9CAFA4',
+    fontSize: 10.5,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  deslocacaoSubLight: {
+    color: '#5A6E63',
+  },
+  deslocacaoCtaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#F2B600',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  deslocacaoCtaText: {
+    color: '#0D1310',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  textDark: {
+    color: '#14201A',
+  },
+
   chantsCenterWrapper: {
     alignItems: 'center',
     marginBottom: 0,
