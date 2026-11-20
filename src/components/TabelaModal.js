@@ -8,7 +8,6 @@ import {
   ScrollView,
   Platform,
   Image,
-  ActivityIndicator,
   Animated,
 } from 'react-native';
 import {
@@ -16,9 +15,7 @@ import {
   Table as TableIcon,
   ChevronRight,
   RefreshCw,
-  Sparkles,
   WifiOff,
-  Radio,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import ClubBadge from './ClubBadge';

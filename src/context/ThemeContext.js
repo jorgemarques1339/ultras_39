@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Cores para o tema Black (Dark Verde Rio Ave)
@@ -149,16 +149,20 @@ export function ThemeProvider({ children }) {
     };
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setIsDark((prev) => {
       const nextVal = !prev;
       const nextMode = nextVal ? 'black' : 'light';
       setStoredTheme(nextMode);
       return nextVal;
     });
-  };
+  }, []);
 
   const theme = isDark ? DARK_THEME : LIGHT_THEME;
+  const contextValue = useMemo(
+    () => ({ theme, isDark, toggleTheme }),
+    [theme, isDark, toggleTheme]
+  );
 
   // Sincronizar a barra do sistema / navegador (theme-color e fundo do documento) com o tema ativo
   useEffect(() => {
@@ -177,7 +181,7 @@ export function ThemeProvider({ children }) {
   }, [isDark]);
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark, toggleTheme }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

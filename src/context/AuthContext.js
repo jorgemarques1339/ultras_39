@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { INITIAL_USER } from '../data/mockData';
 
@@ -162,22 +162,37 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      user,
+      isLoggedIn,
+      isLoading,
+      authModalVisible,
+      authModalOptions,
+      openAuthModal,
+      closeAuthModal,
+      login,
+      register,
+      logout,
+      updateUser,
+    }),
+    [
+      user,
+      isLoggedIn,
+      isLoading,
+      authModalVisible,
+      authModalOptions,
+      openAuthModal,
+      closeAuthModal,
+      login,
+      register,
+      logout,
+      updateUser,
+    ]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoggedIn,
-        isLoading,
-        authModalVisible,
-        authModalOptions,
-        openAuthModal,
-        closeAuthModal,
-        login,
-        register,
-        logout,
-        updateUser,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

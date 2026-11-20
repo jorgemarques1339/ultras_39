@@ -26,10 +26,8 @@ import CalendarScreen from './src/screens/CalendarScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import StoreScreen from './src/screens/StoreScreen';
 import {
-  INITIAL_USER,
   INITIAL_TRANSACTIONS,
 } from './src/data/mockData';
-import { COLORS } from './src/theme/colors';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { AlertsProvider, useAlerts } from './src/context/AlertsContext';
@@ -136,6 +134,14 @@ function MainApp() {
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
 
+  const handleOpenNotifications = useCallback(() => openAlertsModal('all'), [openAlertsModal]);
+  const handleNavigateProfile = useCallback(() => handleSelectTab('profile'), [handleSelectTab]);
+  const handleOpenChants = useCallback(() => setChantsModalVisible(true), []);
+  const handleOpenStore = useCallback(() => handleSelectTab('store'), [handleSelectTab]);
+  const handleOpenPwaInstall = useCallback(() => setPwaModalVisible(true), []);
+  const handleOpenWalletPass = useCallback(() => setWalletPassModalVisible(true), []);
+  const handleNavigateHome = useCallback(() => handleSelectTab('home'), [handleSelectTab]);
+
   // Iniciar fluxo de checkout MB WAY (Loja Oficial e Quotas)
   const handleCheckout = useCallback((itemData) => {
     setCheckoutData({
@@ -238,14 +244,14 @@ function MainApp() {
       >
         {/* Cabeçalho Superior: visível apenas na aba Principal (Início) */}
         <Header
-          onOpenNotifications={() => openAlertsModal('all')}
+          onOpenNotifications={handleOpenNotifications}
           unreadCount={unreadCount}
           visible={activeTab === 'home'}
           isDark={isDark}
           onToggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
           onOpenAuth={openAuthModal}
-          onNavigateProfile={() => handleSelectTab('profile')}
+          onNavigateProfile={handleNavigateProfile}
         />
 
         {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll e Keep-Alive de Performance */}
@@ -258,10 +264,11 @@ function MainApp() {
               onViewReceipt={handleViewReceipt}
               onNavigateTab={handleSelectTab}
               onScroll={undefined}
-              onOpenChants={() => setChantsModalVisible(true)}
-              onOpenStore={() => handleSelectTab('store')}
+              onOpenChants={handleOpenChants}
+              onOpenStore={handleOpenStore}
               isDark={isDark}
-              onOpenPwaInstall={() => setPwaModalVisible(true)}
+              isActive={activeTab === 'home'}
+              onOpenPwaInstall={handleOpenPwaInstall}
               isLoggedIn={isLoggedIn}
               onOpenAuth={openAuthModal}
             />
@@ -285,7 +292,7 @@ function MainApp() {
           <View style={[styles.tabContentPane, activeTab !== 'calendar' && styles.hiddenPane]}>
             <CalendarScreen
               onScroll={handleScroll}
-              onBack={() => handleSelectTab('home')}
+              onBack={handleNavigateHome}
               isDark={isDark}
             />
           </View>
@@ -297,9 +304,9 @@ function MainApp() {
               onPayQuota={handlePayQuota}
               onViewReceipt={handleViewReceipt}
               onScroll={handleScroll}
-              onOpenWalletPass={() => setWalletPassModalVisible(true)}
+              onOpenWalletPass={handleOpenWalletPass}
               isDark={isDark}
-              onOpenPwaInstall={() => setPwaModalVisible(true)}
+              onOpenPwaInstall={handleOpenPwaInstall}
               isLoggedIn={isLoggedIn}
               onOpenAuth={openAuthModal}
               onLogout={handleLogout}

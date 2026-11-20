@@ -8,33 +8,19 @@ import {
   Platform,
   Animated,
   Image,
-  Modal,
   Linking,
   useWindowDimensions,
 } from 'react-native';
-import Svg, { Circle, Path, Rect, Line } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   MapPin,
   Clock,
   Navigation,
   ChevronRight,
-  Flame,
-  Sparkles,
-  Users,
   Drum,
-  ShoppingBag,
-  Radio,
-  Award,
   Trophy,
-  Table,
-  IdCard,
-  Camera,
-  Calendar as CalendarIcon,
-  Lock,
   Play,
   Newspaper,
-  ExternalLink,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
@@ -43,55 +29,19 @@ import {
   fetchLiveResults,
   fetchRioAveNews,
   fetchLatestTransfer,
-  FLASHSCORE_RESULTS_URL,
   FLASHSCORE_NEWS_URL,
-  FLASHSCORE_FIXTURES_URL,
   FLASHSCORE_TRANSFERS_URL,
 } from '../services/matchesService';
 import ClubBadge from '../components/ClubBadge';
-import TabelaModal from '../components/TabelaModal';
-import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
 import ResultadoModal from '../components/ResultadoModal';
-import GaleriaModal from '../components/GaleriaModal';
-import EventosModal from '../components/EventosModal';
-
-function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <Circle cx="12" cy="12" r="10" />
-      <Path d="M12 7l3.2 2.3-1.2 3.8H10l-1.2-3.8z" fill={color} fillOpacity="0.3" />
-      <Path d="M12 7V2" />
-      <Path d="M15.2 9.3l4.3-1.4" />
-      <Path d="M14 13.1l2.8 3.5" />
-      <Path d="M10 13.1l-2.8 3.5" />
-      <Path d="M8.8 9.3l-4.3-1.4" />
-    </Svg>
-  );
-}
 
 function HomeScreen({
   user,
-  transactions = [],
-  onCheckout,
-  onViewReceipt,
-  onNavigateTab,
   onScroll,
   onOpenChants,
-  onOpenStore,
   isDark = true,
-  onOpenPwaInstall,
-  isLoggedIn = false,
-  onOpenAuth,
+  isActive = true,
 }) {
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 650;
@@ -99,12 +49,8 @@ function HomeScreen({
 
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
-  const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
-  const [socioModalVisible, setSocioModalVisible] = useState(false);
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [resultadoModalVisible, setResultadoModalVisible] = useState(false);
-  const [galeriaModalVisible, setGaleriaModalVisible] = useState(false);
-  const [eventosModalVisible, setEventosModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
@@ -138,13 +84,15 @@ function HomeScreen({
   const [nowTs, setNowTs] = useState(() => Date.now());
   const mainScrollRef = useRef(null);
 
-  // Atualizar relógio para a contagem decrescente a cada 30 segundos
+  // Atualizar relógio para a contagem decrescente a cada 30 segundos apenas quando a aba está ativa
   useEffect(() => {
+    if (!isActive) return;
+    setNowTs(Date.now());
     const timer = setInterval(() => {
       setNowTs(Date.now());
     }, 30000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isActive]);
 
   // Contagem decrescente dinâmica para o próximo jogo
   const countdownInfo = useMemo(() => {
@@ -314,13 +262,16 @@ function HomeScreen({
     });
   }, [newsSlides.length, rollUpAnim, rollUpOpacity]);
 
+  const newsSlideIndexRef = useRef(0);
+  newsSlideIndexRef.current = newsSlideIndex;
+
   useEffect(() => {
-    if (newsSlides.length <= 1) return;
+    if (!isActive || newsSlides.length <= 1) return;
     const timer = setInterval(() => {
-      goToNewsSlide(newsSlideIndex + 1);
+      goToNewsSlide(newsSlideIndexRef.current + 1);
     }, 4500);
     return () => clearInterval(timer);
-  }, [goToNewsSlide, newsSlideIndex, newsSlides.length]);
+  }, [isActive, goToNewsSlide, newsSlides.length]);
 
   const handleVoteMotm = useCallback((playerId) => {
     setVotedPlayerId((current) => {
@@ -336,31 +287,6 @@ function HomeScreen({
       return playerId;
     });
   }, []);
-
-  const handleJoinSocio = useCallback(() => {
-    setSocioModalVisible(false);
-    if (!isLoggedIn) {
-      if (onOpenAuth) {
-        onOpenAuth({
-          initialTab: 'register',
-          message: 'Cria a tua conta para te fazeres Sócio do Grupo 39 e prosseguires para a ativação da quota.',
-          pendingAction: 'pay_quota',
-        });
-      }
-    } else {
-      if (onCheckout) {
-        onCheckout({
-          title: 'Inscrição de Sócio · Quota Anual 2026/2027',
-          category: 'Quota Oficial Grupo 39',
-          amount: 12.00,
-          originalPrice: 12.00,
-          type: 'quota',
-          isNewMemberWelcome: true,
-          phone: user?.phone || '912 345 678',
-        });
-      }
-    }
-  }, [isLoggedIn, onOpenAuth, onCheckout, user?.phone]);
 
   const activeNewsSlide = newsSlides[newsSlideIndex % Math.max(1, newsSlides.length)] || null;
 
@@ -913,44 +839,6 @@ function HomeScreen({
       <ResultadoModal
         visible={resultadoModalVisible}
         onClose={() => setResultadoModalVisible(false)}
-        isDark={isDark}
-      />
-
-      {/* Modal de Tabela Classificativa */}
-      <TabelaModal
-        visible={tabelaModalVisible}
-        onClose={() => setTabelaModalVisible(false)}
-        onNavigateTab={(tab) => {
-          if (tab === 'calendar') {
-            setJogosModalVisible(true);
-          } else if (onNavigateTab) {
-            onNavigateTab(tab);
-          }
-        }}
-        isDark={isDark}
-      />
-
-      {/* Modal Seja Sócio */}
-      <SejaSocioModal
-        visible={socioModalVisible}
-        onClose={() => setSocioModalVisible(false)}
-        onJoinMember={handleJoinSocio}
-        onNavigateTab={onNavigateTab}
-        isDark={isDark}
-        isLoggedIn={isLoggedIn}
-      />
-
-      {/* Modal Galeria / Instagram Ultras Grupo 39 */}
-      <GaleriaModal
-        visible={galeriaModalVisible}
-        onClose={() => setGaleriaModalVisible(false)}
-        isDark={isDark}
-      />
-
-      {/* Modal Eventos / Convívios & Cortejos Ultras Grupo 39 */}
-      <EventosModal
-        visible={eventosModalVisible}
-        onClose={() => setEventosModalVisible(false)}
         isDark={isDark}
       />
 

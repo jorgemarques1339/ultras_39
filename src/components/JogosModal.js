@@ -13,18 +13,13 @@ import {
 import {
   X,
   Calendar as CalendarIcon,
-  Clock,
   MapPin,
-  Trophy,
   RefreshCw,
   WifiOff,
-  CheckCircle2,
-  XCircle,
-  MinusCircle,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import ClubBadge from './ClubBadge';
-import { normalizeTeamName } from '../services/matchesService';
+import { fetchLiveSchedule as fetchLiveUpcomingFromService } from '../services/matchesService';
 
 // Fallback inicial com jogos reais da época 2026/2027
 const FALLBACK_UPCOMING = [
@@ -82,96 +77,6 @@ const FALLBACK_UPCOMING = [
   },
 ];
 
-const FALLBACK_RESULTS = [
-  {
-    id: 'res-0',
-    date: '2026-09-14T17:45:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: '6.ª Jornada',
-    homeTeam: 'Rio Ave FC',
-    homeScore: 3,
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    awayTeam: 'Estrela da Amadora',
-    awayScore: 3,
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3824.png',
-    outcome: 'draw',
-    venue: 'Estádio do Rio Ave FC (Arcos)',
-  },
-  {
-    id: 'res-1',
-    date: '2026-09-06T14:30:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: '5.ª Jornada',
-    homeTeam: 'Santa Clara',
-    homeScore: 4,
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4260.png',
-    awayTeam: 'Rio Ave FC',
-    awayScore: 0,
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    outcome: 'loss',
-    venue: 'Estádio de São Miguel (Açores)',
-  },
-  {
-    id: 'res-2',
-    date: '2026-08-28T19:15:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: 'Jornada 4',
-    homeTeam: 'Rio Ave FC',
-    homeScore: 0,
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    awayTeam: 'Sporting CP',
-    awayScore: 4,
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/2250.png',
-    outcome: 'loss',
-    venue: 'Estádio do Rio Ave FC (Arcos)',
-  },
-  {
-    id: 'res-3',
-    date: '2026-08-22T17:00:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: 'Jornada 3',
-    homeTeam: 'Estoril Praia',
-    homeScore: 0,
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/4261.png',
-    awayTeam: 'Rio Ave FC',
-    awayScore: 2,
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    outcome: 'win',
-    venue: 'Estádio António Coimbra da Mota',
-  },
-  {
-    id: 'res-4',
-    date: '2026-08-15T19:30:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: 'Jornada 2',
-    homeTeam: 'Rio Ave FC',
-    homeScore: 0,
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    awayTeam: 'FC Porto',
-    awayScore: 2,
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/437.png',
-    outcome: 'loss',
-    venue: 'Estádio do Rio Ave FC (Arcos)',
-  },
-  {
-    id: 'res-5',
-    date: '2026-08-09T19:30:00Z',
-    competition: 'Liga Portugal Betclic',
-    round: 'Jornada 1',
-    homeTeam: 'Gil Vicente',
-    homeScore: 1,
-    homeLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3826.png',
-    awayTeam: 'Rio Ave FC',
-    awayScore: 0,
-    awayLogo: 'https://a.espncdn.com/i/teamlogos/soccer/500/3822.png',
-    outcome: 'loss',
-    venue: 'Estádio Cidade de Barcelos',
-  },
-];
-
-const FIXTURES_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule?fixture=true';
-const RESULTS_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule';
-
 function TeamLogo({ logoUrl, teamName, isRioAve }) {
   const [hasError, setHasError] = useState(false);
 
@@ -218,17 +123,15 @@ function JogosModal({
   onClose,
   isDark = true,
 }) {
-  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'results'
   const [upcomingMatches, setUpcomingMatches] = useState(FALLBACK_UPCOMING);
-  const [pastResults, setPastResults] = useState(FALLBACK_RESULTS);
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState('Atualizado');
   const [fetchError, setFetchError] = useState(false);
+  const isFetchingRef = useRef(false);
 
   // Rotação do ícone de atualização
   const spinAnim = useRef(new Animated.Value(0)).current;
 
-  const startSpin = () => {
+  const startSpin = useCallback(() => {
     spinAnim.setValue(0);
     Animated.loop(
       Animated.timing(spinAnim, {
@@ -237,136 +140,65 @@ function JogosModal({
         useNativeDriver: Platform.OS !== 'web',
       })
     ).start();
-  };
+  }, [spinAnim]);
 
-  const stopSpin = () => {
+  const stopSpin = useCallback(() => {
     spinAnim.stopAnimation();
     spinAnim.setValue(0);
-  };
+  }, [spinAnim]);
 
   const spin = spinAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  // Função para buscar jogos em direto da API oficial
+  // Função para buscar próximos jogos usando o serviço partilhado (com cache de 60s)
   const fetchLiveSchedule = useCallback(async (isManual = false) => {
-    if (isLoading) return;
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     setIsLoading(true);
     if (isManual) startSpin();
 
     try {
-      const [fixturesRes, resultsRes] = await Promise.all([
-        fetch(FIXTURES_API, { headers: { Accept: 'application/json' } }),
-        fetch(RESULTS_API, { headers: { Accept: 'application/json' } }),
-      ]);
-
-      let completedCount = 6;
-      if (resultsRes.ok) {
-        const resultsData = await resultsRes.json();
-        const rawResults = resultsData.events || [];
-        if (rawResults.length > 0) {
-          completedCount = rawResults.length;
-          const parsedResults = rawResults.map((e, index) => {
-            const comp = e.competitions?.[0];
-            const home = comp?.competitors?.find((c) => c.homeAway === 'home');
-            const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-            const rawHomeName = home?.team?.displayName || home?.team?.name || 'Clube';
-            const rawAwayName = away?.team?.displayName || away?.team?.name || 'Clube';
-            const homeName = normalizeTeamName(rawHomeName);
-            const awayName = normalizeTeamName(rawAwayName);
-            const homeScore = parseInt(home?.score?.displayValue ?? '0', 10);
-            const awayScore = parseInt(away?.score?.displayValue ?? '0', 10);
-            const isHome = homeName.toLowerCase().includes('rio ave');
-
-            let outcome = 'draw';
-            if (isHome) {
-              if (homeScore > awayScore) outcome = 'win';
-              else if (homeScore < awayScore) outcome = 'loss';
-            } else {
-              if (awayScore > homeScore) outcome = 'win';
-              else if (awayScore < homeScore) outcome = 'loss';
-            }
-
-            return {
-              id: e.id || `res-${index}`,
-              date: e.date,
-              competition: 'Liga Portugal Betclic',
-              round: `${completedCount - index}.ª Jornada`,
-              homeTeam: homeName,
-              homeScore,
-              homeLogo: home?.team?.logos?.[0]?.href || null,
-              awayTeam: awayName,
-              awayScore,
-              awayLogo: away?.team?.logos?.[0]?.href || null,
-              outcome,
-              venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
-            };
-          });
-
-          setPastResults(parsedResults);
-        }
+      const matches = await fetchLiveUpcomingFromService(isManual);
+      if (Array.isArray(matches) && matches.length > 0) {
+        setUpcomingMatches(
+          matches.map((m) => ({
+            id: m.id,
+            date: m.rawDate || m.date,
+            competition: m.competition || 'Liga Portugal Betclic',
+            round: m.round,
+            homeTeam: m.homeTeam?.name || 'Rio Ave FC',
+            homeLogo: m.homeTeam?.logo || null,
+            awayTeam: m.awayTeam?.name || 'Adversário',
+            awayLogo: m.awayTeam?.logo || null,
+            isHome: m.isHome,
+            venue: m.venue,
+            city: m.city,
+          }))
+        );
       }
-
-      if (fixturesRes.ok) {
-        const fixturesData = await fixturesRes.json();
-        const rawEvents = fixturesData.events || [];
-
-        if (rawEvents.length > 0) {
-          const parsedFixtures = rawEvents.map((e, index) => {
-            const comp = e.competitions?.[0];
-            const home = comp?.competitors?.find((c) => c.homeAway === 'home');
-            const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-            const rawHomeName = home?.team?.displayName || home?.team?.name || 'Clube';
-            const rawAwayName = away?.team?.displayName || away?.team?.name || 'Clube';
-            const homeName = normalizeTeamName(rawHomeName);
-            const awayName = normalizeTeamName(rawAwayName);
-            const isHome = homeName.toLowerCase().includes('rio ave');
-
-            return {
-              id: e.id || `fix-${index}`,
-              date: e.date,
-              competition: 'Liga Portugal Betclic',
-              round: `${completedCount + 1 + index}.ª Jornada`,
-              homeTeam: homeName,
-              homeLogo: home?.team?.logos?.[0]?.href || null,
-              awayTeam: awayName,
-              awayLogo: away?.team?.logos?.[0]?.href || null,
-              isHome,
-              venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
-              city: comp?.venue?.address?.city || (isHome ? 'Vila do Conde' : 'Portugal'),
-            };
-          });
-
-          setUpcomingMatches(parsedFixtures);
-        }
-      }
-
       setFetchError(false);
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      setLastUpdated(`Atualizado às ${hours}:${minutes}`);
     } catch (err) {
       console.warn('Erro ao atualizar jogos em direto:', err);
       setFetchError(true);
     } finally {
+      isFetchingRef.current = false;
       setIsLoading(false);
       stopSpin();
     }
-  }, [isLoading]);
+  }, [startSpin, stopSpin]);
 
   useEffect(() => {
     if (visible) {
       fetchLiveSchedule(false);
-
       const intervalId = setInterval(() => {
         fetchLiveSchedule(false);
       }, 60000);
 
       return () => clearInterval(intervalId);
     }
-  }, [visible]);
+  }, [visible, fetchLiveSchedule]);
 
   return (
     <Modal
@@ -406,7 +238,7 @@ function JogosModal({
                 disabled={isLoading}
                 accessibilityLabel="Atualizar calendário oficial"
               >
-                <Animated.View style={styles.spinIconWrap}>
+                <Animated.View style={[styles.spinIconWrap, { transform: [{ rotate: spin }] }]}>
                   <RefreshCw size={14} color={isDark ? COLORS.primaryLight : '#00874E'} />
                 </Animated.View>
               </TouchableOpacity>
@@ -470,9 +302,8 @@ function JogosModal({
             removeClippedSubviews={Platform.OS !== 'web'}
             overScrollMode="never"
           >
-            {activeTab === 'upcoming' ? (
-              // LISTA DE PRÓXIMOS JOGOS
-              <View>
+            // LISTA DE PRÓXIMOS JOGOS
+            <View>
                 {upcomingMatches.map((m) => {
                   const dateInfo = formatDatePt(m.date);
 
@@ -584,120 +415,6 @@ function JogosModal({
                   );
                 })}
               </View>
-            ) : (
-              // LISTA DE RESULTADOS PASSADOS
-              <View>
-                {pastResults.map((r) => {
-                  const dateInfo = formatDatePt(r.date);
-                  const isWin = r.outcome === 'win';
-                  const isLoss = r.outcome === 'loss';
-                  const isDraw = r.outcome === 'draw';
-
-                  return (
-                    <View
-                      key={r.id}
-                      style={[
-                        styles.matchCard,
-                        !isDark && styles.matchCardLight,
-                        isWin && styles.matchCardWin,
-                        !isDark && isWin && styles.matchCardWinLight,
-                      ]}
-                    >
-                      <View style={styles.cardHeaderRow}>
-                        <Text style={[styles.cardCompTitle, !isDark && styles.textMutedDark]}>
-                          {r.competition} · {r.round}
-                        </Text>
-                        <View
-                          style={[
-                            styles.outcomeBadge,
-                            isWin && styles.outcomeWin,
-                            isLoss && styles.outcomeLoss,
-                            isDraw && styles.outcomeDraw,
-                          ]}
-                        >
-                          {isWin && <CheckCircle2 size={12} color="#FFF" />}
-                          {isLoss && <XCircle size={12} color="#FFF" />}
-                          {isDraw && <MinusCircle size={12} color="#FFF" />}
-                          <Text style={styles.outcomeText}>
-                            {isWin ? 'VITÓRIA' : isLoss ? 'DERROTA' : 'EMPATE'}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Placar Oficial */}
-                      <View style={styles.matchTeamsRow}>
-                        <View style={styles.teamColumn}>
-                          <TeamLogo
-                            logoUrl={r.homeLogo}
-                            teamName={r.homeTeam}
-                            isRioAve={r.homeTeam.includes('Rio Ave')}
-                          />
-                          <Text
-                            style={[
-                              styles.teamNameLabel,
-                              !isDark && styles.textDark,
-                              r.homeTeam.includes('Rio Ave') && styles.teamNameRioAve,
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {r.homeTeam}
-                          </Text>
-                        </View>
-
-                        <View style={styles.scoreContainer}>
-                          <View style={styles.scorePill}>
-                            <Text style={styles.scoreText}>{r.homeScore}</Text>
-                            <Text style={styles.scoreDivider}>-</Text>
-                            <Text style={styles.scoreText}>{r.awayScore}</Text>
-                          </View>
-                          <Text style={[styles.ftLabel, !isDark && styles.textMutedDark]}>
-                            FINAL
-                          </Text>
-                        </View>
-
-                        <View style={styles.teamColumn}>
-                          <TeamLogo
-                            logoUrl={r.awayLogo}
-                            teamName={r.awayTeam}
-                            isRioAve={r.awayTeam.includes('Rio Ave')}
-                          />
-                          <Text
-                            style={[
-                              styles.teamNameLabel,
-                              !isDark && styles.textDark,
-                              r.awayTeam.includes('Rio Ave') && styles.teamNameRioAve,
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {r.awayTeam}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Informações de Local e Data */}
-                      <View style={[styles.matchMetaRow, !isDark && styles.matchMetaRowLight]}>
-                        <View style={styles.metaItem}>
-                          <CalendarIcon size={13} color={isDark ? COLORS.textMuted : '#7A8E83'} />
-                          <Text style={[styles.metaText, !isDark && styles.textMutedDark]}>
-                            {dateInfo.full}
-                          </Text>
-                        </View>
-
-                        <View style={styles.metaItem}>
-                          <MapPin size={13} color={isDark ? COLORS.textMuted : '#7A8E83'} />
-                          <Text
-                            style={[styles.metaText, !isDark && styles.textMutedDark]}
-                            numberOfLines={1}
-                          >
-                            {r.venue}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
 
             <View style={{ height: 28 }} />
           </ScrollView>

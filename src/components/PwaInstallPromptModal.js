@@ -16,11 +16,7 @@ import {
   Download,
   Share,
   SquarePlus,
-  Sparkles,
   CircleCheckBig,
-  ArrowUpRight,
-  ShieldCheck,
-  Layers,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 

@@ -23,9 +23,7 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import ClubBadge from './ClubBadge';
-import { normalizeTeamName } from '../services/matchesService';
-
-const RESULTS_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule';
+import { fetchLiveResults as fetchLiveResultsFromService } from '../services/matchesService';
 
 const FALLBACK_RESULTS = [
   {
@@ -163,10 +161,11 @@ function ResultadoModal({
   const [pastResults, setPastResults] = useState(FALLBACK_RESULTS);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const isFetchingRef = useRef(false);
 
   const spinAnim = useRef(new Animated.Value(0)).current;
 
-  const startSpin = () => {
+  const startSpin = useCallback(() => {
     spinAnim.setValue(0);
     Animated.loop(
       Animated.timing(spinAnim, {
@@ -175,12 +174,12 @@ function ResultadoModal({
         useNativeDriver: Platform.OS !== 'web',
       })
     ).start();
-  };
+  }, [spinAnim]);
 
-  const stopSpin = () => {
+  const stopSpin = useCallback(() => {
     spinAnim.stopAnimation();
     spinAnim.setValue(0);
-  };
+  }, [spinAnim]);
 
   const spin = spinAnim.interpolate({
     inputRange: [0, 1],
@@ -188,80 +187,40 @@ function ResultadoModal({
   });
 
   const fetchLiveResultsList = useCallback(async (isManual = false) => {
-    if (isLoading) return;
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     setIsLoading(true);
     if (isManual) startSpin();
 
     try {
-      const resultsRes = await fetch(RESULTS_API, { headers: { Accept: 'application/json' } });
-      if (!resultsRes.ok) {
-        throw new Error(`Status ${resultsRes.status}`);
+      const results = await fetchLiveResultsFromService(isManual);
+      if (Array.isArray(results) && results.length > 0) {
+        const mapped = results.map((r, index) => ({
+          id: r.id || `res-${index}`,
+          date: r.rawDate || r.date,
+          competition: r.competition?.split('·')[0]?.trim() || 'Liga Portugal Betclic',
+          round: r.competition?.split('·')[1]?.trim() || `${results.length - index}.ª Jornada`,
+          homeTeam: r.home,
+          homeScore: r.scoreHome,
+          homeLogo: r.homeLogo || null,
+          awayTeam: r.away,
+          awayScore: r.scoreAway,
+          awayLogo: r.awayLogo || null,
+          outcome: r.outcome === 'V' ? 'win' : r.outcome === 'D' ? 'loss' : 'draw',
+          venue: r.stadium || 'Estádio',
+        }));
+        setPastResults(mapped);
       }
-
-      const resultsData = await resultsRes.json();
-      const rawResults = resultsData.events || [];
-      const now = Date.now();
-
-      const completed = rawResults
-        .filter((e) => {
-          const comp = e.competitions?.[0];
-          const statusCompleted = comp?.status?.type?.completed;
-          const home = comp?.competitors?.find((c) => c.homeAway === 'home');
-          const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-          const hasScores = home?.score != null && away?.score != null;
-          return statusCompleted === true || (hasScores && new Date(e.date).getTime() < now);
-        })
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-      if (completed.length > 0) {
-        const completedCount = completed.length;
-        const parsedResults = completed.map((e, index) => {
-          const comp = e.competitions?.[0];
-          const home = comp?.competitors?.find((c) => c.homeAway === 'home');
-          const away = comp?.competitors?.find((c) => c.homeAway === 'away');
-          const homeName = normalizeTeamName(home?.team?.displayName || home?.team?.name || 'Clube');
-          const awayName = normalizeTeamName(away?.team?.displayName || away?.team?.name || 'Clube');
-          const homeScore = parseInt(home?.score?.displayValue ?? home?.score?.value ?? '0', 10);
-          const awayScore = parseInt(away?.score?.displayValue ?? away?.score?.value ?? '0', 10);
-          const isHome = homeName.toLowerCase().includes('rio ave');
-
-          let outcome = 'draw';
-          if (isHome) {
-            if (homeScore > awayScore) outcome = 'win';
-            else if (homeScore < awayScore) outcome = 'loss';
-          } else {
-            if (awayScore > homeScore) outcome = 'win';
-            else if (awayScore < homeScore) outcome = 'loss';
-          }
-
-          return {
-            id: e.id || `res-${index}`,
-            date: e.date,
-            competition: 'Liga Portugal Betclic',
-            round: `${completedCount - index}.ª Jornada`,
-            homeTeam: homeName,
-            homeScore: Number.isNaN(homeScore) ? 0 : homeScore,
-            homeLogo: home?.team?.logos?.[0]?.href || null,
-            awayTeam: awayName,
-            awayScore: Number.isNaN(awayScore) ? 0 : awayScore,
-            awayLogo: away?.team?.logos?.[0]?.href || null,
-            outcome,
-            venue: comp?.venue?.fullName || (isHome ? 'Estádio do Rio Ave FC (Arcos)' : 'Estádio Fora'),
-          };
-        });
-
-        setPastResults(parsedResults);
-      }
-
       setFetchError(false);
     } catch (err) {
       console.warn('Erro ao atualizar resultados:', err);
       setFetchError(true);
     } finally {
+      isFetchingRef.current = false;
       setIsLoading(false);
       stopSpin();
     }
-  }, [isLoading]);
+  }, [startSpin, stopSpin]);
 
   useEffect(() => {
     if (visible) {
@@ -271,7 +230,7 @@ function ResultadoModal({
       }, 60000);
       return () => clearInterval(intervalId);
     }
-  }, [visible]);
+  }, [visible, fetchLiveResultsList]);
 
   return (
     <Modal

@@ -14,13 +14,7 @@ import {
   X,
   Nfc,
   CheckCircle2,
-  Smartphone,
-  MapPin,
-  Sparkles,
-  ShieldCheck,
-  Radio,
   Wifi,
-  Scan,
 } from 'lucide-react-native';
 import confetti from 'canvas-confetti';
 import { COLORS } from '../theme/colors';
