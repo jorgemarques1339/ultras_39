@@ -92,6 +92,7 @@ function MainApp() {
   const [accessPromptType, setAccessPromptType] = useState('apoio');
   const [pendingTabAfterLogin, setPendingTabAfterLogin] = useState(null);
   const [isSplashDone, setIsSplashDone] = useState(false);
+  const handleSplashFinish = useCallback(() => setIsSplashDone(true), []);
 
   // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (na Home e Apoio permanece sempre visível; na Loja fica oculto)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -225,11 +226,6 @@ function MainApp() {
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={theme.bgDark}
       />
-
-      {/* Animação Inicial de Abertura com o Logótipo Oficial da Claque */}
-      {!isSplashDone && (
-        <AnimatedSplashScreen onFinish={() => setIsSplashDone(true)} />
-      )}
 
       <View
         style={[
@@ -434,6 +430,11 @@ function MainApp() {
           }}
         />
       </View>
+
+      {/* Animação Inicial de Abertura com o Logótipo Oficial da Claque */}
+      {!isSplashDone && (
+        <AnimatedSplashScreen onFinish={handleSplashFinish} />
+      )}
     </SafeAreaView>
   );
 }
