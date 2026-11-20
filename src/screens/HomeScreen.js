@@ -43,7 +43,6 @@ import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
 import GaleriaModal from '../components/GaleriaModal';
 import EventosModal from '../components/EventosModal';
-import HomeSlidingBanner from '../components/HomeSlidingBanner';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
   return (
@@ -234,16 +233,10 @@ function HomeScreen({
     }
   }, [isLoggedIn, onOpenAuth, onCheckout, user?.phone]);
 
+  const lastResult = PAST_RESULTS && PAST_RESULTS.length > 0 ? PAST_RESULTS[0] : null;
+
   return (
-    <View
-      style={[
-        styles.container,
-        !isDark && styles.containerLight,
-        {
-          paddingBottom: isTablet ? 90 : (isSmallScreen ? 76 : 84),
-        },
-      ]}
-    >
+    <View style={[styles.container, !isDark && styles.containerLight]}>
       {/* LOGÓTIPO DE FUNDO DA CLAQUE (GRUPO 39) */}
       <View style={styles.backgroundContainer} pointerEvents="none">
         <Image
@@ -254,12 +247,92 @@ function HomeScreen({
         <View style={[styles.backgroundOverlay, !isDark && styles.backgroundOverlayLight]} />
       </View>
 
-      {/* BANNER DINÂMICO DE COMUNICADOS & ALERTAS ATIVOS */}
-      <HomeSlidingBanner
-        onOpenSocio={() => setSocioModalVisible(true)}
-        isDark={isDark}
-        isLoggedIn={isLoggedIn}
-      />
+      <ScrollView
+        ref={mainScrollRef}
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingBottom: isTablet ? 115 : (isSmallScreen ? 100 : 112),
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
+        {/* 0. SECÇÃO: ÚLTIMO RESULTADO NO TOPO */}
+        {lastResult && (
+          <View style={styles.lastResultSection}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleWithIcon}>
+                <Trophy size={15} color={isDark ? '#F2B600' : '#00874E'} />
+                <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>
+                  Último Resultado
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setJogosModalVisible(true)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.seeAllLink, !isDark && styles.seeAllLinkLight]}>
+                  Ver todos
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.lastResultCard, !isDark && styles.lastResultCardLight]}
+              onPress={() => setJogosModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.lastResultTopRow}>
+                <Text style={[styles.lastResultComp, !isDark && styles.lastResultCompLight]} numberOfLines={1}>
+                  {lastResult.competition}
+                </Text>
+                <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
+                  {lastResult.date}
+                </Text>
+              </View>
+
+              <View style={styles.lastResultScoreRow}>
+                <Text
+                  style={[
+                    styles.lastResultTeam,
+                    lastResult.home.includes('Rio Ave') && styles.lastResultTeamHighlight,
+                    !isDark && styles.lastResultTeamLight,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {lastResult.home}
+                </Text>
+
+                <View style={[styles.lastResultScoreBox, !isDark && styles.lastResultScoreBoxLight]}>
+                  <Text style={[styles.lastResultScoreText, !isDark && styles.lastResultScoreTextLight]}>
+                    {lastResult.scoreHome} - {lastResult.scoreAway}
+                  </Text>
+                </View>
+
+                <Text
+                  style={[
+                    styles.lastResultTeam,
+                    styles.lastResultTeamRight,
+                    lastResult.away.includes('Rio Ave') && styles.lastResultTeamHighlight,
+                    !isDark && styles.lastResultTeamLight,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {lastResult.away}
+                </Text>
+              </View>
+
+              {!!lastResult.scorers && (
+                <Text style={[styles.lastResultScorers, !isDark && styles.lastResultScorersLight]} numberOfLines={2}>
+                  {lastResult.scorers}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
       {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
       <LinearGradient
@@ -338,9 +411,6 @@ function HomeScreen({
 
         <View style={styles.heroTopBar}>
           <View style={styles.compInfo}>
-            <Text style={[styles.compName, !isDark && styles.compNameLight]}>
-              {nextMatch.competition || 'LIGA PORTUGAL BETCLIC'}
-            </Text>
             <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>
               {nextMatch.round || '7.ª Jornada'}
             </Text>
@@ -672,6 +742,7 @@ function HomeScreen({
           )}
         </View>
       </View>
+      </ScrollView>
 
       {/* Modal de Jogos e Calendário Oficial em Direto */}
       <JogosModal
@@ -728,19 +799,121 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1310',
     position: 'relative',
     overflow: 'hidden',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+    zIndex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 14,
     paddingTop: 8,
-    justifyContent: 'flex-start',
+  },
+  lastResultSection: {
+    width: '100%',
+    marginTop: 0,
+    marginBottom: 10,
+  },
+  seeAllLink: {
+    color: '#00E676',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  seeAllLinkLight: {
+    color: '#00874E',
+  },
+  lastResultCard: {
+    backgroundColor: 'rgba(17, 26, 20, 0.84)',
+    borderRadius: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 8,
+  },
+  lastResultCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.14)',
     ...Platform.select({
       web: {
-        overflow: 'hidden',
-        overflowY: 'hidden',
-        height: '100%',
-        maxHeight: '100%',
-        userSelect: 'none',
-        touchAction: 'none',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
       },
     }),
+  },
+  lastResultTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  lastResultComp: {
+    color: '#9CAFA4',
+    fontSize: 10,
+    fontWeight: '700',
+    flex: 1,
+  },
+  lastResultCompLight: {
+    color: '#5A6E63',
+  },
+  lastResultDate: {
+    color: '#7E9187',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  lastResultDateLight: {
+    color: '#7E9187',
+  },
+  lastResultScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  lastResultTeam: {
+    flex: 1,
+    color: '#D5E2DA',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  lastResultTeamRight: {
+    textAlign: 'right',
+  },
+  lastResultTeamHighlight: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+  },
+  lastResultTeamLight: {
+    color: '#14201A',
+  },
+  lastResultScoreBox: {
+    backgroundColor: 'rgba(0, 230, 118, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  lastResultScoreBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+    borderColor: 'rgba(0, 135, 78, 0.28)',
+  },
+  lastResultScoreText: {
+    color: '#00E676',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  lastResultScoreTextLight: {
+    color: '#00874E',
+  },
+  lastResultScorers: {
+    color: '#9CAFA4',
+    fontSize: 10.5,
+    lineHeight: 15,
+    textAlign: 'center',
+  },
+  lastResultScorersLight: {
+    color: '#5A6E63',
   },
   containerLight: {
     backgroundColor: '#F5F8F6',
@@ -779,9 +952,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1.2,
     borderColor: 'rgba(0, 230, 118, 0.32)',
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 11,
     marginBottom: 8,
     flexShrink: 0,
     overflow: 'hidden',
@@ -800,8 +973,8 @@ const styles = StyleSheet.create({
     }),
   },
   heroCardSmall: {
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 6,
+    paddingBottom: 6,
     paddingHorizontal: 10,
     marginBottom: 6,
   },
@@ -816,7 +989,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 3,
     gap: 8,
   },
   heroStatusPill: {
@@ -937,7 +1110,7 @@ const styles = StyleSheet.create({
   heroTopBar: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   compInfo: {
     alignItems: 'center',
@@ -986,7 +1159,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 7,
   },
   teamColumn: {
     flex: 1.2,
@@ -1101,11 +1274,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
-    marginTop: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 13,
+    gap: 5,
+    marginTop: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 12,
     borderWidth: 1.4,
     borderColor: 'rgba(0, 230, 118, 0.55)',
     ...Platform.select({
@@ -1931,12 +2104,12 @@ const styles = StyleSheet.create({
   },
   subShortcutText: {
     color: '#FFF',
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   subShortcutSub: {
     color: '#8DA397',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
     marginTop: 1,
   },
