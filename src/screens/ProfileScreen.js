@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import {
   LogIn,
   SlidersHorizontal,
   Edit3,
+  CreditCard,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
@@ -32,6 +33,7 @@ import NfcCheckInModal from '../components/NfcCheckInModal';
 import EditProfileModal from '../components/EditProfileModal';
 import AppSettingsModal from '../components/AppSettingsModal';
 import FidelidadeModal from '../components/FidelidadeModal';
+import PagamentosModal from '../components/PagamentosModal';
 import { useAuth } from '../context/AuthContext';
 
 // Componente isolado para o Cartão Holográfico Compacto de Sócio
@@ -246,6 +248,17 @@ function ProfileScreen({
   const [nfcModalVisible, setNfcModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
+
+  // Filtrar apenas transações relativas a pagamento de quotas
+  const quotaTransactions = useMemo(() => {
+    return (transactions || []).filter(
+      (tx) =>
+        tx.type === 'quota' ||
+        tx.category?.toLowerCase().includes('quota') ||
+        tx.title?.toLowerCase().includes('quota')
+    );
+  }, [transactions]);
 
   const handleOpenNfcCheckIn = useCallback(() => {
     setNfcModalVisible(true);
@@ -309,77 +322,8 @@ function ProfileScreen({
         </View>
       ) : (
         <>
-          {/* 1. CARTÃO DIGITAL HOLOGRÁFICO DE SÓCIO (COMPACTO COM EDIÇÃO DE NOME & AVATAR) */}
-          <View style={styles.cardSection}>
-            <View style={styles.sectionTitleHeaderRow}>
-              <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-                Cartão Digital
-              </Text>
-            </View>
-
-            <HolographicMemberCard
-              user={user}
-              isQuotaPending={isQuotaPending}
-              onPayQuota={onPayQuota}
-              onEditProfile={() => setEditProfileModalVisible(true)}
-              onOpenWalletPass={onOpenWalletPass}
-              isDark={isDark}
-            />
-          </View>
-
-          {/* 2. FIDELIDADE DE BANCADA & GAMIFICAÇÃO */}
-          <View style={styles.loyaltySection}>
-            <View style={styles.loyaltyHeaderRow}>
-              <View style={styles.loyaltyTitleGroup}>
-                <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
-                <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-                  Fidelidade de Bancada
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[
-                  styles.loyaltyHeaderBtn,
-                  !isDark && styles.loyaltyHeaderBtnLight,
-                ]}
-                onPress={() => setFidelidadeModalVisible(true)}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    styles.loyaltyHeaderBtnText,
-                    !isDark && styles.loyaltyHeaderBtnTextLight,
-                  ]}
-                >
-                  Ver Mais
-                </Text>
-                <ChevronRight size={13} color={isDark ? '#00E676' : '#00874E'} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Botão de Check-in NFC no Estádio */}
-            <TouchableOpacity
-              style={[styles.checkInBtn, hasCheckedIn && styles.checkInBtnActive]}
-              onPress={handleOpenNfcCheckIn}
-              activeOpacity={0.85}
-            >
-              {hasCheckedIn ? (
-                <>
-                  <CheckCircle2 size={16} color="#FFF" />
-                  <Text style={styles.checkInBtnText}>
-                    Presença Validada via NFC nos Arcos!
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Nfc size={16} color="#FFF" />
-                  <Text style={styles.checkInBtnText}>Faça Check-In via NFC</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* 3. DEFINIÇÕES DA APP (POR BAIXO DA FIDELIDADE DE BANCADA) */}
-          <View style={styles.settingsSection}>
+          {/* 1. DEFINIÇÕES DA APP (NO TOPO) */}
+          <View style={styles.settingsTopSection}>
             <TouchableOpacity
               style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
               onPress={() => setSettingsModalVisible(true)}
@@ -422,6 +366,132 @@ function ProfileScreen({
                 size={16}
                 color={isDark ? COLORS.textMuted : '#7E9187'}
               />
+            </TouchableOpacity>
+          </View>
+
+          {/* 2. CARTÃO DIGITAL DO SÓCIO DA CLAQUE G39 */}
+          <View style={styles.cardSection}>
+            <View style={styles.sectionTitleHeaderRow}>
+              <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
+                Cartão Digital do Sócio G39
+              </Text>
+            </View>
+
+            <HolographicMemberCard
+              user={user}
+              isQuotaPending={isQuotaPending}
+              onPayQuota={onPayQuota}
+              onEditProfile={() => setEditProfileModalVisible(true)}
+              onOpenWalletPass={onOpenWalletPass}
+              isDark={isDark}
+            />
+          </View>
+
+          {/* 3. PAGAMENTO DE QUOTAS */}
+          <View style={styles.quotasSection}>
+            <TouchableOpacity
+              style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
+              onPress={() => setPagamentosModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.settingsBtnLeft}>
+                <View
+                  style={[
+                    styles.settingsIconBox,
+                    !isDark && styles.settingsIconBoxLight,
+                  ]}
+                >
+                  <CreditCard
+                    size={17}
+                    color={isDark ? '#00E676' : '#00874E'}
+                  />
+                </View>
+                <View>
+                  <View style={styles.settingsTitleRow}>
+                    <Text
+                      style={[styles.settingsBtnTitle, !isDark && styles.textDark]}
+                    >
+                      Pagamento de Quotas
+                    </Text>
+                    <View style={styles.settingsConfigBadge}>
+                      <Text style={styles.settingsConfigBadgeText}>
+                        {quotaTransactions.length} {quotaTransactions.length === 1 ? 'quota' : 'quotas'}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[
+                      styles.settingsBtnSubtitle,
+                      !isDark && styles.textMutedDark,
+                    ]}
+                  >
+                    Histórico de quotas anuais e recibos SIBS
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight
+                size={16}
+                color={isDark ? COLORS.textMuted : '#7E9187'}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* PEQUENA DIVISÃO */}
+          <View
+            style={[
+              styles.profileSectionDivider,
+              !isDark && styles.profileSectionDividerLight,
+            ]}
+          />
+
+          {/* 4. ATIVIDADE DE BANCADA */}
+          <View style={styles.loyaltySection}>
+            <View style={styles.loyaltyHeaderRow}>
+              <View style={styles.loyaltyTitleGroup}>
+                <Award size={16} color={isDark ? COLORS.gold : '#00874E'} />
+                <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
+                  Atividade de Bancada
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.loyaltyHeaderBtn,
+                  !isDark && styles.loyaltyHeaderBtnLight,
+                ]}
+                onPress={() => setFidelidadeModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.loyaltyHeaderBtnText,
+                    !isDark && styles.loyaltyHeaderBtnTextLight,
+                  ]}
+                >
+                  Ver Mais
+                </Text>
+                <ChevronRight size={13} color={isDark ? '#00E676' : '#00874E'} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Botão de Check-in NFC no Estádio */}
+            <TouchableOpacity
+              style={[styles.checkInBtn, hasCheckedIn && styles.checkInBtnActive]}
+              onPress={handleOpenNfcCheckIn}
+              activeOpacity={0.85}
+            >
+              {hasCheckedIn ? (
+                <>
+                  <CheckCircle2 size={16} color="#FFF" />
+                  <Text style={styles.checkInBtnText}>
+                    Presença Validada via NFC nos Arcos!
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Nfc size={16} color="#FFF" />
+                  <Text style={styles.checkInBtnText}>Faça Check-In via NFC</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -472,6 +542,16 @@ function ProfileScreen({
         achievements={achievements}
         isDark={isDark}
         onOpenNfcCheckIn={handleOpenNfcCheckIn}
+      />
+
+      {/* Modal de Pagamentos de Quotas */}
+      <PagamentosModal
+        visible={pagamentosModalVisible}
+        onClose={() => setPagamentosModalVisible(false)}
+        transactions={quotaTransactions}
+        onViewReceipt={onViewReceipt}
+        user={user}
+        isDark={isDark}
       />
 
       <View style={{ height: 140 }} />
@@ -864,7 +944,25 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
 
-  // 3. NOVO: Definições da App
+  // 1. Definições da App (Topo)
+  settingsTopSection: {
+    marginBottom: 16,
+  },
+  // 3. Quotas
+  quotasSection: {
+    marginBottom: 16,
+  },
+  // Divisão Visual
+  profileSectionDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 4,
+    marginBottom: 18,
+    borderRadius: 1,
+  },
+  profileSectionDividerLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+  },
   settingsSection: {
     marginBottom: 16,
   },

@@ -30,7 +30,17 @@ function PagamentosModal({
 }) {
   if (!visible) return null;
 
-  const totalSpent = transactions.reduce((acc, tx) => acc + (Number(tx.amount) || 0), 0);
+  const quotaTransactions = transactions.filter(
+    (tx) =>
+      tx.type === 'quota' ||
+      tx.category?.toLowerCase().includes('quota') ||
+      tx.title?.toLowerCase().includes('quota')
+  );
+
+  const totalSpent = quotaTransactions.reduce(
+    (acc, tx) => acc + (Number(tx.amount) || 0),
+    0
+  );
 
   return (
     <Modal
@@ -52,10 +62,10 @@ function PagamentosModal({
               </View>
               <View style={styles.headerTitleCol}>
                 <Text style={[styles.headerTitle, !isDark && styles.headerTitleLight]} numberOfLines={1}>
-                  Os Meus Pagamentos
+                  Pagamentos de Quotas
                 </Text>
                 <Text style={[styles.headerSubtitle, !isDark && styles.headerSubtitleLight]} numberOfLines={1}>
-                  Todas as Transações & Comprovativos SIBS
+                  Histórico de Quotas & Comprovativos SIBS
                 </Text>
               </View>
             </View>
@@ -103,10 +113,10 @@ function PagamentosModal({
                 </View>
                 <View style={styles.summaryRightCol}>
                   <Text style={[styles.summaryCountLabel, !isDark && styles.textMutedDark]}>
-                    Movimentos
+                    Quotas Pagas
                   </Text>
                   <Text style={styles.summaryCountValue}>
-                    {transactions.length} transações
+                    {quotaTransactions.length} {quotaTransactions.length === 1 ? 'registo' : 'registos'}
                   </Text>
                 </View>
               </View>
@@ -126,7 +136,7 @@ function PagamentosModal({
             {/* Título da Lista de Transações */}
             <View style={styles.listHeaderRow}>
               <Text style={[styles.listSectionTitle, !isDark && styles.textDark]}>
-                Transações Executadas ({transactions.length})
+                Quotas Regularizadas ({quotaTransactions.length})
               </Text>
               <Text style={[styles.listSubText, !isDark && styles.textMutedDark]}>
                 Toca para ver o recibo oficial
@@ -134,18 +144,18 @@ function PagamentosModal({
             </View>
 
             {/* Lista de Transações */}
-            {transactions.length === 0 ? (
+            {quotaTransactions.length === 0 ? (
               <View style={[styles.emptyBox, !isDark && styles.emptyBoxLight]}>
                 <CreditCard size={32} color={isDark ? '#4A6154' : '#8A9E93'} />
                 <Text style={[styles.emptyTitle, !isDark && styles.textDark]}>
-                  Nenhum pagamento efetuado ainda
+                  Nenhuma quota registada ainda
                 </Text>
                 <Text style={[styles.emptyDesc, !isDark && styles.textMutedDark]}>
-                  As quotas e encomendas da Loja Oficial que pagares via MB WAY aparecerão detalhadas aqui.
+                  As quotas anuais de sócio que regularizares via MB WAY aparecerão detalhadas aqui.
                 </Text>
               </View>
             ) : (
-              transactions.map((tx, index) => (
+              quotaTransactions.map((tx, index) => (
                 <TouchableOpacity
                   key={tx.id || `tx-${index}`}
                   style={[styles.txCard, !isDark && styles.txCardLight]}

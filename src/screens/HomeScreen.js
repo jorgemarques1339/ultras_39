@@ -31,7 +31,6 @@ import {
   Camera,
   Calendar as CalendarIcon,
   Lock,
-  CreditCard,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA } from '../data/mockData';
@@ -42,8 +41,6 @@ import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
 import GaleriaModal from '../components/GaleriaModal';
 import EventosModal from '../components/EventosModal';
-import ForumLoginPromptModal from '../components/ForumLoginPromptModal';
-import PagamentosModal from '../components/PagamentosModal';
 import HomeSlidingBanner from '../components/HomeSlidingBanner';
 
 function SoccerBallIcon({ size = 15, color = COLORS.primaryLight }) {
@@ -94,8 +91,6 @@ function HomeScreen({
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [galeriaModalVisible, setGaleriaModalVisible] = useState(false);
   const [eventosModalVisible, setEventosModalVisible] = useState(false);
-  const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
-  const [pagamentosNoticeVisible, setPagamentosNoticeVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
@@ -567,9 +562,9 @@ function HomeScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 4ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) AO LADO DE PAGAMENTOS */}
-          <View style={styles.subShortcutsRow}>
-            {!isLoggedIn && (
+          {/* 4ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) */}
+          {!isLoggedIn && (
+            <View style={styles.subShortcutsRow}>
               <TouchableOpacity
                 style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
                 onPress={() => setSocioModalVisible(true)}
@@ -583,81 +578,8 @@ function HomeScreen({
                 </Text>
                 <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
               </TouchableOpacity>
-            )}
-
-            {/* Pagamentos: Largura total quando autenticado para alinhar com a grelha de 2 colunas */}
-            {isLoggedIn ? (
-              <TouchableOpacity
-                style={[
-                  styles.pagamentosCardFull,
-                  !isDark && styles.pagamentosCardFullLight,
-                ]}
-                onPress={() => setPagamentosModalVisible(true)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.pagamentosFullLeft}>
-                  <View style={styles.subShortcutIconBgCalendar}>
-                    <CreditCard size={16} color={COLORS.primaryLight} />
-                  </View>
-                  <View style={styles.pagamentosFullTextCol}>
-                    <Text
-                      style={[
-                        styles.pagamentosFullTitle,
-                        !isDark && styles.subShortcutTextLight,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      Pagamentos
-                    </Text>
-                    <Text
-                      style={[
-                        styles.pagamentosFullSub,
-                        !isDark && styles.textMutedDark,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      Histórico de quotas e comprovativos SIBS
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.pagamentosFullRight}>
-                  <View style={[styles.pagamentosCountPill, !isDark && styles.pagamentosCountPillLight]}>
-                    <Text style={[styles.pagamentosCountText, !isDark && styles.pagamentosCountTextLight]}>
-                      {transactions?.length || 0} mov.
-                    </Text>
-                  </View>
-                  <ChevronRight size={14} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.subShortcutCardLocked, !isDark && styles.subShortcutCardLockedLight]}
-                onPress={() => setPagamentosNoticeVisible(true)}
-                activeOpacity={0.8}
-                accessibilityLabel="Pagamentos bloqueados, requer login"
-              >
-                <View style={styles.subShortcutIconBgLocked}>
-                  <Lock size={14} color={isDark ? '#F2B600' : '#8A6D00'} />
-                </View>
-                <View style={[styles.busTextRowLocked, styles.pagamentosCenterTextCol]}>
-                  <Text
-                    style={[
-                      styles.subShortcutTextPagamentos,
-                      styles.textCentered,
-                      !isDark && styles.subShortcutTextLight,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    Pagamentos
-                  </Text>
-                  <Text style={[styles.lockedBadgeTextPagamentos, styles.textCentered]} numberOfLines={1}>
-                    Requer Login
-                  </Text>
-                </View>
-                <ChevronRight size={13} color={isDark ? '#7E9187' : '#5A6E63'} />
-              </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          )}
         </View>
       </View>
 
@@ -704,42 +626,6 @@ function HomeScreen({
         visible={eventosModalVisible}
         onClose={() => setEventosModalVisible(false)}
         isDark={isDark}
-      />
-
-      {/* Modal Central de Pagamentos com Todas as Transações Executadas */}
-      <PagamentosModal
-        visible={pagamentosModalVisible}
-        onClose={() => setPagamentosModalVisible(false)}
-        transactions={transactions}
-        onViewReceipt={onViewReceipt}
-        user={user}
-        isDark={isDark}
-      />
-
-      {/* Modal de Aviso: Pagamentos Bloqueados sem Login */}
-      <ForumLoginPromptModal
-        visible={pagamentosNoticeVisible}
-        onClose={() => setPagamentosNoticeVisible(false)}
-        type="pagamentos"
-        isDark={isDark}
-        onOpenLogin={() => {
-          setPagamentosNoticeVisible(false);
-          if (onOpenAuth) {
-            onOpenAuth({
-              initialTab: 'login',
-              message: 'Para visualizar os Pagamentos tem que ter Login feito.',
-            });
-          }
-        }}
-        onOpenRegister={() => {
-          setPagamentosNoticeVisible(false);
-          if (onOpenAuth) {
-            onOpenAuth({
-              initialTab: 'register',
-              message: 'Cria a tua conta para acederes aos teus Pagamentos e Transações.',
-            });
-          }
-        }}
       />
 
     </View>

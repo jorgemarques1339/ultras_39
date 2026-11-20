@@ -60,7 +60,7 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState('home');
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
 
-  // Carregar transações persistidas da sessão
+  // Carregar apenas transações de quotas persistidas da sessão
   useEffect(() => {
     let isMounted = true;
     AsyncStorage.getItem('@grupo39_transactions')
@@ -69,7 +69,15 @@ function MainApp() {
           try {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setTransactions(parsed);
+              const onlyQuotas = parsed.filter(
+                (t) =>
+                  t.type === 'quota' ||
+                  t.category?.toLowerCase().includes('quota') ||
+                  t.title?.toLowerCase().includes('quota')
+              );
+              if (onlyQuotas.length > 0) {
+                setTransactions(onlyQuotas);
+              }
             }
           } catch (e) {}
         }
