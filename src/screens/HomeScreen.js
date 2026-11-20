@@ -397,8 +397,10 @@ function HomeScreen({
                   {activeNewsSlide.type === 'result' ? (
                     <>
                       <View style={styles.lastResultTopRow}>
-                        <View style={styles.newsTypePillResult}>
-                          <Text style={styles.newsTypePillResultText}>ÚLTIMO RESULTADO</Text>
+                        <View style={[styles.newsTypePillResult, !isDark && styles.newsTypePillResultLight]}>
+                          <Text style={[styles.newsTypePillResultText, !isDark && styles.newsTypePillResultTextLight]}>
+                            ÚLTIMO RESULTADO
+                          </Text>
                         </View>
                         <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
                           {activeNewsSlide.data.date}
@@ -462,18 +464,26 @@ function HomeScreen({
                     <View style={styles.newsSlideBody}>
                       <View style={styles.lastResultTopRow}>
                         <View
-                          style={
+                          style={[
                             activeNewsSlide.type === 'transfer'
                               ? styles.newsTypePillTransfer
-                              : styles.newsTypePillArticle
-                          }
+                              : styles.newsTypePillArticle,
+                            !isDark &&
+                              (activeNewsSlide.type === 'transfer'
+                                ? styles.newsTypePillTransferLight
+                                : styles.newsTypePillArticleLight),
+                          ]}
                         >
                           <Text
-                            style={
+                            style={[
                               activeNewsSlide.type === 'transfer'
                                 ? styles.newsTypePillTransferText
-                                : styles.newsTypePillArticleText
-                            }
+                                : styles.newsTypePillArticleText,
+                              !isDark &&
+                                (activeNewsSlide.type === 'transfer'
+                                  ? styles.newsTypePillTransferTextLight
+                                  : styles.newsTypePillArticleTextLight),
+                            ]}
                           >
                             {activeNewsSlide.type === 'transfer'
                               ? 'TRANSFERÊNCIA'
@@ -1061,11 +1071,18 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  newsTypePillResultLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.28)',
+  },
   newsTypePillResultText: {
     color: '#00E676',
     fontSize: 8.5,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  newsTypePillResultTextLight: {
+    color: '#00874E',
   },
   newsTypePillArticle: {
     backgroundColor: 'rgba(242, 182, 0, 0.14)',
@@ -1075,11 +1092,18 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  newsTypePillArticleLight: {
+    backgroundColor: 'rgba(184, 134, 0, 0.12)',
+    borderColor: 'rgba(184, 134, 0, 0.28)',
+  },
   newsTypePillArticleText: {
     color: '#F2B600',
     fontSize: 8.5,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  newsTypePillArticleTextLight: {
+    color: '#9A6E00',
   },
   newsTypePillTransfer: {
     backgroundColor: 'rgba(56, 189, 248, 0.16)',
@@ -1089,11 +1113,18 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  newsTypePillTransferLight: {
+    backgroundColor: 'rgba(2, 132, 199, 0.1)',
+    borderColor: 'rgba(2, 132, 199, 0.28)',
+  },
   newsTypePillTransferText: {
     color: '#38BDF8',
     fontSize: 8.5,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  newsTypePillTransferTextLight: {
+    color: '#0284C7',
   },
   newsSlideBody: {
     gap: 5,

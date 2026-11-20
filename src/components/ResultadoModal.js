@@ -390,10 +390,10 @@ function ResultadoModal({
                       </View>
 
                       <View style={styles.scoreContainer}>
-                        <View style={styles.scorePill}>
-                          <Text style={styles.scoreText}>{r.homeScore}</Text>
+                        <View style={[styles.scorePill, !isDark && styles.scorePillLight]}>
+                          <Text style={[styles.scoreText, !isDark && styles.scoreTextLight]}>{r.homeScore}</Text>
                           <Text style={styles.scoreDivider}>-</Text>
-                          <Text style={styles.scoreText}>{r.awayScore}</Text>
+                          <Text style={[styles.scoreText, !isDark && styles.scoreTextLight]}>{r.awayScore}</Text>
                         </View>
                         <Text style={[styles.ftLabel, !isDark && styles.textMutedDark]}>
                           FINAL
@@ -750,10 +750,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
+  scorePillLight: {
+    backgroundColor: '#EDF5F0',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
   scoreText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '900',
+  },
+  scoreTextLight: {
+    color: '#00874E',
   },
   scoreDivider: {
     color: COLORS.textMuted,

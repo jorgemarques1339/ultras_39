@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
-import { Bell, Sun, Moon, User } from 'lucide-react-native';
+import { Bell, Sun, Moon } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 function Header({

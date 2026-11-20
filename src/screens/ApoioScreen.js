@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0D1310',
   },
   containerLight: {
     backgroundColor: '#FFFFFF',
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   nativeWebView: {
     flex: 1,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0D1310',
   },
   nativeWebViewLight: {
     backgroundColor: '#FFFFFF',
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0D1310',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 28,
     paddingBottom: 80,
-    backgroundColor: '#0D0D0D',
+    backgroundColor: '#0D1310',
   },
   errorStateLight: {
     backgroundColor: '#FFFFFF',

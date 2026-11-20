@@ -312,7 +312,7 @@ function DeslocacaoModal({
                   <Text style={[styles.totalLabel, !isDark && styles.textMutedDark]}>
                     Total a Transferir
                   </Text>
-                  <Text style={styles.totalValue}>{totalAmount} €</Text>
+                  <Text style={[styles.totalValue, !isDark && styles.totalValueLight]}>{totalAmount} €</Text>
                 </View>
 
                 <TouchableOpacity onPress={handleContinueToPayment} activeOpacity={0.86}>
@@ -405,7 +405,7 @@ function DeslocacaoModal({
                       <Text style={[styles.bankFieldLabel, !isDark && styles.textMutedDark]}>
                         Montante
                       </Text>
-                      <Text style={styles.bankAmountText}>{totalAmount} €</Text>
+                      <Text style={[styles.bankAmountText, !isDark && styles.bankAmountTextLight]}>{totalAmount} €</Text>
                     </View>
                   </View>
                 </View>
@@ -449,7 +449,7 @@ function DeslocacaoModal({
                   <Text style={[styles.confirmedRefLabel, !isDark && styles.textMutedDark]}>
                     IBAN: {IBAN_CLUBE}
                   </Text>
-                  <Text style={styles.confirmedRefCode}>Ref: {reservationRef}</Text>
+                  <Text style={[styles.confirmedRefCode, !isDark && styles.confirmedRefCodeLight]}>Ref: {reservationRef}</Text>
                 </View>
 
                 <TouchableOpacity
@@ -781,6 +781,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
   },
+  totalValueLight: {
+    color: '#00874E',
+  },
   primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -893,6 +896,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginTop: 2,
   },
+  bankAmountTextLight: {
+    color: '#00874E',
+  },
   infoNotice: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -958,6 +964,9 @@ const styles = StyleSheet.create({
     color: '#F2B600',
     fontSize: 13.5,
     fontWeight: '900',
+  },
+  confirmedRefCodeLight: {
+    color: '#00874E',
   },
   doneBtn: {
     width: '100%',
