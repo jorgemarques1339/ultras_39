@@ -33,14 +33,26 @@ import {
   Calendar as CalendarIcon,
   Lock,
   Play,
+  Newspaper,
+  ExternalLink,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
-import { getNextMatchData } from '../services/matchesService';
+import {
+  getNextMatchData,
+  fetchLiveResults,
+  fetchRioAveNews,
+  fetchLatestTransfer,
+  FLASHSCORE_RESULTS_URL,
+  FLASHSCORE_NEWS_URL,
+  FLASHSCORE_FIXTURES_URL,
+  FLASHSCORE_TRANSFERS_URL,
+} from '../services/matchesService';
 import ClubBadge from '../components/ClubBadge';
 import TabelaModal from '../components/TabelaModal';
 import SejaSocioModal from '../components/SejaSocioModal';
 import JogosModal from '../components/JogosModal';
+import ResultadoModal from '../components/ResultadoModal';
 import GaleriaModal from '../components/GaleriaModal';
 import EventosModal from '../components/EventosModal';
 
@@ -90,11 +102,39 @@ function HomeScreen({
   const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [socioModalVisible, setSocioModalVisible] = useState(false);
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
+  const [resultadoModalVisible, setResultadoModalVisible] = useState(false);
   const [galeriaModalVisible, setGaleriaModalVisible] = useState(false);
   const [eventosModalVisible, setEventosModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
+  const [liveResults, setLiveResults] = useState(PAST_RESULTS);
+  const [newsItems, setNewsItems] = useState([
+    {
+      id: 'news-init-1',
+      title: 'Últimas Notícias e Antevisões do Rio Ave FC',
+      subtitle: 'Acompanha crónicas, plantel e novidades dos Arcos',
+      date: 'Atualidade',
+      url: FLASHSCORE_NEWS_URL,
+    },
+    {
+      id: 'news-init-2',
+      title: 'Atualidade Verde e Branca · Liga Portugal Betclic',
+      subtitle: 'Declarações pós-jogo e novidades dos Arcos',
+      date: 'Atualidade',
+      url: FLASHSCORE_NEWS_URL,
+    },
+  ]);
+  const [latestTransfer, setLatestTransfer] = useState({
+    id: 'transfer-init-1',
+    title: 'Mercado e Transferências · Rio Ave FC',
+    subtitle: 'Últimas entradas, saídas e empréstimos do plantel',
+    date: 'Mercado',
+    url: FLASHSCORE_TRANSFERS_URL,
+  });
+  const [newsSlideIndex, setNewsSlideIndex] = useState(0);
+  const rollUpAnim = useRef(new Animated.Value(0)).current;
+  const rollUpOpacity = useRef(new Animated.Value(1)).current;
   const [nowTs, setNowTs] = useState(() => Date.now());
   const mainScrollRef = useRef(null);
 
@@ -147,7 +187,8 @@ function HomeScreen({
 
   // Forma recente do Rio Ave FC (últimos 5 jogos)
   const recentForm = useMemo(() => {
-    return (PAST_RESULTS || []).slice(0, 5).map((item) => {
+    return (liveResults || []).slice(0, 5).map((item) => {
+      if (item.outcome) return item.outcome;
       const isHome = item.home?.toLowerCase().includes('rio ave');
       const rafcGoals = isHome ? item.scoreHome : item.scoreAway;
       const oppGoals = isHome ? item.scoreAway : item.scoreHome;
@@ -155,7 +196,7 @@ function HomeScreen({
       if (rafcGoals === oppGoals) return 'E';
       return 'D';
     }).reverse();
-  }, []);
+  }, [liveResults]);
 
   const handleOpenMeetingMap = useCallback(() => {
     if (!meetingPointInfo?.mapsUrl) return;
@@ -166,32 +207,120 @@ function HomeScreen({
     }
   }, [meetingPointInfo]);
 
-  // Carregar dados oficiais do próximo jogo em tempo real (mesma API dos Jogos)
+  const handleOpenExternalUrl = useCallback((url) => {
+    const targetUrl = url || FLASHSCORE_NEWS_URL;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      Linking.openURL(targetUrl).catch(() => {});
+    }
+  }, []);
+
+  const handleOpenFlashscore = useCallback(() => {
+    handleOpenExternalUrl(FLASHSCORE_RESULTS_URL);
+  }, [handleOpenExternalUrl]);
+
+  // Carregar dados oficiais do próximo jogo, último resultado e notícias em tempo real
   useEffect(() => {
     let isMounted = true;
-    getNextMatchData(true)
-      .then((liveMatch) => {
-        if (isMounted && liveMatch) {
-          setNextMatch(liveMatch);
-        }
-      })
-      .catch((err) => console.warn('Erro ao atualizar próximo jogo:', err));
-
-    const interval = setInterval(() => {
+    const syncMatches = () => {
       getNextMatchData(true)
         .then((liveMatch) => {
           if (isMounted && liveMatch) {
             setNextMatch(liveMatch);
           }
         })
+        .catch((err) => console.warn('Erro ao atualizar próximo jogo:', err));
+
+      fetchLiveResults(true)
+        .then((results) => {
+          if (isMounted && Array.isArray(results) && results.length > 0) {
+            setLiveResults(results);
+          }
+        })
         .catch(() => {});
-    }, 60000);
+
+      fetchRioAveNews(true)
+        .then((news) => {
+          if (isMounted && Array.isArray(news) && news.length > 0) {
+            setNewsItems(news.slice(0, 1));
+          }
+        })
+        .catch(() => {});
+
+      fetchLatestTransfer(true)
+        .then((transfer) => {
+          if (isMounted && transfer) {
+            setLatestTransfer(transfer);
+          }
+        })
+        .catch(() => {});
+    };
+
+    syncMatches();
+    const interval = setInterval(syncMatches, 60000);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
   }, []);
+
+  const lastResult = liveResults && liveResults.length > 0 ? liveResults[0] : null;
+
+  const newsSlides = useMemo(() => {
+    const slides = [];
+    if (lastResult) {
+      slides.push({ id: `slide-result-${lastResult.id}`, type: 'result', data: lastResult });
+    }
+    if (newsItems && newsItems.length > 0) {
+      slides.push({ id: newsItems[0].id || 'slide-news-0', type: 'news', data: newsItems[0] });
+    }
+    if (latestTransfer) {
+      slides.push({ id: latestTransfer.id || 'slide-transfer-0', type: 'transfer', data: latestTransfer });
+    }
+    return slides;
+  }, [lastResult, newsItems, latestTransfer]);
+
+  const goToNewsSlide = useCallback((nextIdx) => {
+    if (newsSlides.length <= 1) return;
+    const target = ((nextIdx % newsSlides.length) + newsSlides.length) % newsSlides.length;
+    Animated.parallel([
+      Animated.timing(rollUpOpacity, {
+        toValue: 0,
+        duration: 160,
+        useNativeDriver: Platform.OS !== 'web',
+      }),
+      Animated.timing(rollUpAnim, {
+        toValue: -14,
+        duration: 160,
+        useNativeDriver: Platform.OS !== 'web',
+      }),
+    ]).start(() => {
+      setNewsSlideIndex(target);
+      rollUpAnim.setValue(16);
+      Animated.parallel([
+        Animated.timing(rollUpOpacity, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(rollUpAnim, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ]).start();
+    });
+  }, [newsSlides.length, rollUpAnim, rollUpOpacity]);
+
+  useEffect(() => {
+    if (newsSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      goToNewsSlide(newsSlideIndex + 1);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [goToNewsSlide, newsSlideIndex, newsSlides.length]);
 
   const handleVoteMotm = useCallback((playerId) => {
     setVotedPlayerId((current) => {
@@ -233,7 +362,7 @@ function HomeScreen({
     }
   }, [isLoggedIn, onOpenAuth, onCheckout, user?.phone]);
 
-  const lastResult = PAST_RESULTS && PAST_RESULTS.length > 0 ? PAST_RESULTS[0] : null;
+  const activeNewsSlide = newsSlides[newsSlideIndex % Math.max(1, newsSlides.length)] || null;
 
   return (
     <View style={[styles.container, !isDark && styles.containerLight]}>
@@ -260,76 +389,186 @@ function HomeScreen({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {/* 0. SECÇÃO: ÚLTIMO RESULTADO NO TOPO */}
-        {lastResult && (
+        {/* 0. SECÇÃO: NOTÍCIAS (ROLL-UP COM ÚLTIMO RESULTADO + 2 ÚLTIMAS NOTÍCIAS) */}
+        {activeNewsSlide && (
           <View style={styles.lastResultSection}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleWithIcon}>
-                <Trophy size={15} color={isDark ? '#F2B600' : '#00874E'} />
-                <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>
-                  Último Resultado
+                <View style={[styles.newsHeaderIconBox, !isDark && styles.newsHeaderIconBoxLight]}>
+                  <Newspaper size={14} color={isDark ? '#F2B600' : '#00874E'} />
+                </View>
+                <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
+                  Notícias
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => setJogosModalVisible(true)}
-                activeOpacity={0.75}
-              >
-                <Text style={[styles.seeAllLink, !isDark && styles.seeAllLinkLight]}>
-                  Ver todos
-                </Text>
-              </TouchableOpacity>
+
+              <View style={styles.newsHeaderRight}>
+                <View style={styles.newsDotsRow}>
+                  {newsSlides.map((s, idx) => (
+                    <TouchableOpacity
+                      key={s.id}
+                      onPress={() => goToNewsSlide(idx)}
+                      hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                      style={[
+                        styles.newsDot,
+                        idx === newsSlideIndex && styles.newsDotActive,
+                        !isDark && styles.newsDotLight,
+                        !isDark && idx === newsSlideIndex && styles.newsDotActiveLight,
+                      ]}
+                    />
+                  ))}
+                </View>
+              </View>
             </View>
 
             <TouchableOpacity
-              style={[styles.lastResultCard, !isDark && styles.lastResultCardLight]}
-              onPress={() => setJogosModalVisible(true)}
-              activeOpacity={0.85}
+              onPress={() =>
+                activeNewsSlide.type === 'result'
+                  ? setResultadoModalVisible(true)
+                  : activeNewsSlide.type === 'transfer'
+                    ? handleOpenExternalUrl(activeNewsSlide.data?.url || FLASHSCORE_TRANSFERS_URL)
+                    : handleOpenExternalUrl(activeNewsSlide.data?.url || FLASHSCORE_NEWS_URL)
+              }
+              activeOpacity={0.86}
+              accessibilityLabel={
+                activeNewsSlide.type === 'result'
+                  ? 'Abrir último resultado do Rio Ave FC no Flashscore'
+                  : activeNewsSlide.type === 'transfer'
+                    ? 'Abrir transferências do Rio Ave FC no Flashscore'
+                    : 'Abrir notícia do Rio Ave FC no Flashscore'
+              }
             >
-              <View style={styles.lastResultTopRow}>
-                <Text style={[styles.lastResultComp, !isDark && styles.lastResultCompLight]} numberOfLines={1}>
-                  {lastResult.competition}
-                </Text>
-                <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
-                  {lastResult.date}
-                </Text>
-              </View>
+              <LinearGradient
+                colors={
+                  isDark
+                    ? ['#203528', '#132219', '#0D1611']
+                    : ['#FFFDF5', '#EDF9F2']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.newsFeaturedCard, !isDark && styles.newsFeaturedCardLight]}
+              >
+                <LinearGradient
+                  colors={['#F2B600', '#00E676']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={styles.newsAccentLeft}
+                />
 
-              <View style={styles.lastResultScoreRow}>
-                <Text
+                <Animated.View
                   style={[
-                    styles.lastResultTeam,
-                    lastResult.home.includes('Rio Ave') && styles.lastResultTeamHighlight,
-                    !isDark && styles.lastResultTeamLight,
+                    styles.newsFeaturedContent,
+                    {
+                      opacity: rollUpOpacity,
+                      transform: [{ translateY: rollUpAnim }],
+                    },
                   ]}
-                  numberOfLines={1}
                 >
-                  {lastResult.home}
-                </Text>
+                  {activeNewsSlide.type === 'result' ? (
+                    <>
+                      <View style={styles.lastResultTopRow}>
+                        <View style={styles.newsTypePillResult}>
+                          <Text style={styles.newsTypePillResultText}>ÚLTIMO RESULTADO</Text>
+                        </View>
+                        <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
+                          {activeNewsSlide.data.date}
+                        </Text>
+                      </View>
 
-                <View style={[styles.lastResultScoreBox, !isDark && styles.lastResultScoreBoxLight]}>
-                  <Text style={[styles.lastResultScoreText, !isDark && styles.lastResultScoreTextLight]}>
-                    {lastResult.scoreHome} - {lastResult.scoreAway}
-                  </Text>
-                </View>
+                      <View style={styles.lastResultScoreRow}>
+                        <View style={styles.lastResultTeamGroup}>
+                          <ClubBadge
+                            name={activeNewsSlide.data.home}
+                            logo={activeNewsSlide.data.homeLogo}
+                            size="xs"
+                            isDark={isDark}
+                          />
+                          <Text
+                            style={[
+                              styles.lastResultTeam,
+                              activeNewsSlide.data.home.includes('Rio Ave') && styles.lastResultTeamHighlight,
+                              !isDark && styles.lastResultTeamLight,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {activeNewsSlide.data.home}
+                          </Text>
+                        </View>
 
-                <Text
-                  style={[
-                    styles.lastResultTeam,
-                    styles.lastResultTeamRight,
-                    lastResult.away.includes('Rio Ave') && styles.lastResultTeamHighlight,
-                    !isDark && styles.lastResultTeamLight,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {lastResult.away}
-                </Text>
-              </View>
+                        <View style={[styles.lastResultScoreBox, !isDark && styles.lastResultScoreBoxLight]}>
+                          <Text style={[styles.lastResultScoreText, !isDark && styles.lastResultScoreTextLight]}>
+                            {activeNewsSlide.data.scoreHome} - {activeNewsSlide.data.scoreAway}
+                          </Text>
+                        </View>
 
-              {!!lastResult.scorers && (
-                <Text style={[styles.lastResultScorers, !isDark && styles.lastResultScorersLight]} numberOfLines={2}>
-                  {lastResult.scorers}
-                </Text>
-              )}
+                        <View style={[styles.lastResultTeamGroup, styles.lastResultTeamGroupRight]}>
+                          <Text
+                            style={[
+                              styles.lastResultTeam,
+                              styles.lastResultTeamRight,
+                              activeNewsSlide.data.away.includes('Rio Ave') && styles.lastResultTeamHighlight,
+                              !isDark && styles.lastResultTeamLight,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {activeNewsSlide.data.away}
+                          </Text>
+                          <ClubBadge
+                            name={activeNewsSlide.data.away}
+                            logo={activeNewsSlide.data.awayLogo}
+                            size="xs"
+                            isDark={isDark}
+                          />
+                        </View>
+                      </View>
+
+                      {!!activeNewsSlide.data.scorers && (
+                        <Text style={[styles.lastResultScorers, !isDark && styles.lastResultScorersLight]} numberOfLines={1}>
+                          {activeNewsSlide.data.scorers}
+                        </Text>
+                      )}
+                    </>
+                  ) : (
+                    <View style={styles.newsSlideBody}>
+                      <View style={styles.lastResultTopRow}>
+                        <View
+                          style={
+                            activeNewsSlide.type === 'transfer'
+                              ? styles.newsTypePillTransfer
+                              : styles.newsTypePillArticle
+                          }
+                        >
+                          <Text
+                            style={
+                              activeNewsSlide.type === 'transfer'
+                                ? styles.newsTypePillTransferText
+                                : styles.newsTypePillArticleText
+                            }
+                          >
+                            {activeNewsSlide.type === 'transfer'
+                              ? 'TRANSFERÊNCIA'
+                              : 'NOTÍCIA'}
+                          </Text>
+                        </View>
+                        <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
+                          {activeNewsSlide.data.date}
+                        </Text>
+                      </View>
+
+                      <Text style={[styles.newsArticleTitle, !isDark && styles.newsArticleTitleLight]} numberOfLines={2}>
+                        {activeNewsSlide.data.title}
+                      </Text>
+
+                      <View style={styles.newsArticleFooter}>
+                        <Text style={[styles.newsArticleSub, !isDark && styles.newsArticleSubLight]} numberOfLines={1}>
+                          {activeNewsSlide.data.subtitle}
+                        </Text>
+                        <ChevronRight size={14} color={isDark ? '#F2B600' : '#00874E'} />
+                      </View>
+                    </View>
+                  )}
+                </Animated.View>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         )}
@@ -409,16 +648,24 @@ function HomeScreen({
           )}
         </View>
 
-        <View style={styles.heroTopBar}>
-          <View style={styles.compInfo}>
-            <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>
-              {nextMatch.round || '7.ª Jornada'}
-            </Text>
+        <TouchableOpacity
+          onPress={() => setJogosModalVisible(true)}
+          activeOpacity={0.85}
+          accessibilityLabel="Abrir jogos e calendário oficial"
+        >
+          <View style={styles.heroTopBar}>
+            <View style={styles.compInfo}>
+              <View style={styles.compRoundRow}>
+                <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>
+                  {nextMatch.round || '7.ª Jornada'}
+                </Text>
+                <ChevronRight size={11} color={isDark ? '#00E676' : '#00874E'} />
+              </View>
+            </View>
           </View>
-        </View>
 
-        {/* Equipas & Emblemas Reais */}
-        <View style={styles.matchTeamsRow}>
+          {/* Equipas & Emblemas Reais */}
+          <View style={styles.matchTeamsRow}>
           {/* Equipa Visitada / Casa */}
           <View style={styles.teamColumn}>
             <View style={[styles.emblemHalo, !isDark && styles.emblemHaloLight]}>
@@ -491,6 +738,7 @@ function HomeScreen({
             <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
           </View>
         </View>
+        </TouchableOpacity>
 
         {/* Ponto de Encontro / Convívio da Claque */}
         <TouchableOpacity
@@ -652,102 +900,19 @@ function HomeScreen({
           </LinearGradient>
         </TouchableOpacity>
       </View>
-
-      {/* 3. SECÇÃO: ACESSOS RÁPIDOS */}
-      <View style={[styles.shortcutsSection, isSmallScreen && styles.shortcutsSectionSmall]}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleWithIcon}>
-            <Sparkles size={16} color={COLORS.primaryLight} />
-            <Text style={[styles.sectionTitle, !isDark && styles.sectionTitleLight]}>
-              Acessos Rápidos
-            </Text>
-          </View>
-        </View>
-
-        {/* GRELHA UNIFICADA E INFORMATIVA */}
-        <View style={styles.shortcutsGridContainer}>
-          {/* 1ª LINHA: JOGOS AO LADO DE TABELA */}
-          <View style={styles.subShortcutsRow}>
-            <TouchableOpacity
-              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-              onPress={() => setJogosModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.subShortcutIconBgCalendar, !isDark && styles.subShortcutIconBgLight]}>
-                <SoccerBallIcon size={17} color={isDark ? '#00E676' : '#00874E'} />
-              </View>
-              <View style={styles.shortcutTextCol}>
-                <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                  Jogos
-                </Text>
-                <Text style={[styles.subShortcutSub, !isDark && styles.subShortcutSubLight]} numberOfLines={1}>
-                  Calendário e resultados
-                </Text>
-              </View>
-              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.subShortcutCard, !isDark && styles.subShortcutCardLight]}
-              onPress={() => setTabelaModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.subShortcutIconBgCalendar, !isDark && styles.subShortcutIconBgLight]}>
-                <Table size={17} color={isDark ? '#00E676' : '#00874E'} />
-              </View>
-              <View style={styles.shortcutTextCol}>
-                <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                  Tabela
-                </Text>
-                <Text style={[styles.subShortcutSub, !isDark && styles.subShortcutSubLight]} numberOfLines={1}>
-                  Liga Portugal Betclic
-                </Text>
-              </View>
-              <ChevronRight size={13} color={isDark ? COLORS.textMuted : '#7E9187'} />
-            </TouchableOpacity>
-          </View>
-
-          {/* 2ª LINHA: SEJA SÓCIO (VISÍVEL APENAS SEM LOGIN) */}
-          {!isLoggedIn && (
-            <TouchableOpacity
-              onPress={() => setSocioModalVisible(true)}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={
-                  isDark
-                    ? ['rgba(0, 179, 104, 0.24)', 'rgba(242, 182, 0, 0.14)']
-                    : ['#E6F7EE', '#FDF7E2']
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.socioBannerCard, !isDark && styles.socioBannerCardLight]}
-              >
-                <View style={styles.socioBannerLeft}>
-                  <View style={[styles.subShortcutIconBgStore, !isDark && styles.subShortcutIconBgStoreLight]}>
-                    <IdCard size={17} color={isDark ? '#F2B600' : '#B88600'} />
-                  </View>
-                  <View style={styles.shortcutTextCol}>
-                    <Text style={[styles.subShortcutText, !isDark && styles.subShortcutTextLight]} numberOfLines={1}>
-                      Seja Sócio Grupo 39
-                    </Text>
-                    <Text style={[styles.subShortcutSub, !isDark && styles.subShortcutSubLight]} numberOfLines={1}>
-                      Cartão digital e vantagens na Bancada Poente
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight size={15} color={isDark ? '#F2B600' : '#00874E'} />
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
       </ScrollView>
 
       {/* Modal de Jogos e Calendário Oficial em Direto */}
       <JogosModal
         visible={jogosModalVisible}
         onClose={() => setJogosModalVisible(false)}
+        isDark={isDark}
+      />
+
+      {/* Modal de Últimos Resultados Oficiais */}
+      <ResultadoModal
+        visible={resultadoModalVisible}
+        onClose={() => setResultadoModalVisible(false)}
         isDark={isDark}
       />
 
@@ -806,13 +971,192 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-evenly',
     paddingHorizontal: 14,
-    paddingTop: 8,
+    paddingTop: 12,
+    gap: 14,
   },
   lastResultSection: {
     width: '100%',
     marginTop: 0,
-    marginBottom: 10,
+    marginBottom: 0,
+  },
+  newsHeaderIconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    backgroundColor: 'rgba(242, 182, 0, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.36)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newsHeaderIconBoxLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.28)',
+  },
+  newsSectionTitle: {
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  newsHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  newsDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  newsDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  newsDotActive: {
+    width: 16,
+    backgroundColor: '#F2B600',
+  },
+  newsDotLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  newsDotActiveLight: {
+    width: 16,
+    backgroundColor: '#00874E',
+  },
+  newsFlashscoreLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(242, 182, 0, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.28)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  newsFlashscoreLinkLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.1)',
+    borderColor: 'rgba(0, 135, 78, 0.24)',
+  },
+  newsFeaturedCard: {
+    borderRadius: 16,
+    borderWidth: 1.3,
+    borderColor: 'rgba(242, 182, 0, 0.45)',
+    overflow: 'hidden',
+    position: 'relative',
+    minHeight: 94,
+    justifyContent: 'center',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 6px 22px rgba(0, 0, 0, 0.4), 0 0 16px rgba(242, 182, 0, 0.14)',
+      },
+      default: {
+        shadowColor: '#F2B600',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 5,
+      },
+    }),
+  },
+  newsFeaturedCardLight: {
+    borderColor: 'rgba(0, 135, 78, 0.34)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 135, 78, 0.12)',
+      },
+    }),
+  },
+  newsAccentLeft: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  newsFeaturedContent: {
+    paddingVertical: 12,
+    paddingLeft: 16,
+    paddingRight: 14,
+    gap: 7,
+  },
+  newsRollCard: {
+    overflow: 'hidden',
+    minHeight: 74,
+    justifyContent: 'center',
+  },
+  newsTypePillResult: {
+    backgroundColor: 'rgba(0, 230, 118, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  newsTypePillResultText: {
+    color: '#00E676',
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  newsTypePillArticle: {
+    backgroundColor: 'rgba(242, 182, 0, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.32)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  newsTypePillArticleText: {
+    color: '#F2B600',
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  newsTypePillTransfer: {
+    backgroundColor: 'rgba(56, 189, 248, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.36)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  newsTypePillTransferText: {
+    color: '#38BDF8',
+    fontSize: 8.5,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  newsSlideBody: {
+    gap: 5,
+  },
+  newsArticleTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    lineHeight: 17,
+  },
+  newsArticleTitleLight: {
+    color: '#14201A',
+  },
+  newsArticleFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  newsArticleSub: {
+    color: '#9CAFA4',
+    fontSize: 10.5,
+    fontWeight: '600',
+    flex: 1,
+  },
+  newsArticleSubLight: {
+    color: '#5A6E63',
   },
   seeAllLink: {
     color: '#00E676',
@@ -869,10 +1213,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
-  lastResultTeam: {
+  lastResultTeamGroup: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  lastResultTeamGroupRight: {
+    justifyContent: 'flex-end',
+  },
+  lastResultTeam: {
+    flexShrink: 1,
     color: '#D5E2DA',
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
   },
   lastResultTeamRight: {
@@ -952,10 +1305,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1.2,
     borderColor: 'rgba(0, 230, 118, 0.32)',
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 11,
-    marginBottom: 8,
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
+    marginBottom: 0,
     flexShrink: 0,
     overflow: 'hidden',
     position: 'relative',
@@ -973,10 +1326,10 @@ const styles = StyleSheet.create({
     }),
   },
   heroCardSmall: {
-    paddingTop: 6,
-    paddingBottom: 6,
-    paddingHorizontal: 10,
-    marginBottom: 6,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingHorizontal: 11,
+    marginBottom: 0,
   },
   heroAccentStrip: {
     position: 'absolute',
@@ -989,7 +1342,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 3,
+    marginBottom: 8,
     gap: 8,
   },
   heroStatusPill: {
@@ -1124,6 +1477,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     textAlign: 'center',
   },
+  compRoundRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
   compRound: {
     color: COLORS.textSecondary,
     fontSize: 10,
@@ -1159,7 +1518,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 7,
+    marginBottom: 12,
   },
   teamColumn: {
     flex: 1.2,
@@ -1692,11 +2051,11 @@ const styles = StyleSheet.create({
   // Atalhos Rápidos da Claque
   chantsCenterWrapper: {
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 0,
     flexShrink: 0,
   },
   chantsCenterWrapperSmall: {
-    marginBottom: 6,
+    marginBottom: 0,
   },
   chantsTouchFull: {
     width: '100%',
@@ -1705,12 +2064,12 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 15,
-    paddingVertical: 9,
-    paddingHorizontal: 13,
+    borderRadius: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
     borderWidth: 1.2,
     borderColor: 'rgba(0, 230, 118, 0.42)',
-    gap: 11,
+    gap: 12,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 16px rgba(0, 135, 78, 0.35)',

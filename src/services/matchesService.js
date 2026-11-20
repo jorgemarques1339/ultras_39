@@ -1,11 +1,21 @@
-import { NEXT_MATCH } from '../data/mockData.js';
+import { NEXT_MATCH, PAST_RESULTS } from '../data/mockData.js';
 
 export const FIXTURES_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule?fixture=true';
 export const RESULTS_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule';
+export const FLASHSCORE_RESULTS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/resultados/';
+export const FLASHSCORE_NEWS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/noticias/';
+export const FLASHSCORE_FIXTURES_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/lista/';
+export const FLASHSCORE_TRANSFERS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/transferencias/';
 
 // Cache em memória para evitar chamadas de rede redundantes e arranque instantâneo
 let cachedUpcoming = null;
+let cachedResults = null;
+let cachedNews = null;
+let cachedTransfer = null;
 let lastFetchTime = 0;
+let lastResultsFetchTime = 0;
+let lastNewsFetchTime = 0;
+let lastTransferFetchTime = 0;
 const CACHE_TTL_MS = 60 * 1000; // 1 minuto
 
 /**
@@ -101,10 +111,19 @@ export async function fetchLiveSchedule(force = false) {
         if (Array.isArray(resultsData.events)) {
           completedCount = resultsData.events.length;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
-    const parsed = rawEvents.map((e, index) => {
+    const upcomingEvents = rawEvents
+      .filter((e) => {
+        const comp = e.competitions?.[0];
+        if (comp?.status?.type?.completed === true) return false;
+        const ts = new Date(e.date).getTime();
+        return Number.isNaN(ts) || ts >= now - 2 * 60 * 60 * 1000;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const parsed = upcomingEvents.map((e, index) => {
       const comp = e.competitions?.[0];
       const home = comp?.competitors?.find((c) => c.homeAway === 'home');
       const away = comp?.competitors?.find((c) => c.homeAway === 'away');
@@ -180,7 +199,248 @@ export async function getNextMatchData(force = false) {
         short: next.awayTeam.short,
         logo: next.awayTeam.logo,
       },
+      flashscoreUrl: FLASHSCORE_FIXTURES_URL,
     };
   }
-  return NEXT_MATCH;
+  return { ...NEXT_MATCH, flashscoreUrl: FLASHSCORE_FIXTURES_URL };
+}
+
+/**
+ * Procura os resultados já terminados do Rio Ave FC ordenados do mais recente para o mais antigo
+ */
+export async function fetchLiveResults(force = false) {
+  const now = Date.now();
+  if (!force && cachedResults && (now - lastResultsFetchTime < CACHE_TTL_MS)) {
+    return cachedResults;
+  }
+
+  try {
+    const res = await fetch(RESULTS_API, { headers: { Accept: 'application/json' } });
+    if (!res.ok) {
+      throw new Error(`Status ${res.status}`);
+    }
+
+    const data = await res.json();
+    const rawEvents = data.events || [];
+
+    const completed = rawEvents
+      .filter((e) => {
+        const comp = e.competitions?.[0];
+        const statusCompleted = comp?.status?.type?.completed;
+        const home = comp?.competitors?.find((c) => c.homeAway === 'home');
+        const away = comp?.competitors?.find((c) => c.homeAway === 'away');
+        const hasScores = home?.score != null && away?.score != null;
+        return (statusCompleted === true || (hasScores && new Date(e.date).getTime() < now));
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    if (completed.length === 0) {
+      return cachedResults || PAST_RESULTS || [];
+    }
+
+    const total = completed.length;
+    const parsed = completed.map((e, index) => {
+      const comp = e.competitions?.[0];
+      const home = comp?.competitors?.find((c) => c.homeAway === 'home');
+      const away = comp?.competitors?.find((c) => c.homeAway === 'away');
+      const homeName = normalizeTeamName(home?.team?.displayName || home?.team?.name || 'Clube');
+      const awayName = normalizeTeamName(away?.team?.displayName || away?.team?.name || 'Clube');
+      const scoreHome = parseInt(home?.score?.displayValue ?? home?.score?.value ?? '0', 10);
+      const scoreAway = parseInt(away?.score?.displayValue ?? away?.score?.value ?? '0', 10);
+      const isHome = homeName.toLowerCase().includes('rio ave');
+      const rafcGoals = isHome ? scoreHome : scoreAway;
+      const oppGoals = isHome ? scoreAway : scoreHome;
+      const outcome = rafcGoals > oppGoals ? 'V' : rafcGoals === oppGoals ? 'E' : 'D';
+      const formattedDate = formatMatchDatePt(e.date);
+
+      return {
+        id: e.id || `res-live-${index}`,
+        competition: `Liga Portugal Betclic · ${total - index}.ª Jornada`,
+        date: formattedDate.short || e.date,
+        rawDate: e.date,
+        home: homeName,
+        away: awayName,
+        scoreHome: Number.isNaN(scoreHome) ? 0 : scoreHome,
+        scoreAway: Number.isNaN(scoreAway) ? 0 : scoreAway,
+        homeLogo: home?.team?.logos?.[0]?.href || null,
+        awayLogo: away?.team?.logos?.[0]?.href || null,
+        outcome,
+        stadium: comp?.venue?.fullName || (isHome ? 'Estádio dos Arcos, Vila do Conde' : 'Estádio Fora'),
+        flashscoreUrl: FLASHSCORE_RESULTS_URL,
+      };
+    });
+
+    cachedResults = parsed;
+    lastResultsFetchTime = now;
+    return parsed;
+  } catch (err) {
+    console.warn('Erro ao obter resultados em direto:', err);
+    return cachedResults || PAST_RESULTS || [];
+  }
+}
+
+/**
+ * Devolve o último resultado oficial terminado do Rio Ave FC
+ */
+export async function getLastResultData(force = false) {
+  const results = await fetchLiveResults(force);
+  if (results && results.length > 0) {
+    return results[0];
+  }
+  return PAST_RESULTS?.[0] || null;
+}
+
+const FALLBACK_NEWS = [
+  {
+    id: 'news-fs-1',
+    title: 'Últimas Notícias e Antevisões do Rio Ave FC',
+    subtitle: 'Acompanha crónicas, plantel e novidades dos Arcos',
+    summary: 'Fica a par das antevisões de jornada, declarações do treinador e novidades do plantel verde e branco.',
+    image: null,
+    date: 'Atualidade',
+    url: FLASHSCORE_NEWS_URL,
+  },
+  {
+    id: 'news-fs-2',
+    title: 'Atualidade Verde e Branca · Liga Portugal Betclic',
+    subtitle: 'Declarações pós-jogo e novidades dos Arcos',
+    summary: 'Análises, estatísticas e toda a informação atualizada sobre o Rio Ave FC.',
+    image: null,
+    date: 'Atualidade',
+    url: FLASHSCORE_NEWS_URL,
+  },
+];
+
+function stripHtmlTags(raw = '') {
+  return String(raw)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractNewsImage(item) {
+  if (item?.thumbnail && typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http')) {
+    return item.thumbnail;
+  }
+  if (item?.enclosure?.link && typeof item.enclosure.link === 'string' && item.enclosure.link.startsWith('http')) {
+    return item.enclosure.link;
+  }
+  const html = `${item?.description || ''} ${item?.content || ''}`;
+  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (match && match[1] && match[1].startsWith('http')) {
+    return match[1];
+  }
+  return null;
+}
+
+/**
+ * Procura as 2 últimas notícias do Rio Ave FC (Flashscore / Google News RSS)
+ */
+export async function fetchRioAveNews(force = false) {
+  const now = Date.now();
+  if (!force && cachedNews && (now - lastNewsFetchTime < CACHE_TTL_MS * 5)) {
+    return cachedNews;
+  }
+
+  try {
+    const queries = [
+      'https://news.google.com/rss/search?q=Rio+Ave+FC+site:flashscore.pt&hl=pt-PT&gl=PT&ceid=PT:pt-150',
+      'https://news.google.com/rss/search?q=Rio+Ave+FC&hl=pt-PT&gl=PT&ceid=PT:pt-150',
+    ];
+
+    for (const rssUrl of queries) {
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+      const res = await fetch(apiUrl, { headers: { Accept: 'application/json' } });
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const items = Array.isArray(data?.items) ? data.items : [];
+      if (items.length > 0) {
+        const topTwo = items.slice(0, 2).map((item, idx) => {
+          const cleanTitle = (item.title || '').replace(/\s*-\s*[^-]+$/, '').trim() || item.title;
+          const rawDesc = stripHtmlTags(item.description || item.content || '');
+          const cleanSummary =
+            rawDesc && rawDesc.toLowerCase() !== cleanTitle.toLowerCase()
+              ? rawDesc
+              : 'Lê a notícia completa e acompanha toda a atualidade do Rio Ave FC.';
+          const formatted = item.pubDate ? formatMatchDatePt(item.pubDate) : null;
+          return {
+            id: item.guid || `news-live-${idx}`,
+            title: cleanTitle || 'Notícia Rio Ave FC',
+            subtitle: item.author || 'Abrir artigo completo',
+            summary: cleanSummary,
+            image: extractNewsImage(item),
+            date: formatted?.short || 'Recente',
+            url: item.link || FLASHSCORE_NEWS_URL,
+          };
+        });
+        cachedNews = topTwo;
+        lastNewsFetchTime = now;
+        return topTwo;
+      }
+    }
+
+    return cachedNews || FALLBACK_NEWS;
+  } catch (err) {
+    console.warn('Erro ao obter notícias do Rio Ave FC:', err);
+    return cachedNews || FALLBACK_NEWS;
+  }
+}
+
+const FALLBACK_TRANSFER = {
+  id: 'transfer-fs-1',
+  title: 'Mercado e Transferências · Rio Ave FC',
+  subtitle: 'Consulta as últimas entradas, saídas e empréstimos',
+  date: 'Mercado',
+  url: FLASHSCORE_TRANSFERS_URL,
+};
+
+/**
+ * Procura a última transferência / movimentação de mercado do Rio Ave FC
+ */
+export async function fetchLatestTransfer(force = false) {
+  const now = Date.now();
+  if (!force && cachedTransfer && (now - lastTransferFetchTime < CACHE_TTL_MS * 5)) {
+    return cachedTransfer;
+  }
+
+  try {
+    const queries = [
+      'https://news.google.com/rss/search?q=Rio+Ave+transferencia+OR+reforco+OR+contratacao+site:flashscore.pt&hl=pt-PT&gl=PT&ceid=PT:pt-150',
+      'https://news.google.com/rss/search?q=Rio+Ave+FC+transferencia+OR+reforco+OR+mercado&hl=pt-PT&gl=PT&ceid=PT:pt-150',
+    ];
+
+    for (const rssUrl of queries) {
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+      const res = await fetch(apiUrl, { headers: { Accept: 'application/json' } });
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const items = Array.isArray(data?.items) ? data.items : [];
+      if (items.length > 0) {
+        const first = items[0];
+        const cleanTitle = (first.title || '').replace(/\s*-\s*[^-]+$/, '').trim() || first.title;
+        const formatted = first.pubDate ? formatMatchDatePt(first.pubDate) : null;
+        const transferObj = {
+          id: first.guid || 'transfer-live-1',
+          title: cleanTitle || FALLBACK_TRANSFER.title,
+          subtitle: 'Movimentações do plantel verde e branco',
+          date: formatted?.short || 'Mercado',
+          url: FLASHSCORE_TRANSFERS_URL,
+        };
+        cachedTransfer = transferObj;
+        lastTransferFetchTime = now;
+        return transferObj;
+      }
+    }
+
+    return cachedTransfer || FALLBACK_TRANSFER;
+  } catch (err) {
+    console.warn('Erro ao obter transferências do Rio Ave FC:', err);
+    return cachedTransfer || FALLBACK_TRANSFER;
+  }
 }

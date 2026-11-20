@@ -434,75 +434,31 @@ function JogosModal({
             </View>
           )}
 
-          {/* Tabs de Selecção: Próximos Jogos vs Resultados */}
+          {/* Cabeçalho de Secção: Próximos Jogos */}
           <View style={[styles.tabBar, !isDark && styles.tabBarLight]}>
-            <TouchableOpacity
+            <View
               style={[
                 styles.tabBtn,
                 !isDark && styles.tabBtnLight,
-                activeTab === 'upcoming' && styles.tabBtnActive,
-                !isDark && activeTab === 'upcoming' && styles.tabBtnActiveLight,
+                styles.tabBtnActive,
+                !isDark && styles.tabBtnActiveLight,
               ]}
-              onPress={() => setActiveTab('upcoming')}
-              activeOpacity={0.8}
             >
               <CalendarIcon
                 size={15}
-                color={
-                  activeTab === 'upcoming'
-                    ? isDark
-                      ? COLORS.primaryLight
-                      : '#00874E'
-                    : isDark
-                    ? COLORS.textSecondary
-                    : '#5A6E63'
-                }
+                color={isDark ? COLORS.primaryLight : '#00874E'}
               />
               <Text
                 style={[
                   styles.tabText,
                   !isDark && styles.tabTextLight,
-                  activeTab === 'upcoming' && styles.tabTextActive,
-                  !isDark && activeTab === 'upcoming' && styles.tabTextActiveLight,
+                  styles.tabTextActive,
+                  !isDark && styles.tabTextActiveLight,
                 ]}
               >
                 Próximos Jogos ({upcomingMatches.length})
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.tabBtn,
-                !isDark && styles.tabBtnLight,
-                activeTab === 'results' && styles.tabBtnActive,
-                !isDark && activeTab === 'results' && styles.tabBtnActiveLight,
-              ]}
-              onPress={() => setActiveTab('results')}
-              activeOpacity={0.8}
-            >
-              <Trophy
-                size={15}
-                color={
-                  activeTab === 'results'
-                    ? isDark
-                      ? COLORS.primaryLight
-                      : '#00874E'
-                    : isDark
-                    ? COLORS.textSecondary
-                    : '#5A6E63'
-                }
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  !isDark && styles.tabTextLight,
-                  activeTab === 'results' && styles.tabTextActive,
-                  !isDark && activeTab === 'results' && styles.tabTextActiveLight,
-                ]}
-              >
-                Resultados ({pastResults.length})
-              </Text>
-            </TouchableOpacity>
+            </View>
           </View>
 
           {/* Conteúdo Principal com Scroll */}
