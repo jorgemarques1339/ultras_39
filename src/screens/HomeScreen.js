@@ -19,9 +19,9 @@ import {
   ChevronRight,
   Drum,
   Trophy,
-  Play,
   Newspaper,
   Bus,
+  Lock,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
@@ -174,9 +174,10 @@ function HomeScreen({
 
   // Carregar dados oficiais do próximo jogo, último resultado e notícias em tempo real
   useEffect(() => {
+    if (!isActive) return;
     let isMounted = true;
-    const syncMatches = () => {
-      getNextMatchData(true)
+    const syncMatches = (force = false) => {
+      getNextMatchData(force)
         .then((liveMatch) => {
           if (isMounted && liveMatch) {
             setNextMatch(liveMatch);
@@ -184,7 +185,7 @@ function HomeScreen({
         })
         .catch((err) => console.warn('Erro ao atualizar próximo jogo:', err));
 
-      fetchLiveResults(true)
+      fetchLiveResults(force)
         .then((results) => {
           if (isMounted && Array.isArray(results) && results.length > 0) {
             setLiveResults(results);
@@ -192,7 +193,7 @@ function HomeScreen({
         })
         .catch(() => {});
 
-      fetchRioAveNews(true)
+      fetchRioAveNews(force)
         .then((news) => {
           if (isMounted && Array.isArray(news) && news.length > 0) {
             setNewsItems(news.slice(0, 1));
@@ -200,7 +201,7 @@ function HomeScreen({
         })
         .catch(() => {});
 
-      fetchLatestTransfer(true)
+      fetchLatestTransfer(force)
         .then((transfer) => {
           if (isMounted && transfer) {
             setLatestTransfer(transfer);
@@ -209,14 +210,14 @@ function HomeScreen({
         .catch(() => {});
     };
 
-    syncMatches();
-    const interval = setInterval(syncMatches, 60000);
+    syncMatches(false);
+    const interval = setInterval(() => syncMatches(true), 60000);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [isActive]);
 
   const lastResult = liveResults && liveResults.length > 0 ? liveResults[0] : null;
 
@@ -840,7 +841,7 @@ function HomeScreen({
         </TouchableOpacity>
       )}
 
-      {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 (PLAYER / CÂNTICO DA SEMANA) */}
+      {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 (EM DESENVOLVIMENTO) */}
       <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleWithIcon}>
@@ -852,20 +853,25 @@ function HomeScreen({
             </Text>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={onOpenChants}
-          activeOpacity={0.86}
+        <View
           style={styles.chantsTouchFull}
+          accessibilityState={{ disabled: true }}
+          accessibilityLabel="Cânticos Grupo 39 em desenvolvimento"
         >
           <LinearGradient
             colors={
               isDark
-                ? ['#00874E', '#005A34', '#0F2519']
-                : ['#009958', '#007B46']
+                ? ['#14201A', '#0E1712']
+                : ['#EEF4F0', '#F7FAF8']
             }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.chantsCenteredBtn, !isDark && styles.chantsCenteredBtnLight, isSmallScreen && styles.chantsCenteredBtnSmall]}
+            style={[
+              styles.chantsCenteredBtn,
+              styles.chantsDisabledCard,
+              !isDark && styles.chantsDisabledCardLight,
+              isSmallScreen && styles.chantsCenteredBtnSmall,
+            ]}
           >
             <View style={styles.chantsLogoWrapper}>
               <Image
@@ -875,22 +881,23 @@ function HomeScreen({
               />
             </View>
             <View style={styles.chantsTextBoxCentered}>
-              <View style={styles.chantsBadgeRow}>
-                <Drum size={10} color="#F2B600" />
-                <Text style={styles.chantsWeekBadgeText}>CÂNTICO DA SEMANA · G39</Text>
+              <View style={[styles.chantsDevBadge, !isDark && styles.chantsDevBadgeLight]}>
+                <Text style={[styles.chantsDevBadgeText, !isDark && styles.chantsDevBadgeTextLight]}>
+                  EM DESENVOLVIMENTO
+                </Text>
               </View>
-              <Text style={styles.shortcutTitleCentered} numberOfLines={1}>
-                {CHANT_OF_THE_WEEK.title}
+              <Text style={[styles.shortcutTitleCentered, !isDark && styles.textDark]} numberOfLines={1}>
+                Cânticos Grupo 39
               </Text>
-              <Text style={styles.shortcutDescCentered} numberOfLines={1}>
-                Letra e Ritmos · {CHANT_OF_THE_WEEK.tempo.split('·')[0].trim()}
+              <Text style={[styles.shortcutDescCentered, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
+                Letra e ritmos disponíveis em breve
               </Text>
             </View>
-            <View style={styles.chantsPlayCircle}>
-              <Play size={13} color="#0D1310" fill="#0D1310" />
+            <View style={[styles.chantsLockCircle, !isDark && styles.chantsLockCircleLight]}>
+              <Lock size={13} color={isDark ? '#8DA397' : '#5A6E63'} />
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </View>
       </View>
       </ScrollView>
 
@@ -2230,6 +2237,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 2,
+  },
+  chantsDisabledCard: {
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    opacity: 0.82,
+  },
+  chantsDisabledCardLight: {
+    borderColor: 'rgba(0, 135, 78, 0.16)',
+    opacity: 0.88,
+  },
+  chantsDevBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(242, 182, 0, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(242, 182, 0, 0.3)',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 5,
+    marginBottom: 3,
+  },
+  chantsDevBadgeLight: {
+    backgroundColor: 'rgba(184, 134, 0, 0.12)',
+    borderColor: 'rgba(184, 134, 0, 0.25)',
+  },
+  chantsDevBadgeText: {
+    color: '#F2B600',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+  },
+  chantsDevBadgeTextLight: {
+    color: '#9A6E00',
+  },
+  chantsDisabledDescLight: {
+    color: '#5A6E63',
+  },
+  chantsLockCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chantsLockCircleLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.08)',
+    borderColor: 'rgba(0, 135, 78, 0.18)',
   },
   sectionHeader: {
     flexDirection: 'row',

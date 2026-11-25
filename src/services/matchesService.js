@@ -18,6 +18,19 @@ let lastNewsFetchTime = 0;
 let lastTransferFetchTime = 0;
 const CACHE_TTL_MS = 60 * 1000; // 1 minuto
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller ? controller.signal : undefined,
+    });
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /**
  * Formata a data e hora oficial no padrão português
  */
@@ -89,8 +102,8 @@ export async function fetchLiveSchedule(force = false) {
 
   try {
     const [fixturesRes, resultsRes] = await Promise.all([
-      fetch(FIXTURES_API, { headers: { Accept: 'application/json' } }),
-      fetch(RESULTS_API, { headers: { Accept: 'application/json' } }).catch(() => null),
+      fetchWithTimeout(FIXTURES_API, { headers: { Accept: 'application/json' } }),
+      fetchWithTimeout(RESULTS_API, { headers: { Accept: 'application/json' } }).catch(() => null),
     ]);
 
     if (!fixturesRes.ok) {
@@ -215,7 +228,7 @@ export async function fetchLiveResults(force = false) {
   }
 
   try {
-    const res = await fetch(RESULTS_API, { headers: { Accept: 'application/json' } });
+    const res = await fetchWithTimeout(RESULTS_API, { headers: { Accept: 'application/json' } });
     if (!res.ok) {
       throw new Error(`Status ${res.status}`);
     }
@@ -322,23 +335,8 @@ function stripHtmlTags(raw = '') {
     .trim();
 }
 
-function extractNewsImage(item) {
-  if (item?.thumbnail && typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http')) {
-    return item.thumbnail;
-  }
-  if (item?.enclosure?.link && typeof item.enclosure.link === 'string' && item.enclosure.link.startsWith('http')) {
-    return item.enclosure.link;
-  }
-  const html = `${item?.description || ''} ${item?.content || ''}`;
-  const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (match && match[1] && match[1].startsWith('http')) {
-    return match[1];
-  }
-  return null;
-}
-
 /**
- * Procura as 2 últimas notícias do Rio Ave FC (Flashscore / Google News RSS)
+ * Procura a última notícia do Rio Ave FC (Google News RSS)
  */
 export async function fetchRioAveNews(force = false) {
   const now = Date.now();
@@ -354,13 +352,13 @@ export async function fetchRioAveNews(force = false) {
 
     for (const rssUrl of queries) {
       const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-      const res = await fetch(apiUrl, { headers: { Accept: 'application/json' } });
+      const res = await fetchWithTimeout(apiUrl, { headers: { Accept: 'application/json' } });
       if (!res.ok) continue;
 
       const data = await res.json();
       const items = Array.isArray(data?.items) ? data.items : [];
       if (items.length > 0) {
-        const topTwo = items.slice(0, 2).map((item, idx) => {
+        const topOne = items.slice(0, 1).map((item, idx) => {
           const cleanTitle = (item.title || '').replace(/\s*-\s*[^-]+$/, '').trim() || item.title;
           const rawDesc = stripHtmlTags(item.description || item.content || '');
           const cleanSummary =
@@ -373,14 +371,13 @@ export async function fetchRioAveNews(force = false) {
             title: cleanTitle || 'Notícia Rio Ave FC',
             subtitle: item.author || 'Abrir artigo completo',
             summary: cleanSummary,
-            image: extractNewsImage(item),
             date: formatted?.short || 'Recente',
             url: item.link || FLASHSCORE_NEWS_URL,
           };
         });
-        cachedNews = topTwo;
+        cachedNews = topOne;
         lastNewsFetchTime = now;
-        return topTwo;
+        return topOne;
       }
     }
 
@@ -416,7 +413,7 @@ export async function fetchLatestTransfer(force = false) {
 
     for (const rssUrl of queries) {
       const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-      const res = await fetch(apiUrl, { headers: { Accept: 'application/json' } });
+      const res = await fetchWithTimeout(apiUrl, { headers: { Accept: 'application/json' } });
       if (!res.ok) continue;
 
       const data = await res.json();

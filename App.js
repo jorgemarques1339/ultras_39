@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -22,7 +22,6 @@ import ForumLoginPromptModal from './src/components/ForumLoginPromptModal';
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ApoioScreen from './src/screens/ApoioScreen';
-import CalendarScreen from './src/screens/CalendarScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import StoreScreen from './src/screens/StoreScreen';
 import {
@@ -56,6 +55,7 @@ function MainApp() {
   } = useAlerts();
 
   const [activeTab, setActiveTab] = useState('home');
+  const [visitedTabs, setVisitedTabs] = useState({ home: true });
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
 
   // Carregar apenas transações de quotas persistidas da sessão
@@ -92,26 +92,6 @@ function MainApp() {
   const [isSplashDone, setIsSplashDone] = useState(false);
   const handleSplashFinish = useCallback(() => setIsSplashDone(true), []);
 
-  // Visibilidade do Header ao fazer Scroll com Throttling Otimizado (na Home e Apoio permanece sempre visível; na Loja fica oculto)
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const lastScrollY = useRef(0);
-
-  const handleScroll = useCallback((event) => {
-    if (activeTab === 'home' || activeTab === 'apoio') return;
-
-    const currentY = event.nativeEvent.contentOffset.y;
-    const diff = currentY - lastScrollY.current;
-
-    if (Math.abs(diff) > 12) {
-      if (diff > 0 && currentY > 36) {
-        setIsHeaderVisible((prev) => (prev ? false : prev));
-      } else if (diff < 0) {
-        setIsHeaderVisible((prev) => (!prev ? true : prev));
-      }
-      lastScrollY.current = currentY;
-    }
-  }, [activeTab]);
-
   const handleSelectTab = useCallback((tab) => {
     // Páginas de livre acesso sem login: Início e Loja.
     // Apoio e Perfil requerem autenticação do adepto/sócio.
@@ -120,8 +100,7 @@ function MainApp() {
       setAccessPromptVisible(true);
       return;
     }
-    setIsHeaderVisible(true);
-    lastScrollY.current = 0;
+    setVisitedTabs((prev) => (prev[tab] ? prev : { ...prev, [tab]: true }));
     setActiveTab(tab);
   }, [isLoggedIn]);
 
@@ -131,16 +110,20 @@ function MainApp() {
   const [receiptModalVisible, setReceiptModalVisible] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [walletPassModalVisible, setWalletPassModalVisible] = useState(false);
+  const [walletPassType, setWalletPassType] = useState(Platform.OS === 'android' ? 'google' : 'apple');
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
 
   const handleOpenNotifications = useCallback(() => openAlertsModal('all'), [openAlertsModal]);
   const handleNavigateProfile = useCallback(() => handleSelectTab('profile'), [handleSelectTab]);
   const handleOpenChants = useCallback(() => setChantsModalVisible(true), []);
-  const handleOpenStore = useCallback(() => handleSelectTab('store'), [handleSelectTab]);
   const handleOpenPwaInstall = useCallback(() => setPwaModalVisible(true), []);
-  const handleOpenWalletPass = useCallback(() => setWalletPassModalVisible(true), []);
-  const handleNavigateHome = useCallback(() => handleSelectTab('home'), [handleSelectTab]);
+  const handleOpenWalletPass = useCallback((type) => {
+    if (typeof type === 'string') {
+      setWalletPassType(type);
+    }
+    setWalletPassModalVisible(true);
+  }, []);
 
   // Iniciar fluxo de checkout MB WAY (Loja Oficial e Quotas)
   const handleCheckout = useCallback((itemData) => {
@@ -215,17 +198,6 @@ function MainApp() {
     setReceiptModalVisible(true);
   }, []);
 
-  // Apagar bilhete / transação (para demonstrações ou cancelamento)
-  const handleDeleteTransaction = useCallback((txOrId) => {
-    const id = typeof txOrId === 'string' ? txOrId : txOrId?.id;
-    if (!id) return;
-    setTransactions((prev) => {
-      const updated = prev.filter((t) => t.id !== id);
-      AsyncStorage.setItem('@grupo39_transactions', JSON.stringify(updated)).catch(() => {});
-      return updated;
-    });
-  }, []);
-
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.bgDark }]}>
       <StatusBar
@@ -254,65 +226,54 @@ function MainApp() {
           onNavigateProfile={handleNavigateProfile}
         />
 
-        {/* Ecrãs Conforme a Aba Ativa com Gestão de Scroll e Keep-Alive de Performance */}
+        {/* Ecrãs Conforme a Aba Ativa com Lazy-Mount & Keep-Alive para Arranque Rápido */}
         <View style={[styles.screenArea, !isDark && styles.screenAreaLight]}>
           <View style={[styles.tabContentPane, activeTab !== 'home' && styles.hiddenPane]}>
             <HomeScreen
               user={user}
-              transactions={transactions}
-              onCheckout={handleCheckout}
-              onViewReceipt={handleViewReceipt}
-              onNavigateTab={handleSelectTab}
-              onScroll={undefined}
               onOpenChants={handleOpenChants}
-              onOpenStore={handleOpenStore}
               isDark={isDark}
               isActive={activeTab === 'home'}
-              onOpenPwaInstall={handleOpenPwaInstall}
               isLoggedIn={isLoggedIn}
-              onOpenAuth={openAuthModal}
             />
           </View>
 
-          <View style={[styles.tabContentPane, activeTab !== 'apoio' && styles.hiddenPane]}>
-            <ApoioScreen
-              user={user}
-              isDark={isDark}
-              isActive={activeTab === 'apoio'}
-            />
-          </View>
+          {visitedTabs.apoio && (
+            <View style={[styles.tabContentPane, activeTab !== 'apoio' && styles.hiddenPane]}>
+              <ApoioScreen
+                user={user}
+                isDark={isDark}
+                isActive={activeTab === 'apoio'}
+              />
+            </View>
+          )}
 
-          <View style={[styles.tabContentPane, activeTab !== 'store' && styles.hiddenPane]}>
-            <StoreScreen
-              isDark={isDark}
-              isActive={activeTab === 'store'}
-            />
-          </View>
+          {visitedTabs.store && (
+            <View style={[styles.tabContentPane, activeTab !== 'store' && styles.hiddenPane]}>
+              <StoreScreen
+                isDark={isDark}
+                isActive={activeTab === 'store'}
+              />
+            </View>
+          )}
 
-          <View style={[styles.tabContentPane, activeTab !== 'calendar' && styles.hiddenPane]}>
-            <CalendarScreen
-              onScroll={handleScroll}
-              onBack={handleNavigateHome}
-              isDark={isDark}
-            />
-          </View>
-
-          <View style={[styles.tabContentPane, activeTab !== 'profile' && styles.hiddenPane]}>
-            <ProfileScreen
-              user={user}
-              transactions={transactions}
-              onPayQuota={handlePayQuota}
-              onViewReceipt={handleViewReceipt}
-              onScroll={handleScroll}
-              onOpenWalletPass={handleOpenWalletPass}
-              isDark={isDark}
-              onOpenPwaInstall={handleOpenPwaInstall}
-              isLoggedIn={isLoggedIn}
-              onOpenAuth={openAuthModal}
-              onLogout={handleLogout}
-              onUpdateUser={updateUser}
-            />
-          </View>
+          {visitedTabs.profile && (
+            <View style={[styles.tabContentPane, activeTab !== 'profile' && styles.hiddenPane]}>
+              <ProfileScreen
+                user={user}
+                transactions={transactions}
+                onPayQuota={handlePayQuota}
+                onViewReceipt={handleViewReceipt}
+                onOpenWalletPass={handleOpenWalletPass}
+                isDark={isDark}
+                onOpenPwaInstall={handleOpenPwaInstall}
+                isLoggedIn={isLoggedIn}
+                onOpenAuth={openAuthModal}
+                onLogout={handleLogout}
+                onUpdateUser={updateUser}
+              />
+            </View>
+          )}
         </View>
 
         {/* Barra de Navegação Flutuante Liquid Glass UI */}
@@ -323,119 +284,129 @@ function MainApp() {
           isLoggedIn={isLoggedIn}
         />
 
-        {/* Módulo Especial: Modal de Checkout MB WAY */}
-        <MbWayCheckoutModal
-          visible={checkoutModalVisible}
-          onClose={() => setCheckoutModalVisible(false)}
-          checkoutData={checkoutData}
-          onPaymentSuccess={handlePaymentSuccess}
-          onViewReceipt={handleViewReceipt}
-          onGoProfile={() => {
-            setCheckoutModalVisible(false);
-            handleSelectTab('profile');
-          }}
-          user={user}
-          isDark={isDark}
-        />
+        {/* Modais montados sob demanda para melhor desempenho em smartphones */}
+        {checkoutModalVisible && (
+          <MbWayCheckoutModal
+            visible={checkoutModalVisible}
+            onClose={() => setCheckoutModalVisible(false)}
+            checkoutData={checkoutData}
+            onPaymentSuccess={handlePaymentSuccess}
+            onViewReceipt={handleViewReceipt}
+            onGoProfile={() => {
+              setCheckoutModalVisible(false);
+              handleSelectTab('profile');
+            }}
+            user={user}
+            isDark={isDark}
+          />
+        )}
 
-        {/* Modal de Comprovativo Oficial SIBS */}
-        <ReceiptModal
-          visible={receiptModalVisible}
-          onClose={() => setReceiptModalVisible(false)}
-          transaction={selectedReceipt}
-          isDark={isDark}
-        />
+        {receiptModalVisible && (
+          <ReceiptModal
+            visible={receiptModalVisible}
+            onClose={() => setReceiptModalVisible(false)}
+            transaction={selectedReceipt}
+            isDark={isDark}
+          />
+        )}
 
-        {/* Modal de Autenticação / Perfil do Adepto */}
-        <AuthModal
-          visible={authModalVisible}
-          onClose={() => {
-            closeAuthModal();
-            setPendingTabAfterLogin(null);
-          }}
-          isDark={isDark}
-          onAuthSuccess={handleAuthSuccess}
-        />
+        {authModalVisible && (
+          <AuthModal
+            visible={authModalVisible}
+            onClose={() => {
+              closeAuthModal();
+              setPendingTabAfterLogin(null);
+            }}
+            isDark={isDark}
+            onAuthSuccess={handleAuthSuccess}
+          />
+        )}
 
-        {/* Modal de Aviso para Fazer Login (Apoio ou Perfil da Claque) */}
-        <ForumLoginPromptModal
-          visible={accessPromptVisible}
-          type={accessPromptType}
-          onClose={() => setAccessPromptVisible(false)}
-          onOpenLogin={() => {
-            setAccessPromptVisible(false);
-            setPendingTabAfterLogin(accessPromptType);
-            openAuthModal({
-              initialTab: 'login',
-              message:
-                accessPromptType === 'profile'
-                  ? 'Inicia sessão para acederes ao teu Cartão Digital de Sócio e Perfil.'
-                  : 'Inicia sessão para acederes ao Assistente de Apoio do Grupo 39.',
-            });
-          }}
-          onOpenRegister={() => {
-            setAccessPromptVisible(false);
-            setPendingTabAfterLogin(accessPromptType);
-            openAuthModal({
-              initialTab: 'register',
-              message:
-                accessPromptType === 'profile'
-                  ? 'Cria a tua conta para teres acesso ao teu Cartão Digital de Sócio e Perfil.'
-                  : 'Cria a tua conta para acederes ao Assistente de Apoio do Grupo 39.',
-            });
-          }}
-          isDark={isDark}
-        />
-
-        {/* Modal de Carteira Digital (Apple & Google Wallet) */}
-        <WalletPassModal
-          visible={walletPassModalVisible}
-          onClose={() => setWalletPassModalVisible(false)}
-          user={user}
-          isDark={isDark}
-        />
-
-        {/* Modal do Cancioneiro Grupo 39 */}
-        <ChantsModal
-          visible={chantsModalVisible}
-          onClose={() => setChantsModalVisible(false)}
-          isDark={isDark}
-        />
-
-        {/* Modal de Instalação PWA (Safari iOS & Chrome Android) */}
-        <PwaInstallPromptModal
-          visible={pwaModalVisible}
-          onClose={() => setPwaModalVisible(false)}
-          isDark={isDark}
-        />
-
-        {/* Central Unificada de Alertas & Comunicados do Grupo 39 */}
-        <AlertasModal
-          visible={alertsModalVisible}
-          onClose={closeAlertsModal}
-          isDark={isDark}
-          onSelectAction={(action) => {
-            if (action === 'pay_quota') {
-              handlePayQuota({
-                title: `Quota Anual Grupo 39 · ${user?.quotaPendingPeriod || user?.quotaPendingMonth || 'Época 2026/2027'}`,
-                category: 'Quota Anual de Sócio',
-                amount: user?.quotaAmount || 12.00,
-                type: 'quota',
+        {accessPromptVisible && (
+          <ForumLoginPromptModal
+            visible={accessPromptVisible}
+            type={accessPromptType}
+            onClose={() => setAccessPromptVisible(false)}
+            onOpenLogin={() => {
+              setAccessPromptVisible(false);
+              setPendingTabAfterLogin(accessPromptType);
+              openAuthModal({
+                initialTab: 'login',
+                message:
+                  accessPromptType === 'profile'
+                    ? 'Inicia sessão para acederes ao teu Cartão Digital de Sócio e Perfil.'
+                    : 'Inicia sessão para acederes ao Assistente de Apoio do Grupo 39.',
               });
-            } else if (action === 'open_store') {
-              handleSelectTab('store');
-            } else if (action === 'open_chants') {
-              setChantsModalVisible(true);
-            } else if (action === 'open_map') {
-              const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Estádio do Rio Ave FC, Vila do Conde')}`;
-              if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                window.open(mapUrl, '_blank', 'noopener,noreferrer');
-              } else {
-                Linking.openURL(mapUrl).catch(() => {});
+            }}
+            onOpenRegister={() => {
+              setAccessPromptVisible(false);
+              setPendingTabAfterLogin(accessPromptType);
+              openAuthModal({
+                initialTab: 'register',
+                message:
+                  accessPromptType === 'profile'
+                    ? 'Cria a tua conta para teres acesso ao teu Cartão Digital de Sócio e Perfil.'
+                    : 'Cria a tua conta para acederes ao Assistente de Apoio do Grupo 39.',
+              });
+            }}
+            isDark={isDark}
+          />
+        )}
+
+        {walletPassModalVisible && (
+          <WalletPassModal
+            visible={walletPassModalVisible}
+            onClose={() => setWalletPassModalVisible(false)}
+            user={user}
+            isDark={isDark}
+            initialWalletType={walletPassType}
+          />
+        )}
+
+        {chantsModalVisible && (
+          <ChantsModal
+            visible={chantsModalVisible}
+            onClose={() => setChantsModalVisible(false)}
+            isDark={isDark}
+          />
+        )}
+
+        {pwaModalVisible && (
+          <PwaInstallPromptModal
+            visible={pwaModalVisible}
+            onClose={() => setPwaModalVisible(false)}
+            isDark={isDark}
+          />
+        )}
+
+        {alertsModalVisible && (
+          <AlertasModal
+            visible={alertsModalVisible}
+            onClose={closeAlertsModal}
+            isDark={isDark}
+            onSelectAction={(action) => {
+              if (action === 'pay_quota') {
+                handlePayQuota({
+                  title: `Quota Anual Grupo 39 · ${user?.quotaPendingPeriod || user?.quotaPendingMonth || 'Época 2026/2027'}`,
+                  category: 'Quota Anual de Sócio',
+                  amount: user?.quotaAmount || 12.00,
+                  type: 'quota',
+                });
+              } else if (action === 'open_store') {
+                handleSelectTab('store');
+              } else if (action === 'open_chants') {
+                setChantsModalVisible(true);
+              } else if (action === 'open_map') {
+                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Estádio do Rio Ave FC, Vila do Conde')}`;
+                if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                  window.open(mapUrl, '_blank', 'noopener,noreferrer');
+                } else {
+                  Linking.openURL(mapUrl).catch(() => {});
+                }
               }
-            }
-          }}
-        />
+            }}
+          />
+        )}
       </View>
 
       {/* Animação Inicial de Abertura com o Logótipo Oficial da Claque */}

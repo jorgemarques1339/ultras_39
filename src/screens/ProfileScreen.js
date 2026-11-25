@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Award,
-  Download,
   Check,
   Nfc,
   LogOut,
@@ -179,44 +178,53 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
         </View>
       </View>
 
-      {/* Botão Compacto: Guardar na Carteira Digital (Apple & Google Wallet) */}
+      {/* Botões Compactos: Guardar na Carteira Digital (Apple Wallet & Google Wallet) */}
       {onOpenWalletPass && (
-        <TouchableOpacity
-          style={[
-            styles.cardWalletBtn,
-            !isDark && styles.cardWalletBtnLight,
-          ]}
-          onPress={onOpenWalletPass}
-          activeOpacity={0.82}
-        >
-          <View style={styles.cardWalletLeft}>
-            <View style={styles.cardWalletIconBlack}>
-              <Text style={styles.cardAppleGlyph}></Text>
-            </View>
-            <Text
-              style={[styles.cardWalletText, !isDark && styles.cardWalletTextLight]}
-              numberOfLines={1}
-            >
-              Guardar na Carteira Digital
-            </Text>
-          </View>
-          <View
+        <View style={styles.cardWalletRow}>
+          <TouchableOpacity
             style={[
-              styles.cardWalletBadge,
-              !isDark && styles.cardWalletBadgeLight,
+              styles.cardWalletBtn,
+              styles.cardWalletBtnHalf,
+              !isDark && styles.cardWalletBtnLight,
             ]}
+            onPress={() => onOpenWalletPass('apple')}
+            activeOpacity={0.82}
           >
-            <Download size={11} color={isDark ? '#00E676' : '#00874E'} />
-            <Text
-              style={[
-                styles.cardWalletBadgeText,
-                !isDark && styles.cardWalletBadgeTextLight,
-              ]}
-            >
-              Pass
-            </Text>
-          </View>
-        </TouchableOpacity>
+            <View style={styles.cardWalletLeft}>
+              <View style={styles.cardWalletIconBlack}>
+                <Text style={styles.cardAppleGlyph}></Text>
+              </View>
+              <Text
+                style={[styles.cardWalletText, !isDark && styles.cardWalletTextLight]}
+                numberOfLines={1}
+              >
+                Apple Wallet
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.cardWalletBtn,
+              styles.cardWalletBtnHalf,
+              !isDark && styles.cardWalletBtnLight,
+            ]}
+            onPress={() => onOpenWalletPass('google')}
+            activeOpacity={0.82}
+          >
+            <View style={styles.cardWalletLeft}>
+              <View style={styles.cardWalletIconGoogle}>
+                <Text style={styles.cardGoogleGlyph}>G</Text>
+              </View>
+              <Text
+                style={[styles.cardWalletText, !isDark && styles.cardWalletTextLight]}
+                numberOfLines={1}
+              >
+                Google Wallet
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -317,58 +325,11 @@ function ProfileScreen({
         </View>
       ) : (
         <>
-          {/* 1. DEFINIÇÕES DA APP (NO TOPO) */}
-          <View style={styles.settingsTopSection}>
-            <TouchableOpacity
-              style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
-              onPress={() => setSettingsModalVisible(true)}
-              activeOpacity={0.85}
-            >
-              <View style={styles.settingsBtnLeft}>
-                <View
-                  style={[
-                    styles.settingsIconBox,
-                    !isDark && styles.settingsIconBoxLight,
-                  ]}
-                >
-                  <SlidersHorizontal
-                    size={17}
-                    color={isDark ? '#00E676' : '#00874E'}
-                  />
-                </View>
-                <View>
-                  <View style={styles.settingsTitleRow}>
-                    <Text
-                      style={[styles.settingsBtnTitle, !isDark && styles.textDark]}
-                    >
-                      Definições da App
-                    </Text>
-                    <View style={styles.settingsConfigBadge}>
-                      <Text style={styles.settingsConfigBadgeText}>Preferências</Text>
-                    </View>
-                  </View>
-                  <Text
-                    style={[
-                      styles.settingsBtnSubtitle,
-                      !isDark && styles.textMutedDark,
-                    ]}
-                  >
-                    Notificações, leitor NFC e som da bancada
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight
-                size={16}
-                color={isDark ? COLORS.textMuted : '#7E9187'}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* 2. CARTÃO DIGITAL DO SÓCIO DA CLAQUE G39 */}
+          {/* 1. CARTÃO DIGITAL DO SÓCIO DA CLAQUE G39 */}
           <View style={styles.cardSection}>
             <View style={styles.sectionTitleHeaderRow}>
               <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-                Cartão Digital do Sócio G39
+                Cartão Sócio G39
               </Text>
             </View>
 
@@ -487,6 +448,53 @@ function ProfileScreen({
                   <Text style={styles.checkInBtnText}>Faça Check-In via NFC</Text>
                 </>
               )}
+            </TouchableOpacity>
+          </View>
+
+          {/* 4. DEFINIÇÕES DA APP (POR CIMA DO BOTÃO TERMINAR SESSÃO) */}
+          <View style={styles.settingsSection}>
+            <TouchableOpacity
+              style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
+              onPress={() => setSettingsModalVisible(true)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.settingsBtnLeft}>
+                <View
+                  style={[
+                    styles.settingsIconBox,
+                    !isDark && styles.settingsIconBoxLight,
+                  ]}
+                >
+                  <SlidersHorizontal
+                    size={17}
+                    color={isDark ? '#00E676' : '#00874E'}
+                  />
+                </View>
+                <View>
+                  <View style={styles.settingsTitleRow}>
+                    <Text
+                      style={[styles.settingsBtnTitle, !isDark && styles.textDark]}
+                    >
+                      Definições da App
+                    </Text>
+                    <View style={styles.settingsConfigBadge}>
+                      <Text style={styles.settingsConfigBadgeText}>Preferências</Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[
+                      styles.settingsBtnSubtitle,
+                      !isDark && styles.textMutedDark,
+                    ]}
+                  >
+                    Notificações, leitor NFC e som da bancada
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight
+                size={16}
+                color={isDark ? COLORS.textMuted : '#7E9187'}
+              />
             </TouchableOpacity>
           </View>
 
@@ -803,18 +811,43 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Botão Compacto Carteira Digital Integrado no Cartão
+  // Botões Compactos Carteira Digital Integrados no Cartão
+  cardWalletRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
   cardWalletBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
     borderRadius: 7,
-    paddingVertical: 5,
+    paddingVertical: 6,
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
-    marginTop: 6,
+  },
+  cardWalletBtnHalf: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  cardWalletIconGoogle: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: 'rgba(66, 133, 244, 0.4)',
+  },
+  cardGoogleGlyph: {
+    color: '#4285F4',
+    fontSize: 11,
+    fontWeight: '900',
+    lineHeight: 13,
   },
   cardWalletBtnLight: {
     backgroundColor: 'rgba(255, 255, 255, 0.7)',

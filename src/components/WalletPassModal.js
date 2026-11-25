@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,13 +22,28 @@ import {
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
-export default function WalletPassModal({ visible, onClose, user, isDark = true }) {
-  if (!visible || !user) return null;
-
-  const [walletType, setWalletType] = useState('apple'); // 'apple' | 'google'
+export default function WalletPassModal({
+  visible,
+  onClose,
+  user,
+  isDark = true,
+  initialWalletType,
+}) {
+  const defaultType = initialWalletType || (Platform.OS === 'android' ? 'google' : 'apple');
+  const [walletType, setWalletType] = useState(defaultType); // 'apple' | 'google'
   const [isSaved, setIsSaved] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+
+  useEffect(() => {
+    if (visible) {
+      setWalletType(initialWalletType || (Platform.OS === 'android' ? 'google' : 'apple'));
+      setIsSaved(false);
+      setStatusMessage('');
+    }
+  }, [visible, initialWalletType]);
+
+  if (!visible || !user) return null;
 
   // 1. GERAÇÃO E EXPORTAÇÃO REAL DO PASSE DIGITAL 100% OPERACIONAL
   const handleSaveToWallet = async () => {
