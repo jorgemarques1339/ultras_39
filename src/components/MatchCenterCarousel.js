@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import ClubBadge from './ClubBadge';
+import { COLORS } from '../theme/colors';
 
-const RIO_AVE_GREEN = '#008751';
+const RIO_AVE_GREEN = COLORS.primary;
 const AUTO_SLIDE_INTERVAL_MS = 5000;
 
 /**
@@ -102,18 +104,13 @@ const MatchSlide = memo(function MatchSlide({
   cardWidth,
   isDark,
   onPressTickets,
-  onPressSummary,
 }) {
   const isPast = item.type === 'past';
   const isNext = item.type === 'next';
 
   const handleActionPress = useCallback(() => {
-    if (isPast) {
-      onPressSummary && onPressSummary(item);
-    } else {
-      onPressTickets && onPressTickets(item);
-    }
-  }, [isPast, item, onPressSummary, onPressTickets]);
+    onPressTickets && onPressTickets(item);
+  }, [item, onPressTickets]);
 
   return (
     <View style={[styles.slideWrapper, { width: cardWidth }]}>
@@ -159,7 +156,7 @@ const MatchSlide = memo(function MatchSlide({
           </Text>
         </View>
 
-        {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Ação */}
+        {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Bilhetes apenas no Próximo Jogo */}
         <View style={styles.centerCol}>
           <Text
             style={[
@@ -172,34 +169,19 @@ const MatchSlide = memo(function MatchSlide({
             {isPast ? item.score || '0 - 0' : item.time || '20:30'}
           </Text>
 
-          <TouchableOpacity
-            activeOpacity={0.84}
-            onPress={handleActionPress}
-            style={[
-              styles.actionBtn,
-              isPast
-                ? [styles.actionBtnSecondary, !isDark && styles.actionBtnSecondaryLight]
-                : [styles.actionBtnPrimary, isNext && styles.actionBtnNext],
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={
-              isPast
-                ? 'Ver resumo do jogo'
-                : item.isHome
-                  ? 'Ver detalhes do jogo'
-                  : 'Comprar bilhetes'
-            }
-          >
-            <Text
-              style={[
-                styles.actionBtnText,
-                isPast && styles.actionBtnTextSecondary,
-                isPast && !isDark && styles.actionBtnTextSecondaryLight,
-              ]}
+          {isNext ? (
+            <TouchableOpacity
+              activeOpacity={0.84}
+              onPress={handleActionPress}
+              style={[styles.actionBtn, styles.actionBtnPrimary, styles.actionBtnNext]}
+              accessibilityRole="button"
+              accessibilityLabel="Comprar bilhetes para o próximo jogo"
             >
-              {isPast ? 'RESUMO' : item.isHome ? 'DETALHES' : 'BILHETES'}
-            </Text>
-          </TouchableOpacity>
+              <Text style={styles.actionBtnText}>BILHETES</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.actionBtnPlaceholder} />
+          )}
         </View>
 
         {/* Direita: Equipa Visitante */}
@@ -397,10 +379,9 @@ function MatchCenterCarousel({
         cardWidth={cardWidth}
         isDark={isDark}
         onPressTickets={onPressTickets}
-        onPressSummary={onPressSummary}
       />
     ),
-    [cardWidth, isDark, onPressSummary, onPressTickets]
+    [cardWidth, isDark, onPressTickets]
   );
 
   const keyExtractor = useCallback((item) => item.id, []);
@@ -500,17 +481,18 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     borderTopWidth: 0,
     borderBottomWidth: 1,
-    borderColor: 'rgba(0, 135, 81, 0.35)',
+    borderColor: 'rgba(0, 135, 78, 0.35)',
     overflow: 'hidden',
     position: 'relative',
-    paddingTop: 14,
+    paddingTop: Platform.OS === 'android' ? Math.max(14, (StatusBar.currentHeight || 0) + 8) : 14,
     paddingBottom: 16,
     ...Platform.select({
       web: {
-        boxShadow: '0 10px 26px rgba(0, 0, 0, 0.45), 0 0 18px rgba(0, 135, 81, 0.16)',
+        paddingTop: 'max(14px, env(safe-area-inset-top))',
+        boxShadow: '0 10px 26px rgba(0, 0, 0, 0.45), 0 0 18px rgba(0, 135, 78, 0.16)',
       },
       default: {
-        shadowColor: '#008751',
+        shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.25,
         shadowRadius: 12,
@@ -523,13 +505,14 @@ const styles = StyleSheet.create({
   },
   slideWrapper: {
     paddingHorizontal: 16,
-    justifyContent: 'center',
+    height: 172,
+    justifyContent: 'space-between',
   },
   topCenter: {
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 56,
-    marginBottom: 12,
+    height: 56,
+    marginBottom: 4,
   },
   nextMatchPill: {
     flexDirection: 'row',
@@ -585,12 +568,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    height: 112,
     gap: 8,
   },
   teamCol: {
     flex: 1,
+    height: 108,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 4,
     gap: 8,
   },
   badgeHalo: {
@@ -616,19 +602,25 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textAlign: 'center',
     lineHeight: 15,
+    minHeight: 30,
   },
   centerCol: {
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 114,
-    gap: 12,
+    height: 108,
+    gap: 10,
   },
   mainHighlightText: {
     color: '#FFFFFF',
     fontSize: 34,
+    lineHeight: 40,
     fontWeight: '900',
     letterSpacing: 1,
     textAlign: 'center',
+  },
+  actionBtnPlaceholder: {
+    height: 33,
   },
   mainHighlightNextDark: {
     color: '#00E676',

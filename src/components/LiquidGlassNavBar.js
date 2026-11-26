@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions, Image } from 'react-native';
-import { Home, Bot, ShoppingBag, User, Lock } from 'lucide-react-native';
+import { Home, Bot, ShoppingBag, User, Settings, Lock } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 const NAV_ITEMS = [
@@ -8,9 +8,10 @@ const NAV_ITEMS = [
   { id: 'store', icon: ShoppingBag, label: 'Loja' },
   { id: 'apoio', icon: Bot, label: 'Apoio' },
   { id: 'profile', icon: User, label: 'Perfil' },
+  { id: 'settings', icon: Settings, label: 'Definições' },
 ];
 
-function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn = false }) {
+function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn = false, unreadCount = 0 }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
 
@@ -36,6 +37,13 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
           const IconComponent = item.icon;
           const isActive = activeTab === item.id;
           const isItemLocked = (item.id === 'apoio' || item.id === 'profile') && !isLoggedIn;
+          const alertBadge =
+            item.id === 'settings' && !isActive && unreadCount > 0
+              ? unreadCount > 9
+                ? '9+'
+                : String(unreadCount)
+              : null;
+          const badgeValue = alertBadge || item.badge;
 
           return (
             <TouchableOpacity
@@ -77,18 +85,19 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
                   />
                 )}
 
-                {(item.badge || isItemLocked) && (
+                {(badgeValue || isItemLocked) && (
                   <View
                     style={[
                       styles.badgeContainer,
                       !isDark && styles.badgeContainerLight,
+                      alertBadge && styles.badgeContainerAlert,
                       isItemLocked && (isDark ? styles.badgeContainerLockedDark : styles.badgeContainerLockedLight),
                     ]}
                   >
                     {isItemLocked ? (
                       <Lock size={8} color="#FFFFFF" strokeWidth={2.5} />
                     ) : (
-                      <Text style={styles.badgeText}>{item.badge}</Text>
+                      <Text style={styles.badgeText}>{badgeValue}</Text>
                     )}
                   </View>
                 )}
@@ -279,6 +288,9 @@ const styles = StyleSheet.create({
   },
   badgeContainerLight: {
     borderColor: '#FFFFFF',
+  },
+  badgeContainerAlert: {
+    backgroundColor: '#FF5252',
   },
   badgeContainerLockedDark: {
     backgroundColor: '#4B5563',

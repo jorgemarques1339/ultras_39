@@ -23,12 +23,14 @@ import HomeScreen from './src/screens/HomeScreen';
 import ApoioScreen from './src/screens/ApoioScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import StoreScreen from './src/screens/StoreScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import {
   INITIAL_TRANSACTIONS,
 } from './src/data/mockData';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { AlertsProvider, useAlerts } from './src/context/AlertsContext';
+import { AppSettingsProvider, useAppSettings } from './src/context/AppSettingsContext';
 
 function MainApp() {
   const { width } = useWindowDimensions();
@@ -52,6 +54,8 @@ function MainApp() {
     openAlertsModal,
     closeAlertsModal,
   } = useAlerts();
+  const { appSettings } = useAppSettings();
+  const effectiveUnreadCount = appSettings.notifications ? unreadCount : 0;
 
   const [activeTab, setActiveTab] = useState('home');
   const [visitedTabs, setVisitedTabs] = useState({ home: true });
@@ -257,8 +261,16 @@ function MainApp() {
                 onOpenAuth={openAuthModal}
                 onLogout={handleLogout}
                 onUpdateUser={updateUser}
+              />
+            </View>
+          )}
+
+          {visitedTabs.settings && (
+            <View style={[styles.tabContentPane, activeTab !== 'settings' && styles.hiddenPane]}>
+              <SettingsScreen
+                isDark={isDark}
                 onOpenNotifications={handleOpenNotifications}
-                unreadCount={unreadCount}
+                unreadCount={effectiveUnreadCount}
               />
             </View>
           )}
@@ -270,6 +282,7 @@ function MainApp() {
           onSelectTab={handleSelectTab}
           isDark={isDark}
           isLoggedIn={isLoggedIn}
+          unreadCount={effectiveUnreadCount}
         />
 
         {/* Modais montados sob demanda para melhor desempenho em smartphones */}
@@ -408,11 +421,13 @@ function MainApp() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AlertsProvider>
-          <MainApp />
-        </AlertsProvider>
-      </AuthProvider>
+      <AppSettingsProvider>
+        <AuthProvider>
+          <AlertsProvider>
+            <MainApp />
+          </AlertsProvider>
+        </AuthProvider>
+      </AppSettingsProvider>
     </ThemeProvider>
   );
 }

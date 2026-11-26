@@ -3,6 +3,7 @@ export const COLORS = {
   primary: '#00874E',          // Verde Rio Ave Oficial
   primaryDark: '#005D35',      // Verde Escuro Profundo
   primaryLight: '#00B368',     // Verde Vibrante de Destaque
+  accent: '#00E676',           // Verde Neon de Alto Contraste (Dark Mode)
   primaryGlow: 'rgba(0, 179, 104, 0.45)',
   
   white: '#FFFFFF',            // Branco puro

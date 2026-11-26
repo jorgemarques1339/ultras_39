@@ -20,6 +20,7 @@ import {
   Radio,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
+import { useAppSettings } from '../context/AppSettingsContext';
 import { CHANTS_DATA } from '../data/mockData';
 
 export default function ChantsModal({ visible, onClose, isDark = true }) {
@@ -76,9 +77,11 @@ export default function ChantsModal({ visible, onClose, isDark = true }) {
     };
   }, [isPlaying]);
 
+  const { appSettings } = useAppSettings();
+
   // Obter ou desbloquear o AudioContext no smartphone/navegador
   const getAudioContext = () => {
-    if (typeof window === 'undefined') return null;
+    if (!appSettings.sound || typeof window === 'undefined') return null;
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return null;

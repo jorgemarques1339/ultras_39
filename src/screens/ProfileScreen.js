@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   Image,
+  Alert,
 } from 'react-native';
 import {
   ShieldCheck,
@@ -17,19 +18,17 @@ import {
   Nfc,
   LogOut,
   LogIn,
-  SlidersHorizontal,
   Edit3,
   CreditCard,
-  Bell,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
 import NfcCheckInModal from '../components/NfcCheckInModal';
 import EditProfileModal from '../components/EditProfileModal';
-import AppSettingsModal from '../components/AppSettingsModal';
 import FidelidadeModal from '../components/FidelidadeModal';
 import PagamentosModal from '../components/PagamentosModal';
 import { useAuth } from '../context/AuthContext';
+import { useAppSettings } from '../context/AppSettingsContext';
 
 // Componente isolado para o Cartão Holográfico Compacto de Sócio
 const HolographicMemberCard = memo(function HolographicMemberCard({
@@ -244,16 +243,14 @@ function ProfileScreen({
   onOpenAuth,
   onLogout,
   onUpdateUser,
-  onOpenNotifications,
-  unreadCount = 0,
 }) {
   const { updateUser: authUpdateUser } = useAuth();
+  const { appSettings } = useAppSettings();
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
   const [achievements, setAchievements] = useState(FAN_ACHIEVEMENTS);
   const [fidelidadeModalVisible, setFidelidadeModalVisible] = useState(false);
   const [nfcModalVisible, setNfcModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
-  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [pagamentosModalVisible, setPagamentosModalVisible] = useState(false);
 
   // Filtrar apenas transações relativas a pagamento de quotas
@@ -267,8 +264,17 @@ function ProfileScreen({
   }, [transactions]);
 
   const handleOpenNfcCheckIn = useCallback(() => {
+    if (!appSettings.nfc) {
+      const msg = 'O leitor NFC está desativado. Ativa-o em Definições > NFC do Dispositivo para validar a tua presença.';
+      if (Platform.OS === 'web' && typeof window !== 'undefined' && window.alert) {
+        window.alert(msg);
+      } else {
+        Alert.alert('NFC Desativado', msg);
+      }
+      return;
+    }
     setNfcModalVisible(true);
-  }, []);
+  }, [appSettings.nfc]);
 
   const handleNfcSuccess = useCallback(() => {
     setHasCheckedIn(true);
@@ -454,106 +460,6 @@ function ProfileScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 4. ALERTAS & COMUNICADOS NA ÁREA PESSOAL */}
-          {onOpenNotifications && (
-            <View style={styles.settingsSection}>
-              <TouchableOpacity
-                style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
-                onPress={onOpenNotifications}
-                activeOpacity={0.85}
-              >
-                <View style={styles.settingsBtnLeft}>
-                  <View
-                    style={[
-                      styles.settingsIconBox,
-                      !isDark && styles.settingsIconBoxLight,
-                    ]}
-                  >
-                    <Bell
-                      size={17}
-                      color={isDark ? '#00E676' : '#00874E'}
-                    />
-                  </View>
-                  <View>
-                    <View style={styles.settingsTitleRow}>
-                      <Text
-                        style={[styles.settingsBtnTitle, !isDark && styles.textDark]}
-                      >
-                        Alertas & Comunicados
-                      </Text>
-                      {unreadCount > 0 && (
-                        <View style={styles.alertsUnreadBadge}>
-                          <Text style={styles.alertsUnreadBadgeText}>
-                            {unreadCount > 9 ? '9+' : unreadCount} {unreadCount === 1 ? 'novo' : 'novos'}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.settingsBtnSubtitle,
-                        !isDark && styles.textMutedDark,
-                      ]}
-                    >
-                      Avisos da claque, convocatórias e notificações
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight
-                  size={16}
-                  color={isDark ? COLORS.textMuted : '#7E9187'}
-                />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* 5. DEFINIÇÕES DA APP (POR CIMA DO BOTÃO TERMINAR SESSÃO) */}
-          <View style={styles.settingsSection}>
-            <TouchableOpacity
-              style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
-              onPress={() => setSettingsModalVisible(true)}
-              activeOpacity={0.85}
-            >
-              <View style={styles.settingsBtnLeft}>
-                <View
-                  style={[
-                    styles.settingsIconBox,
-                    !isDark && styles.settingsIconBoxLight,
-                  ]}
-                >
-                  <SlidersHorizontal
-                    size={17}
-                    color={isDark ? '#00E676' : '#00874E'}
-                  />
-                </View>
-                <View>
-                  <View style={styles.settingsTitleRow}>
-                    <Text
-                      style={[styles.settingsBtnTitle, !isDark && styles.textDark]}
-                    >
-                      Definições da App
-                    </Text>
-                    <View style={styles.settingsConfigBadge}>
-                      <Text style={styles.settingsConfigBadgeText}>Preferências</Text>
-                    </View>
-                  </View>
-                  <Text
-                    style={[
-                      styles.settingsBtnSubtitle,
-                      !isDark && styles.textMutedDark,
-                    ]}
-                  >
-                    Tema branco/preto, notificações, NFC e som
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight
-                size={16}
-                color={isDark ? COLORS.textMuted : '#7E9187'}
-              />
-            </TouchableOpacity>
-          </View>
-
           {/* Botão de Terminar Sessão (Logout) */}
           {onLogout && (
             <TouchableOpacity
@@ -583,13 +489,6 @@ function ProfileScreen({
         onClose={() => setEditProfileModalVisible(false)}
         user={user}
         onSaveUser={handleSaveUser}
-        isDark={isDark}
-      />
-
-      {/* Modal de Definições da App (Notificações, NFC e Som) */}
-      <AppSettingsModal
-        visible={settingsModalVisible}
-        onClose={() => setSettingsModalVisible(false)}
         isDark={isDark}
       />
 
