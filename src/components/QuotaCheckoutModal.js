@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TextInput,
   Platform,
   Share,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -62,6 +63,13 @@ function QuotaCheckoutModal({
   const [copiedRef, setCopiedRef] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [lastTransaction, setLastTransaction] = useState(null);
+  const copyTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const safeData = checkoutData || {
     title: 'Quota Anual Grupo 39 · Época 2026/2027',
@@ -101,12 +109,13 @@ function QuotaCheckoutModal({
       }
     } catch (_) {}
 
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     if (type === 'iban') {
       setCopiedIban(true);
-      setTimeout(() => setCopiedIban(false), 2500);
+      copyTimerRef.current = setTimeout(() => setCopiedIban(false), 2500);
     } else {
       setCopiedRef(true);
-      setTimeout(() => setCopiedRef(false), 2500);
+      copyTimerRef.current = setTimeout(() => setCopiedRef(false), 2500);
     }
   };
 
@@ -173,7 +182,10 @@ function QuotaCheckoutModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <View style={[styles.container, !isDark && styles.containerLight]}>
           {/* Header */}
           <View style={[styles.header, !isDark && styles.headerLight]}>
@@ -593,7 +605,7 @@ function QuotaCheckoutModal({
             )}
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

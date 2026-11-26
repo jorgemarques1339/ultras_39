@@ -40,6 +40,7 @@ import DeslocacaoModal from '../components/DeslocacaoModal';
 import PlantelModal, { RioAveJerseyIcon } from '../components/PlantelModal';
 import TabelaModal from '../components/TabelaModal';
 import TicketsSuspendedModal from '../components/TicketsSuspendedModal';
+import HomeTicketModal from '../components/HomeTicketModal';
 import MatchCenterCarousel, { SAMPLE_MATCH_CENTER_DATA } from '../components/MatchCenterCarousel';
 
 function HomeScreen({
@@ -54,8 +55,8 @@ function HomeScreen({
   const isTablet = width >= 650;
   const isSmallScreen = height < 740;
 
-  // Suspensão temporária da compra de bilhetes + deslocações pela app (alterar para false para reativar DeslocacaoModal)
-  const TICKETS_PURCHASE_SUSPENDED = true;
+  // Suspensão temporária da marcação de deslocações pela app (alterar para false para reativar DeslocacaoModal)
+  const DESLOCACAO_PURCHASE_SUSPENDED = true;
 
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
@@ -63,6 +64,14 @@ function HomeScreen({
   const [resultadoModalVisible, setResultadoModalVisible] = useState(false);
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
   const [ticketsNoticeVisible, setTicketsNoticeVisible] = useState(false);
+  const [ticketsNoticeMode, setTicketsNoticeMode] = useState('deslocacao');
+  const [homeTicketModalVisible, setHomeTicketModalVisible] = useState(false);
+  const [selectedHomeMatch, setSelectedHomeMatch] = useState(null);
+
+  const isBigThreeMatch = useCallback((matchItem) => {
+    const names = `${matchItem?.homeTeam?.name || ''} ${matchItem?.awayTeam?.name || ''}`.toLowerCase();
+    return names.includes('sporting') || names.includes('porto') || names.includes('benfica');
+  }, []);
   const [plantelModalVisible, setPlantelModalVisible] = useState(false);
   const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
@@ -70,94 +79,9 @@ function HomeScreen({
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
   const [liveUpcoming, setLiveUpcoming] = useState([]);
   const [liveResults, setLiveResults] = useState(PAST_RESULTS);
-  const [nowTs, setNowTs] = useState(() => Date.now());
   const mainScrollRef = useRef(null);
 
-  // Atualizar relógio para a contagem decrescente a cada 30 segundos apenas quando a aba está ativa
-  useEffect(() => {
-    if (!isActive) return;
-    setNowTs(Date.now());
-    const timer = setInterval(() => {
-      setNowTs(Date.now());
-    }, 30000);
-    return () => clearInterval(timer);
-  }, [isActive]);
-
-  // Contagem decrescente dinâmica para o próximo jogo
-  const countdownInfo = useMemo(() => {
-    const targetRaw = nextMatch?.rawDate || nextMatch?.date;
-    if (!targetRaw) return null;
-    const targetMs = new Date(targetRaw).getTime();
-    if (Number.isNaN(targetMs)) return null;
-
-    const diffMs = targetMs - nowTs;
-    if (diffMs <= 0 && diffMs > -2 * 60 * 60 * 1000) {
-      return { text: 'EM DIRETO AGORA', isLive: true };
-    }
-    if (diffMs <= 0) {
-      return null;
-    }
-
-    const totalMinutes = Math.floor(diffMs / 60000);
-    const days = Math.floor(totalMinutes / (60 * 24));
-    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-    const minutes = totalMinutes % 60;
-
-    if (days > 0) {
-      return { text: `Faltam ${days}d ${hours}h ${minutes}m`, isLive: false };
-    }
-    if (hours > 0) {
-      return { text: `É hoje · Faltam ${hours}h ${minutes}m`, isLive: false, isToday: true };
-    }
-    return { text: `Arranca em ${Math.max(1, minutes)}m!`, isLive: false, isToday: true };
-  }, [nextMatch?.rawDate, nextMatch?.date, nowTs]);
-
-  // Ponto de Encontro / Convívio oficial no Estádio dos Arcos
-  const meetingPointInfo = useMemo(() => {
-    const mapQuery = 'Estádio do Rio Ave FC, Vila do Conde';
-    return {
-      timeLabel: '12:30',
-      location: 'Estádio dos Arcos',
-      mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`,
-    };
-  }, []);
-
-  // Forma recente do Rio Ave FC (últimos 5 jogos)
-  const recentForm = useMemo(() => {
-    return (liveResults || []).slice(0, 5).map((item) => {
-      if (item.outcome) return item.outcome;
-      const isHome = item.home?.toLowerCase().includes('rio ave');
-      const rafcGoals = isHome ? item.scoreHome : item.scoreAway;
-      const oppGoals = isHome ? item.scoreAway : item.scoreHome;
-      if (rafcGoals > oppGoals) return 'V';
-      if (rafcGoals === oppGoals) return 'E';
-      return 'D';
-    }).reverse();
-  }, [liveResults]);
-
-  const handleOpenMeetingMap = useCallback(() => {
-    if (!meetingPointInfo?.mapsUrl) return;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.open(meetingPointInfo.mapsUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      Linking.openURL(meetingPointInfo.mapsUrl).catch(() => {});
-    }
-  }, [meetingPointInfo]);
-
-  const handleOpenExternalUrl = useCallback((url) => {
-    const targetUrl = url || FLASHSCORE_NEWS_URL;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      Linking.openURL(targetUrl).catch(() => {});
-    }
-  }, []);
-
-  const handleOpenFlashscore = useCallback(() => {
-    handleOpenExternalUrl(FLASHSCORE_RESULTS_URL);
-  }, [handleOpenExternalUrl]);
-
-  // Carregar dados oficiais do próximo jogo, último resultado e notícias em tempo real
+  // Carregar dados oficiais do próximo jogo, resultados e pré-carregar Plantel/Tabela em tempo real
   useEffect(() => {
     if (!isActive) return;
     let isMounted = true;
@@ -185,26 +109,25 @@ function HomeScreen({
           }
         })
         .catch(() => {});
-
-      if (!force) {
-        fetchRioAveRoster(false).catch(() => {});
-        fetchLigaStandings(false).catch(() => {});
-        Object.values(OFFICIAL_PLAYER_PHOTOS).forEach((uri) => {
-          Image.prefetch(uri).catch(() => {});
-        });
-      }
     };
 
     syncMatches(false);
+    const prefetchTimer = setTimeout(() => {
+      if (!isMounted) return;
+      fetchRioAveRoster(false).catch(() => {});
+      fetchLigaStandings(false).catch(() => {});
+      Object.values(OFFICIAL_PLAYER_PHOTOS).forEach((uri) => {
+        Image.prefetch(uri).catch(() => {});
+      });
+    }, 1200);
     const interval = setInterval(() => syncMatches(true), 60000);
 
     return () => {
       isMounted = false;
+      clearTimeout(prefetchTimer);
       clearInterval(interval);
     };
   }, [isActive]);
-
-  const lastResult = liveResults && liveResults.length > 0 ? liveResults[0] : null;
 
   const handleVoteMotm = useCallback((playerId) => {
     setVotedPlayerId((current) => {
@@ -256,6 +179,7 @@ function HomeScreen({
       type: idx === 0 ? 'next' : 'future',
       competition: (m.competition || 'LIGA PORTUGAL BETCLIC').toUpperCase(),
       dateShort: formatShortPt(m.rawDate || m.date, m.dateFormatted),
+      rawDate: m.rawDate || m.date || null,
       time: m.time || '20:30',
       score: null,
       homeTeam: m.homeTeam,
@@ -296,11 +220,22 @@ function HomeScreen({
           <MatchCenterCarousel
             matches={matchCenterSlides}
             onPressTickets={(m) => {
-              if (TICKETS_PURCHASE_SUSPENDED) {
+              if (isBigThreeMatch(m)) {
+                setTicketsNoticeMode('big3');
                 setTicketsNoticeVisible(true);
                 return;
               }
-              !m.isHome ? setDeslocacaoModalVisible(true) : setJogosModalVisible(true);
+              if (m?.isHome) {
+                setSelectedHomeMatch(m);
+                setHomeTicketModalVisible(true);
+                return;
+              }
+              if (DESLOCACAO_PURCHASE_SUSPENDED) {
+                setTicketsNoticeMode('deslocacao');
+                setTicketsNoticeVisible(true);
+                return;
+              }
+              setDeslocacaoModalVisible(true);
             }}
             onPressSummary={() => setResultadoModalVisible(true)}
             isDark={isDark}
@@ -513,50 +448,68 @@ function HomeScreen({
 
       </ScrollView>
 
-      {/* Modal de Jogos e Calendário Oficial em Direto */}
-      <JogosModal
-        visible={jogosModalVisible}
-        onClose={() => setJogosModalVisible(false)}
-        isDark={isDark}
-      />
+      {/* Modais montados sob demanda para melhor desempenho em smartphones */}
+      {jogosModalVisible && (
+        <JogosModal
+          visible={jogosModalVisible}
+          onClose={() => setJogosModalVisible(false)}
+          isDark={isDark}
+        />
+      )}
 
-      {/* Modal de Últimos Resultados Oficiais */}
-      <ResultadoModal
-        visible={resultadoModalVisible}
-        onClose={() => setResultadoModalVisible(false)}
-        isDark={isDark}
-      />
+      {resultadoModalVisible && (
+        <ResultadoModal
+          visible={resultadoModalVisible}
+          onClose={() => setResultadoModalVisible(false)}
+          isDark={isDark}
+        />
+      )}
 
-      {/* Modal de Compra de Bilhete + Deslocação (Transferência Bancária) */}
-      <DeslocacaoModal
-        visible={deslocacaoModalVisible}
-        onClose={() => setDeslocacaoModalVisible(false)}
-        nextMatch={nextMatch}
-        user={user}
-        isDark={isDark}
-        isLoggedIn={isLoggedIn}
-      />
+      {deslocacaoModalVisible && (
+        <DeslocacaoModal
+          visible={deslocacaoModalVisible}
+          onClose={() => setDeslocacaoModalVisible(false)}
+          nextMatch={nextMatch}
+          user={user}
+          isDark={isDark}
+          isLoggedIn={isLoggedIn}
+        />
+      )}
 
-      {/* Modal do Plantel Principal */}
-      <PlantelModal
-        visible={plantelModalVisible}
-        onClose={() => setPlantelModalVisible(false)}
-        isDark={isDark}
-      />
+      {plantelModalVisible && (
+        <PlantelModal
+          visible={plantelModalVisible}
+          onClose={() => setPlantelModalVisible(false)}
+          isDark={isDark}
+        />
+      )}
 
-      {/* Modal da Tabela Classificativa */}
-      <TabelaModal
-        visible={tabelaModalVisible}
-        onClose={() => setTabelaModalVisible(false)}
-        isDark={isDark}
-      />
+      {tabelaModalVisible && (
+        <TabelaModal
+          visible={tabelaModalVisible}
+          onClose={() => setTabelaModalVisible(false)}
+          isDark={isDark}
+        />
+      )}
 
-      {/* Aviso de Suspensão Temporária de Bilhetes na App */}
-      <TicketsSuspendedModal
-        visible={ticketsNoticeVisible}
-        onClose={() => setTicketsNoticeVisible(false)}
-        isDark={isDark}
-      />
+      {ticketsNoticeVisible && (
+        <TicketsSuspendedModal
+          visible={ticketsNoticeVisible}
+          onClose={() => setTicketsNoticeVisible(false)}
+          isDark={isDark}
+          mode={ticketsNoticeMode}
+        />
+      )}
+
+      {homeTicketModalVisible && (
+        <HomeTicketModal
+          visible={homeTicketModalVisible}
+          onClose={() => setHomeTicketModalVisible(false)}
+          match={selectedHomeMatch}
+          user={user}
+          isDark={isDark}
+        />
+      )}
 
     </View>
   );

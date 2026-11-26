@@ -117,6 +117,37 @@ function MainApp() {
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
 
+  // Abrir automaticamente o pop-up de instalação PWA (Android & Apple) ao visitar o site
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !isSplashDone || typeof window === 'undefined') return;
+
+    const isStandalone =
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      window.navigator?.standalone === true;
+    if (isStandalone) return;
+
+    try {
+      if (window.sessionStorage?.getItem('@grupo39_pwa_prompt_dismissed') === '1') {
+        return;
+      }
+    } catch (_) {}
+
+    const timer = setTimeout(() => {
+      setPwaModalVisible(true);
+    }, 650);
+
+    return () => clearTimeout(timer);
+  }, [isSplashDone]);
+
+  const handleClosePwaModal = useCallback(() => {
+    setPwaModalVisible(false);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      try {
+        window.sessionStorage?.setItem('@grupo39_pwa_prompt_dismissed', '1');
+      } catch (_) {}
+    }
+  }, []);
+
   const handleOpenNotifications = useCallback(() => openAlertsModal('all'), [openAlertsModal]);
   const handleOpenChants = useCallback(() => setChantsModalVisible(true), []);
   const handleOpenPwaInstall = useCallback(() => setPwaModalVisible(true), []);
@@ -370,7 +401,7 @@ function MainApp() {
         {pwaModalVisible && (
           <PwaInstallPromptModal
             visible={pwaModalVisible}
-            onClose={() => setPwaModalVisible(false)}
+            onClose={handleClosePwaModal}
             isDark={isDark}
           />
         )}

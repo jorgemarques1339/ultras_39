@@ -39,7 +39,9 @@ function PwaInstallPromptModal({ visible, onClose, isDark = true }) {
 
     // Detetar Sistema Operativo do Smartphone
     const userAgent = window.navigator.userAgent || '';
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+    const isIOS =
+      (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) ||
+      (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
     const isAndroid = /Android/.test(userAgent);
 
     if (isIOS) {

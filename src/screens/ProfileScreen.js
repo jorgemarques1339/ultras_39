@@ -489,43 +489,48 @@ function ProfileScreen({
         </>
       )}
 
-      {/* Modal de Check-In NFC */}
-      <NfcCheckInModal
-        visible={nfcModalVisible}
-        onClose={() => setNfcModalVisible(false)}
-        onCheckInSuccess={handleNfcSuccess}
-        user={user}
-        isDark={isDark}
-      />
+      {/* Modais montados sob demanda para melhor desempenho em smartphones */}
+      {nfcModalVisible && (
+        <NfcCheckInModal
+          visible={nfcModalVisible}
+          onClose={() => setNfcModalVisible(false)}
+          onCheckInSuccess={handleNfcSuccess}
+          user={user}
+          isDark={isDark}
+        />
+      )}
 
-      {/* Modal de Edição de Perfil (Nome e Avatar) */}
-      <EditProfileModal
-        visible={editProfileModalVisible}
-        onClose={() => setEditProfileModalVisible(false)}
-        user={user}
-        onSaveUser={handleSaveUser}
-        isDark={isDark}
-      />
+      {editProfileModalVisible && (
+        <EditProfileModal
+          visible={editProfileModalVisible}
+          onClose={() => setEditProfileModalVisible(false)}
+          user={user}
+          onSaveUser={handleSaveUser}
+          isDark={isDark}
+        />
+      )}
 
-      {/* Modal de Fidelidade de Bancada Descriminada */}
-      <FidelidadeModal
-        visible={fidelidadeModalVisible}
-        onClose={() => setFidelidadeModalVisible(false)}
-        hasCheckedIn={hasCheckedIn}
-        achievements={achievements}
-        isDark={isDark}
-        onOpenNfcCheckIn={handleOpenNfcCheckIn}
-      />
+      {fidelidadeModalVisible && (
+        <FidelidadeModal
+          visible={fidelidadeModalVisible}
+          onClose={() => setFidelidadeModalVisible(false)}
+          hasCheckedIn={hasCheckedIn}
+          achievements={achievements}
+          isDark={isDark}
+          onOpenNfcCheckIn={handleOpenNfcCheckIn}
+        />
+      )}
 
-      {/* Modal de Pagamentos de Quotas */}
-      <PagamentosModal
-        visible={pagamentosModalVisible}
-        onClose={() => setPagamentosModalVisible(false)}
-        transactions={quotaTransactions}
-        onViewReceipt={onViewReceipt}
-        user={user}
-        isDark={isDark}
-      />
+      {pagamentosModalVisible && (
+        <PagamentosModal
+          visible={pagamentosModalVisible}
+          onClose={() => setPagamentosModalVisible(false)}
+          transactions={quotaTransactions}
+          onViewReceipt={onViewReceipt}
+          user={user}
+          isDark={isDark}
+        />
+      )}
 
       <View style={{ height: 140 }} />
       </ScrollView>

@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import { Store, AlertCircle, MapPin, X } from 'lucide-react-native';
 
-function TicketsSuspendedModal({ visible, onClose, isDark = true }) {
+function TicketsSuspendedModal({ visible, onClose, isDark = true, mode = 'deslocacao' }) {
   if (!visible) return null;
+
+  const isBigThree = mode === 'big3';
 
   return (
     <Modal
@@ -33,10 +35,12 @@ function TicketsSuspendedModal({ visible, onClose, isDark = true }) {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.title, !isDark && styles.textDark]}>
-                  Bilhetes & Deslocações
+                  {isBigThree ? 'Bilhetes & Deslocações' : 'Deslocações'}
                 </Text>
                 <Text style={[styles.sub, !isDark && styles.textMutedDark]}>
-                  Compra na app temporariamente suspensa
+                  {isBigThree
+                    ? 'Venda não disponível na aplicação'
+                    : 'Marcação na app temporariamente suspensa'}
                 </Text>
               </View>
             </View>
@@ -53,7 +57,9 @@ function TicketsSuspendedModal({ visible, onClose, isDark = true }) {
             <View style={[styles.alertBox, !isDark && styles.alertBoxLight]}>
               <AlertCircle size={18} color={isDark ? '#FFB74D' : '#D97706'} />
               <Text style={[styles.message, !isDark && styles.textDark]}>
-                De momento, a compra de bilhetes e deslocações pela aplicação está suspensa. Para garantires o teu lugar, dirige-te à Loja do Rio Ave FC para dares o teu nome e efetuares o pagamento diretamente na loja.
+                {isBigThree
+                  ? 'Os jogos frente ao Sporting CP, FC Porto e SL Benfica (em casa ou fora) não podem ser vendidos pela aplicação. Dirige-te à Loja do Rio Ave FC para dares o teu nome e efetuares o pagamento na loja.'
+                  : 'De momento, a marcação de deslocações pela aplicação está suspensa. Para garantires o teu lugar, dirige-te à Loja do Rio Ave FC para dares o teu nome e efetuares o pagamento diretamente na loja.'}
               </Text>
             </View>
 

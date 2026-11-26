@@ -10,11 +10,54 @@ import {
   StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Lock } from 'lucide-react-native';
 import ClubBadge from './ClubBadge';
 import { COLORS } from '../theme/colors';
 
 const RIO_AVE_GREEN = COLORS.primary;
 const AUTO_SLIDE_INTERVAL_MS = 5000;
+
+/**
+ * Calcula se a venda (bilhete ou deslocação) já abriu:
+ * só fica ativa a partir da segunda-feira da semana do jogo (00:00).
+ */
+function getMatchSalesWindow(item) {
+  let matchDate = item?.rawDate ? new Date(item.rawDate) : null;
+  if ((!matchDate || Number.isNaN(matchDate.getTime())) && item?.dateShort) {
+    const match = String(item.dateShort).match(/(\d{2})\/(\d{2})/);
+    if (match) {
+      const day = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const now = new Date();
+      let year = now.getFullYear();
+      if (month < now.getMonth() - 3) year += 1;
+      matchDate = new Date(year, month, day, 12, 0, 0);
+    }
+  }
+
+  if (!matchDate || Number.isNaN(matchDate.getTime())) {
+    return { isOpen: item?.type === 'next', openShort: '' };
+  }
+
+  const dayOfWeek = matchDate.getDay(); // 0=Dom, 1=Seg, ..., 6=Sab
+  const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const openDate = new Date(
+    matchDate.getFullYear(),
+    matchDate.getMonth(),
+    matchDate.getDate() - diffToMonday,
+    0,
+    0,
+    0,
+    0
+  );
+
+  const dd = String(openDate.getDate()).padStart(2, '0');
+  const mm = String(openDate.getMonth() + 1).padStart(2, '0');
+  return {
+    isOpen: Date.now() >= openDate.getTime(),
+    openShort: `${dd}/${mm}`,
+  };
+}
 
 /**
  * Array de exemplo (3 jogos passados, 1 próximo jogo ativo no centro, 3 jogos futuros)
@@ -58,6 +101,7 @@ export const SAMPLE_MATCH_CENTER_DATA = [
     type: 'next',
     competition: 'LIGA PORTUGAL BETCLIC',
     dateShort: 'DOM, 29/11',
+    rawDate: '2026-11-29T20:30:00',
     time: '20:30',
     score: null,
     homeTeam: { name: 'RIO AVE FC', logo: null },
@@ -68,7 +112,8 @@ export const SAMPLE_MATCH_CENTER_DATA = [
     id: 'mc-future-1',
     type: 'future',
     competition: 'LIGA PORTUGAL BETCLIC',
-    dateShort: 'SÁB, 06/12',
+    dateShort: 'DOM, 06/12',
+    rawDate: '2026-12-06T18:00:00',
     time: '18:00',
     score: null,
     homeTeam: { name: 'FC ALVERCA', logo: null },
@@ -79,7 +124,8 @@ export const SAMPLE_MATCH_CENTER_DATA = [
     id: 'mc-future-2',
     type: 'future',
     competition: 'TAÇA DE PORTUGAL',
-    dateShort: 'QUA, 17/12',
+    dateShort: 'QUI, 17/12',
+    rawDate: '2026-12-17T20:15:00',
     time: '20:15',
     score: null,
     homeTeam: { name: 'RIO AVE FC', logo: null },
@@ -90,10 +136,11 @@ export const SAMPLE_MATCH_CENTER_DATA = [
     id: 'mc-future-3',
     type: 'future',
     competition: 'LIGA PORTUGAL BETCLIC',
-    dateShort: 'DOM, 21/12',
+    dateShort: 'SEG, 21/12',
+    rawDate: '2026-12-21T15:30:00',
     time: '15:30',
     score: null,
-    homeTeam: { name: 'SC BRAGA', logo: null },
+    homeTeam: { name: 'SL BENFICA', logo: null },
     awayTeam: { name: 'RIO AVE FC', logo: null },
     isHome: false,
   },
@@ -107,10 +154,14 @@ const MatchSlide = memo(function MatchSlide({
 }) {
   const isPast = item.type === 'past';
   const isNext = item.type === 'next';
+  const names = `${item?.homeTeam?.name || ''} ${item?.awayTeam?.name || ''}`.toLowerCase();
+  const isBigThree = names.includes('sporting') || names.includes('porto') || names.includes('benfica');
+  const { isOpen: isSalesOpen, openShort } = getMatchSalesWindow(item);
 
   const handleActionPress = useCallback(() => {
+    if (!isBigThree && !isSalesOpen) return;
     onPressTickets && onPressTickets(item);
-  }, [item, onPressTickets]);
+  }, [isBigThree, isSalesOpen, item, onPressTickets]);
 
   return (
     <View style={[styles.slideWrapper, { width: cardWidth }]}>
@@ -156,7 +207,7 @@ const MatchSlide = memo(function MatchSlide({
           </Text>
         </View>
 
-        {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Bilhetes apenas no Próximo Jogo */}
+        {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Bilhetes (Casa) / Deslocação (Fora) */}
         <View style={styles.centerCol}>
           <Text
             style={[
@@ -169,16 +220,47 @@ const MatchSlide = memo(function MatchSlide({
             {isPast ? item.score || '0 - 0' : item.time || '20:30'}
           </Text>
 
-          {isNext ? (
-            <TouchableOpacity
-              activeOpacity={0.84}
-              onPress={handleActionPress}
-              style={[styles.actionBtn, styles.actionBtnPrimary, styles.actionBtnNext]}
-              accessibilityRole="button"
-              accessibilityLabel="Comprar bilhetes para o próximo jogo"
-            >
-              <Text style={styles.actionBtnText}>BILHETES</Text>
-            </TouchableOpacity>
+          {!isPast ? (
+            isBigThree ? (
+              <TouchableOpacity
+                activeOpacity={0.82}
+                onPress={handleActionPress}
+                style={[styles.actionBtn, styles.actionBtnLocked, !isDark && styles.actionBtnLockedLight]}
+                accessibilityRole="button"
+                accessibilityLabel="Venda exclusiva na Loja do Rio Ave FC"
+              >
+                <Lock size={11} color={isDark ? '#FFB74D' : '#D97706'} />
+                <Text style={[styles.actionBtnBigThreeText, !isDark && styles.actionBtnBigThreeTextLight]}>
+                  SÓ NA LOJA
+                </Text>
+              </TouchableOpacity>
+            ) : isSalesOpen ? (
+              <TouchableOpacity
+                activeOpacity={0.84}
+                onPress={handleActionPress}
+                style={[styles.actionBtn, styles.actionBtnPrimary, isNext && styles.actionBtnNext]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  item.isHome
+                    ? 'Comprar bilhetes para jogo em casa'
+                    : 'Informações sobre deslocação'
+                }
+              >
+                <Text style={styles.actionBtnText}>
+                  {item.isHome ? 'BILHETES' : 'DESLOCAÇÃO'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <View
+                style={[styles.actionBtn, styles.actionBtnLocked, !isDark && styles.actionBtnLockedLight]}
+                accessibilityLabel={`Disponível na segunda-feira, ${openShort}`}
+              >
+                <Lock size={11} color={isDark ? '#8FA89B' : '#556A5E'} />
+                <Text style={[styles.actionBtnLockedText, !isDark && styles.actionBtnLockedTextLight]}>
+                  {openShort ? `SEG, ${openShort}` : 'EM BREVE'}
+                </Text>
+              </View>
+            )
           ) : (
             <View style={styles.actionBtnPlaceholder} />
           )}
@@ -668,6 +750,36 @@ const styles = StyleSheet.create({
   },
   actionBtnTextSecondary: {
     color: '#E6EFEA',
+  },
+  actionBtnLocked: {
+    flexDirection: 'row',
+    gap: 5,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  actionBtnLockedLight: {
+    backgroundColor: 'rgba(0, 135, 81, 0.07)',
+    borderColor: 'rgba(0, 135, 81, 0.2)',
+  },
+  actionBtnLockedText: {
+    color: '#8FA89B',
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  actionBtnLockedTextLight: {
+    color: '#556A5E',
+  },
+  actionBtnBigThreeText: {
+    color: '#FFB74D',
+    fontSize: 10.5,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+  },
+  actionBtnBigThreeTextLight: {
+    color: '#B45309',
   },
   dotsContainer: {
     flexDirection: 'row',
