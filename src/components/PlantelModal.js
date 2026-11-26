@@ -13,55 +13,68 @@ import {
 import { X, Users, Shield, RefreshCw, WifiOff } from 'lucide-react-native';
 import Svg, { Path, Rect, Defs, ClipPath, G } from 'react-native-svg';
 import { COLORS } from '../theme/colors';
-import { fetchRioAveRoster } from '../services/matchesService';
+import { fetchRioAveRoster, OFFICIAL_PLAYER_PHOTOS } from '../services/matchesService';
+
+const getOfficialPhoto = (name) => {
+  const key = String(name || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+  return OFFICIAL_PLAYER_PHOTOS[key] || null;
+};
 
 const FALLBACK_SQUAD = [
   {
     group: 'Guarda-Redes',
     players: [
-      { id: '1', number: 1, name: 'Cezary Miszta', nat: 'Polónia', pos: 'GR', photo: null },
-      { id: '22', number: 22, name: 'Kevin Chamorro', nat: 'Costa Rica', pos: 'GR', photo: null },
-      { id: '32', number: 32, name: 'Vitor Hugo', nat: 'Brasil', pos: 'GR', photo: null },
-      { id: '99', number: 99, name: 'Ennio van der Gouw', nat: 'Países Baixos', pos: 'GR', photo: 'https://a.espncdn.com/i/headshots/soccer/players/full/298877.png' },
+      { id: '1', number: 1, name: 'Cezary Miszta', nat: 'Polónia', pos: 'GR', photo: getOfficialPhoto('Cezary Miszta') },
+      { id: '22', number: 22, name: 'Kevin Chamorro', nat: 'Costa Rica', pos: 'GR', photo: getOfficialPhoto('Kevin Chamorro') },
+      { id: '32', number: 32, name: 'Vitor Hugo', nat: 'Brasil', pos: 'GR', photo: getOfficialPhoto('Vitor Hugo') },
+      { id: '99', number: 99, name: 'Ennio van der Gouw', nat: 'Países Baixos', pos: 'GR', photo: getOfficialPhoto('Ennio van der Gouw') },
     ],
   },
   {
     group: 'Defesas',
     players: [
-      { id: '2', number: 2, name: 'Zé Carlos', nat: 'Portugal', pos: 'DEF', photo: null },
-      { id: '5', number: 5, name: 'Andreas Ntoi', nat: 'Grécia', pos: 'DEF', photo: 'https://r2.thesportsdb.com/images/media/player/cutout/qp5rgf1669547896.png' },
-      { id: '6', number: 6, name: 'Nelson Abbey', nat: 'Inglaterra', pos: 'DEF', photo: null },
-      { id: '13', number: 13, name: 'Julien Lomboto', nat: 'França', pos: 'DEF', photo: null },
-      { id: '14', number: 14, name: 'Jakub Brabec', nat: 'Chéquia', pos: 'DEF', photo: null },
-      { id: '20', number: 20, name: 'João Tomé', nat: 'Portugal', pos: 'DEF', photo: null },
-      { id: '23', number: 23, name: 'Francisco Petrasso', nat: 'Argentina', pos: 'DEF', photo: null },
-      { id: '24', number: 24, name: 'Pedro Amaral', nat: 'Portugal', pos: 'DEF', photo: null },
-      { id: '39', number: 39, name: 'Gustavo Mancha', nat: 'Brasil', pos: 'DEF', photo: null },
+      { id: '2', number: 2, name: 'Zé Carlos', nat: 'Portugal', pos: 'DEF', photo: getOfficialPhoto('Zé Carlos') },
+      { id: '3', number: 3, name: 'Simón García', nat: 'Espanha', pos: 'DEF', photo: getOfficialPhoto('Simón García') },
+      { id: '5', number: 5, name: 'Andreas Ntoi', nat: 'Grécia', pos: 'DEF', photo: getOfficialPhoto('Andreas Ntoi') },
+      { id: '6', number: 6, name: 'Nelson Abbey', nat: 'Inglaterra', pos: 'DEF', photo: getOfficialPhoto('Nelson Abbey') },
+      { id: '13', number: 13, name: 'Julien Lomboto', nat: 'França', pos: 'DEF', photo: getOfficialPhoto('Julien Lomboto') },
+      { id: '14', number: 14, name: 'Jakub Brabec', nat: 'Chéquia', pos: 'DEF', photo: getOfficialPhoto('Jakub Brabec') },
+      { id: '20', number: 20, name: 'João Tomé', nat: 'Portugal', pos: 'DEF', photo: getOfficialPhoto('João Tomé') },
+      { id: '23', number: 23, name: 'Francisco Petrasso', nat: 'Argentina', pos: 'DEF', photo: getOfficialPhoto('Francisco Petrasso') },
+      { id: '24', number: 24, name: 'Pedro Amaral', nat: 'Portugal', pos: 'DEF', photo: getOfficialPhoto('Pedro Amaral') },
+      { id: '39', number: 39, name: 'Gustavo Mancha', nat: 'Brasil', pos: 'DEF', photo: getOfficialPhoto('Gustavo Mancha') },
+      { id: '68', number: 68, name: 'Caike', nat: 'Brasil', pos: 'DEF', photo: getOfficialPhoto('Caike') },
     ],
   },
   {
     group: 'Médios',
     players: [
-      { id: '8', number: 8, name: 'Ryan Guilherme', nat: 'Brasil', pos: 'MED', photo: null },
-      { id: '10', number: 10, name: 'Brandon Aguilera', nat: 'Costa Rica', pos: 'MED', photo: 'https://r2.thesportsdb.com/images/media/player/cutout/3wxs0r1697743731.png' },
-      { id: '19', number: 19, name: 'Malik Sellouki', nat: 'França', pos: 'MED', photo: null },
-      { id: '27', number: 27, name: 'Tobias Medina', nat: 'Argentina', pos: 'MED', photo: null },
-      { id: '44', number: 44, name: 'Tamás Nikitscher', nat: 'Hungria', pos: 'MED', photo: null },
-      { id: '54', number: 54, name: 'Georgios Liavas', nat: 'Grécia', pos: 'MED', photo: null },
-      { id: '90', number: 90, name: 'Diogo Nascimento', nat: 'Portugal', pos: 'MED', photo: null },
+      { id: '8', number: 8, name: 'Ryan Guilherme', nat: 'Brasil', pos: 'MED', photo: getOfficialPhoto('Ryan Guilherme') },
+      { id: '10', number: 10, name: 'Brandon Aguilera', nat: 'Costa Rica', pos: 'MED', photo: getOfficialPhoto('Brandon Aguilera') },
+      { id: '19', number: 19, name: 'Malik Sellouki', nat: 'França', pos: 'MED', photo: getOfficialPhoto('Malik Sellouki') },
+      { id: '27', number: 27, name: 'Tobias Medina', nat: 'Argentina', pos: 'MED', photo: getOfficialPhoto('Tobias Medina') },
+      { id: '44', number: 44, name: 'Tamás Nikitscher', nat: 'Hungria', pos: 'MED', photo: getOfficialPhoto('Tamás Nikitscher') },
+      { id: '54', number: 54, name: 'Georgios Liavas', nat: 'Grécia', pos: 'MED', photo: getOfficialPhoto('Georgios Liavas') },
+      { id: '70', number: 70, name: 'Antoine Wenck', nat: 'França', pos: 'MED', photo: getOfficialPhoto('Antoine Wenck') },
+      { id: '79', number: 79, name: 'Miguel Patrício', nat: 'Portugal', pos: 'MED', photo: getOfficialPhoto('Miguel Patrício') },
+      { id: '90', number: 90, name: 'Diogo Nascimento', nat: 'Portugal', pos: 'MED', photo: getOfficialPhoto('Diogo Nascimento') },
     ],
   },
   {
     group: 'Avançados',
     players: [
-      { id: '7', number: 7, name: 'Diogo Bezerra', nat: 'Brasil', pos: 'AVA', photo: null },
-      { id: '9', number: 9, name: 'Tamble', nat: 'Guiné-Bissau', pos: 'AVA', photo: null },
-      { id: '11', number: 11, name: 'Jalen Blesa', nat: 'Espanha', pos: 'AVA', photo: null },
-      { id: '17', number: 17, name: 'Marios Vrousai', nat: 'Grécia', pos: 'AVA', photo: null },
-      { id: '21', number: 21, name: 'Radek Siler', nat: 'Chéquia', pos: 'AVA', photo: null },
-      { id: '30', number: 30, name: 'Roland Galcik', nat: 'Eslováquia', pos: 'AVA', photo: null },
-      { id: '77', number: 77, name: 'Dario Spikic', nat: 'Croácia', pos: 'AVA', photo: null },
-      { id: '80', number: 80, name: 'Sebastian Clemmensen', nat: 'Dinamarca', pos: 'AVA', photo: null },
+      { id: '7', number: 7, name: 'Diogo Bezerra', nat: 'Brasil', pos: 'AVA', photo: getOfficialPhoto('Diogo Bezerra') },
+      { id: '9', number: 9, name: 'Tamble', nat: 'Guiné-Bissau', pos: 'AVA', photo: getOfficialPhoto('Tamble') },
+      { id: '11', number: 11, name: 'Jalen Blesa', nat: 'Espanha', pos: 'AVA', photo: getOfficialPhoto('Jalen Blesa') },
+      { id: '17', number: 17, name: 'Marios Vrousai', nat: 'Grécia', pos: 'AVA', photo: getOfficialPhoto('Marios Vrousai') },
+      { id: '21', number: 21, name: 'Radek Siler', nat: 'Chéquia', pos: 'AVA', photo: getOfficialPhoto('Radek Siler') },
+      { id: '30', number: 30, name: 'Roland Galcik', nat: 'Eslováquia', pos: 'AVA', photo: getOfficialPhoto('Roland Galcik') },
+      { id: '77', number: 77, name: 'Dario Spikic', nat: 'Croácia', pos: 'AVA', photo: getOfficialPhoto('Dario Spikic') },
+      { id: '80', number: 80, name: 'Sebastian Clemmensen', nat: 'Dinamarca', pos: 'AVA', photo: getOfficialPhoto('Sebastian Clemmensen') },
     ],
   },
 ];
@@ -474,6 +487,11 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: '100%',
     height: '100%',
+    ...Platform.select({
+      web: {
+        objectPosition: 'top center',
+      },
+    }),
   },
   avatarInitials: {
     color: '#00E676',

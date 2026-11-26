@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback, memo } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ClubBadge from './ClubBadge';
 
 const RIO_AVE_GREEN = '#008751';
+const AUTO_SLIDE_INTERVAL_MS = 5000;
 
 /**
  * Array de exemplo (3 jogos passados, 1 próximo jogo ativo no centro, 3 jogos futuros)
@@ -96,6 +97,137 @@ export const SAMPLE_MATCH_CENTER_DATA = [
   },
 ];
 
+const MatchSlide = memo(function MatchSlide({
+  item,
+  cardWidth,
+  isDark,
+  onPressTickets,
+  onPressSummary,
+}) {
+  const isPast = item.type === 'past';
+  const isNext = item.type === 'next';
+
+  const handleActionPress = useCallback(() => {
+    if (isPast) {
+      onPressSummary && onPressSummary(item);
+    } else {
+      onPressTickets && onPressTickets(item);
+    }
+  }, [isPast, item, onPressSummary, onPressTickets]);
+
+  return (
+    <View style={[styles.slideWrapper, { width: cardWidth }]}>
+      {/* Topo (Centro): Etiqueta Próximo Jogo + Competição + Data Abreviada */}
+      <View style={styles.topCenter}>
+        {isNext && (
+          <View style={[styles.nextMatchPill, !isDark && styles.nextMatchPillLight]}>
+            <View style={[styles.nextMatchDot, !isDark && styles.nextMatchDotLight]} />
+            <Text style={[styles.nextMatchPillText, !isDark && styles.nextMatchPillTextLight]}>
+              PRÓXIMO JOGO
+            </Text>
+          </View>
+        )}
+        <Text style={[styles.competitionText, !isDark && styles.competitionTextLight]} numberOfLines={1}>
+          {item.competition}
+        </Text>
+        <Text style={[styles.dateText, !isDark && styles.textDark]} numberOfLines={1}>
+          {item.dateShort}
+        </Text>
+      </View>
+
+      {/* Centro + Laterais: Casa | Hora ou Resultado | Fora */}
+      <View style={styles.matchRow}>
+        {/* Esquerda: Equipa da Casa */}
+        <View style={styles.teamCol}>
+          <View
+            style={[
+              styles.badgeHalo,
+              !isDark && styles.badgeHaloLight,
+              isNext && styles.badgeHaloNext,
+              isNext && !isDark && styles.badgeHaloNextLight,
+            ]}
+          >
+            <ClubBadge
+              name={item.homeTeam?.name}
+              logo={item.homeTeam?.logo}
+              size="lg"
+              isDark={isDark}
+            />
+          </View>
+          <Text style={[styles.teamNameText, !isDark && styles.textDark]} numberOfLines={2}>
+            {(item.homeTeam?.name || 'CASA').toUpperCase()}
+          </Text>
+        </View>
+
+        {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Ação */}
+        <View style={styles.centerCol}>
+          <Text
+            style={[
+              styles.mainHighlightText,
+              !isDark && styles.textDark,
+              isNext && (isDark ? styles.mainHighlightNextDark : styles.mainHighlightNextLight),
+            ]}
+            numberOfLines={1}
+          >
+            {isPast ? item.score || '0 - 0' : item.time || '20:30'}
+          </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.84}
+            onPress={handleActionPress}
+            style={[
+              styles.actionBtn,
+              isPast
+                ? [styles.actionBtnSecondary, !isDark && styles.actionBtnSecondaryLight]
+                : [styles.actionBtnPrimary, isNext && styles.actionBtnNext],
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isPast
+                ? 'Ver resumo do jogo'
+                : item.isHome
+                  ? 'Ver detalhes do jogo'
+                  : 'Comprar bilhetes'
+            }
+          >
+            <Text
+              style={[
+                styles.actionBtnText,
+                isPast && styles.actionBtnTextSecondary,
+                isPast && !isDark && styles.actionBtnTextSecondaryLight,
+              ]}
+            >
+              {isPast ? 'RESUMO' : item.isHome ? 'DETALHES' : 'BILHETES'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Direita: Equipa Visitante */}
+        <View style={styles.teamCol}>
+          <View
+            style={[
+              styles.badgeHalo,
+              !isDark && styles.badgeHaloLight,
+              isNext && styles.badgeHaloNext,
+              isNext && !isDark && styles.badgeHaloNextLight,
+            ]}
+          >
+            <ClubBadge
+              name={item.awayTeam?.name}
+              logo={item.awayTeam?.logo}
+              size="lg"
+              isDark={isDark}
+            />
+          </View>
+          <Text style={[styles.teamNameText, !isDark && styles.textDark]} numberOfLines={2}>
+            {(item.awayTeam?.name || 'FORA').toUpperCase()}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+});
+
 function MatchCenterCarousel({
   matches = SAMPLE_MATCH_CENTER_DATA,
   onPressTickets,
@@ -107,63 +239,114 @@ function MatchCenterCarousel({
   const { width: windowWidth } = useWindowDimensions();
   const isTablet = windowWidth >= 650;
   const maxAppWidth = isTablet ? (windowWidth >= 1024 ? 760 : 660) : windowWidth;
-  const cardWidth = containerWidth || maxAppWidth;
+  const [measuredWidth, setMeasuredWidth] = useState(0);
+  const cardWidth = containerWidth || measuredWidth || maxAppWidth;
 
-  const listData = matches && matches.length > 0 ? matches : SAMPLE_MATCH_CENTER_DATA;
-
-  const defaultIndex = Math.max(
-    0,
-    listData.findIndex((m) => m.type === 'next') !== -1
-      ? listData.findIndex((m) => m.type === 'next')
-      : Math.floor(listData.length / 2)
+  const listData = useMemo(
+    () => (matches && matches.length > 0 ? matches : SAMPLE_MATCH_CENTER_DATA),
+    [matches]
   );
+
+  const defaultIndex = useMemo(() => {
+    const nextIdx = listData.findIndex((m) => m.type === 'next');
+    if (nextIdx !== -1) return nextIdx;
+    return Math.max(0, Math.floor(listData.length / 2));
+  }, [listData]);
 
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
-  const [isUserDragging, setIsUserDragging] = useState(false);
-  const flatListRef = useRef(null);
-  const hasScrolledInitial = useRef(false);
+  const [isPaused, setIsPaused] = useState(false);
 
-  // Índice do último resultado (último jogo passado antes do próximo jogo)
-  const lastPastIndex = listData.reduce(
-    (acc, m, idx) => (m.type === 'past' ? idx : acc),
-    0
+  const flatListRef = useRef(null);
+  const activeIndexRef = useRef(activeIndex);
+  activeIndexRef.current = activeIndex;
+  const hasScrolledInitialRef = useRef(false);
+  const isProgrammaticScrollRef = useRef(false);
+  const programmaticTimerRef = useRef(null);
+
+  const scrollToSlide = useCallback(
+    (index, animated = true) => {
+      if (!flatListRef.current || cardWidth <= 0) return;
+      const clamped = Math.max(0, Math.min(index, listData.length - 1));
+      if (programmaticTimerRef.current) {
+        clearTimeout(programmaticTimerRef.current);
+      }
+      isProgrammaticScrollRef.current = animated;
+      setActiveIndex(clamped);
+      try {
+        flatListRef.current.scrollToOffset({
+          offset: clamped * cardWidth,
+          animated,
+        });
+      } catch (_) {
+        isProgrammaticScrollRef.current = false;
+      }
+      if (animated) {
+        programmaticTimerRef.current = setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+        }, 480);
+      }
+    },
+    [cardWidth, listData.length]
   );
 
-  // Garantir foco inicial no Próximo Jogo mesmo em Web / Android
   useEffect(() => {
-    setActiveIndex(defaultIndex);
-    if (flatListRef.current && listData.length > 0) {
-      const timer = setTimeout(() => {
-        try {
-          flatListRef.current?.scrollToIndex({
-            index: defaultIndex,
-            animated: false,
+    return () => {
+      if (programmaticTimerRef.current) {
+        clearTimeout(programmaticTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleContainerLayout = useCallback(
+    (e) => {
+      const w = Math.round(e.nativeEvent.layout.width);
+      if (w > 0 && w !== measuredWidth) {
+        setMeasuredWidth(w);
+        if (flatListRef.current) {
+          const targetIdx = hasScrolledInitialRef.current
+            ? activeIndexRef.current
+            : defaultIndex;
+          requestAnimationFrame(() => {
+            try {
+              flatListRef.current?.scrollToOffset({
+                offset: targetIdx * w,
+                animated: false,
+              });
+              hasScrolledInitialRef.current = true;
+            } catch (_) {}
           });
-          hasScrolledInitial.current = true;
-        } catch (_) {}
-      }, 40);
+        }
+      }
+    },
+    [defaultIndex, measuredWidth]
+  );
+
+  // Garantir foco inicial no Próximo Jogo sem reiniciar quando a lista atualiza em segundo plano
+  useEffect(() => {
+    if (!hasScrolledInitialRef.current && cardWidth > 0 && listData.length > 0) {
+      const timer = setTimeout(() => {
+        scrollToSlide(defaultIndex, false);
+        hasScrolledInitialRef.current = true;
+      }, 30);
       return () => clearTimeout(timer);
     }
-  }, [defaultIndex, listData.length]);
+    if (activeIndexRef.current >= listData.length) {
+      scrollToSlide(defaultIndex, false);
+    }
+  }, [cardWidth, defaultIndex, listData.length, scrollToSlide]);
 
-  // Deslize automático de 4 em 4 segundos, voltando ao último resultado ao terminar
+  // Deslize automático de 5 em 5 segundos: do próximo jogo até ao último, voltando ao próximo jogo
   useEffect(() => {
-    if (!isActive || isUserDragging || listData.length <= 1) return;
+    if (!isActive || isPaused || listData.length <= 1) return;
 
     const timer = setTimeout(() => {
-      const nextIndex =
-        activeIndex + 1 >= listData.length ? lastPastIndex : activeIndex + 1;
-      setActiveIndex(nextIndex);
-      try {
-        flatListRef.current?.scrollToIndex({
-          index: nextIndex,
-          animated: true,
-        });
-      } catch (_) {}
-    }, 4000);
+      const current = activeIndexRef.current;
+      const nextIndex = current + 1 >= listData.length ? defaultIndex : current + 1;
+      scrollToSlide(nextIndex, true);
+    }, AUTO_SLIDE_INTERVAL_MS);
 
     return () => clearTimeout(timer);
-  }, [activeIndex, isActive, isUserDragging, listData.length, lastPastIndex]);
+  }, [activeIndex, isActive, isPaused, listData.length, defaultIndex, scrollToSlide]);
 
   const getItemLayout = useCallback(
     (_, index) => ({
@@ -176,10 +359,11 @@ function MatchCenterCarousel({
 
   const handleScroll = useCallback(
     (event) => {
+      if (isProgrammaticScrollRef.current || cardWidth <= 0) return;
       const offsetX = event.nativeEvent.contentOffset.x;
       const idx = Math.round(offsetX / cardWidth);
-      if (idx >= 0 && idx < listData.length) {
-        setActiveIndex((prev) => (prev !== idx ? idx : prev));
+      if (idx >= 0 && idx < listData.length && idx !== activeIndexRef.current) {
+        setActiveIndex(idx);
       }
     },
     [cardWidth, listData.length]
@@ -187,6 +371,9 @@ function MatchCenterCarousel({
 
   const handleMomentumScrollEnd = useCallback(
     (event) => {
+      isProgrammaticScrollRef.current = false;
+      setIsPaused(false);
+      if (cardWidth <= 0) return;
       const offsetX = event.nativeEvent.contentOffset.x;
       const idx = Math.round(offsetX / cardWidth);
       if (idx >= 0 && idx < listData.length) {
@@ -198,136 +385,33 @@ function MatchCenterCarousel({
 
   const handleDotPress = useCallback(
     (index) => {
-      setActiveIndex(index);
-      try {
-        flatListRef.current?.scrollToIndex({ index, animated: true });
-      } catch (_) {}
+      scrollToSlide(index, true);
     },
-    []
+    [scrollToSlide]
   );
 
   const renderSlide = useCallback(
-    ({ item }) => {
-      const isPast = item.type === 'past';
-      const isNext = item.type === 'next';
-
-      return (
-        <View style={[styles.slideWrapper, { width: cardWidth }]}>
-          {/* Topo (Centro): Etiqueta Próximo Jogo + Competição + Data Abreviada */}
-          <View style={styles.topCenter}>
-            {isNext && (
-              <View style={[styles.nextMatchPill, !isDark && styles.nextMatchPillLight]}>
-                <View style={[styles.nextMatchDot, !isDark && styles.nextMatchDotLight]} />
-                <Text style={[styles.nextMatchPillText, !isDark && styles.nextMatchPillTextLight]}>
-                  PRÓXIMO JOGO
-                </Text>
-              </View>
-            )}
-            <Text style={[styles.competitionText, !isDark && styles.competitionTextLight]} numberOfLines={1}>
-              {item.competition}
-            </Text>
-            <Text style={[styles.dateText, !isDark && styles.textDark]} numberOfLines={1}>
-              {item.dateShort}
-            </Text>
-          </View>
-
-          {/* Centro + Laterais: Casa | Hora ou Resultado | Fora */}
-          <View style={styles.matchRow}>
-            {/* Esquerda: Equipa da Casa */}
-            <View style={styles.teamCol}>
-              <View
-                style={[
-                  styles.badgeHalo,
-                  !isDark && styles.badgeHaloLight,
-                  isNext && styles.badgeHaloNext,
-                  isNext && !isDark && styles.badgeHaloNextLight,
-                ]}
-              >
-                <ClubBadge
-                  name={item.homeTeam?.name}
-                  logo={item.homeTeam?.logo}
-                  size="lg"
-                  isDark={isDark}
-                />
-              </View>
-              <Text style={[styles.teamNameText, !isDark && styles.textDark]} numberOfLines={2}>
-                {(item.homeTeam?.name || 'CASA').toUpperCase()}
-              </Text>
-            </View>
-
-            {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Ação */}
-            <View style={styles.centerCol}>
-              <Text
-                style={[
-                  styles.mainHighlightText,
-                  !isDark && styles.textDark,
-                  isNext && (isDark ? styles.mainHighlightNextDark : styles.mainHighlightNextLight),
-                ]}
-                numberOfLines={1}
-              >
-                {isPast ? item.score || '0 - 0' : item.time || '20:30'}
-              </Text>
-
-              <TouchableOpacity
-                activeOpacity={0.84}
-                onPress={() =>
-                  isPast
-                    ? onPressSummary && onPressSummary(item)
-                    : onPressTickets && onPressTickets(item)
-                }
-                style={[
-                  styles.actionBtn,
-                  isPast
-                    ? [styles.actionBtnSecondary, !isDark && styles.actionBtnSecondaryLight]
-                    : [styles.actionBtnPrimary, isNext && styles.actionBtnNext],
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isPast
-                    ? 'Ver resumo do jogo'
-                    : item.isHome
-                      ? 'Ver detalhes do jogo'
-                      : 'Comprar bilhetes'
-                }
-              >
-                <Text
-                  style={[
-                    styles.actionBtnText,
-                    isPast && styles.actionBtnTextSecondary,
-                    isPast && !isDark && styles.actionBtnTextSecondaryLight,
-                  ]}
-                >
-                  {isPast ? 'RESUMO' : item.isHome ? 'DETALHES' : 'BILHETES'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Direita: Equipa Visitante */}
-            <View style={styles.teamCol}>
-              <View
-                style={[
-                  styles.badgeHalo,
-                  !isDark && styles.badgeHaloLight,
-                  isNext && styles.badgeHaloNext,
-                  isNext && !isDark && styles.badgeHaloNextLight,
-                ]}
-              >
-                <ClubBadge
-                  name={item.awayTeam?.name}
-                  logo={item.awayTeam?.logo}
-                  size="lg"
-                  isDark={isDark}
-                />
-              </View>
-              <Text style={[styles.teamNameText, !isDark && styles.textDark]} numberOfLines={2}>
-                {(item.awayTeam?.name || 'FORA').toUpperCase()}
-              </Text>
-            </View>
-          </View>
-        </View>
-      );
-    },
+    ({ item }) => (
+      <MatchSlide
+        item={item}
+        cardWidth={cardWidth}
+        isDark={isDark}
+        onPressTickets={onPressTickets}
+        onPressSummary={onPressSummary}
+      />
+    ),
     [cardWidth, isDark, onPressSummary, onPressTickets]
+  );
+
+  const keyExtractor = useCallback((item) => item.id, []);
+
+  const handleScrollToIndexFailed = useCallback(
+    (info) => {
+      setTimeout(() => {
+        scrollToSlide(info.index, false);
+      }, 50);
+    },
+    [scrollToSlide]
   );
 
   const activeItem = listData[activeIndex] || listData[defaultIndex];
@@ -351,41 +435,43 @@ function MatchCenterCarousel({
       colors={carouselColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
+      onLayout={handleContainerLayout}
+      onMouseEnter={Platform.OS === 'web' ? () => setIsPaused(true) : undefined}
+      onMouseLeave={Platform.OS === 'web' ? () => setIsPaused(false) : undefined}
       style={[styles.carouselContainer, !isDark && styles.carouselContainerLight]}
     >
       <FlatList
         ref={flatListRef}
         data={listData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         renderItem={renderSlide}
         horizontal
         pagingEnabled
+        disableIntervalMomentum
         snapToInterval={cardWidth}
         snapToAlignment="start"
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={defaultIndex}
         getItemLayout={getItemLayout}
+        onScrollToIndexFailed={handleScrollToIndexFailed}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onScrollBeginDrag={() => setIsUserDragging(true)}
-        onScrollEndDrag={() => setIsUserDragging(false)}
-        onMomentumScrollEnd={(e) => {
-          setIsUserDragging(false);
-          handleMomentumScrollEnd(e);
-        }}
+        scrollEventThrottle={32}
+        onScrollBeginDrag={() => setIsPaused(true)}
+        onScrollEndDrag={() => setIsPaused(false)}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         bounces={false}
         overScrollMode="never"
-        removeClippedSubviews={Platform.OS !== 'web'}
-        initialNumToRender={3}
-        maxToRenderPerBatch={3}
-        windowSize={5}
+        removeClippedSubviews={false}
+        initialNumToRender={listData.length}
+        maxToRenderPerBatch={listData.length}
+        windowSize={7}
       />
 
       {/* Base do Componente: Indicadores de Paginação (Dots) */}
       <View style={styles.dotsContainer}>
         {listData.map((m, idx) => {
-          const isActive = idx === activeIndex;
+          const isActiveDot = idx === activeIndex;
           const isNextAnchor = m.type === 'next';
           return (
             <TouchableOpacity
@@ -395,9 +481,9 @@ function MatchCenterCarousel({
               style={[
                 styles.dot,
                 !isDark && styles.dotLight,
-                isNextAnchor && !isActive && styles.dotNextHint,
-                isActive && styles.dotActive,
-                isActive && !isDark && styles.dotActiveLight,
+                isNextAnchor && !isActiveDot && styles.dotNextHint,
+                isActiveDot && styles.dotActive,
+                isActiveDot && !isDark && styles.dotActiveLight,
               ]}
               accessibilityLabel={`Ir para jogo ${idx + 1}`}
             />

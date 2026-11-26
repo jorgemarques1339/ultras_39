@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Pressable,
   Platform,
   Animated,
   Image,
@@ -28,6 +29,9 @@ import {
   getNextMatchData,
   fetchLiveSchedule,
   fetchLiveResults,
+  fetchRioAveRoster,
+  fetchLigaStandings,
+  OFFICIAL_PLAYER_PHOTOS,
 } from '../services/matchesService';
 import ClubBadge from '../components/ClubBadge';
 import JogosModal from '../components/JogosModal';
@@ -176,6 +180,14 @@ function HomeScreen({
           }
         })
         .catch(() => {});
+
+      if (!force) {
+        fetchRioAveRoster(false).catch(() => {});
+        fetchLigaStandings(false).catch(() => {});
+        Object.values(OFFICIAL_PLAYER_PHOTOS).forEach((uri) => {
+          Image.prefetch(uri).catch(() => {});
+        });
+      }
     };
 
     syncMatches(false);
@@ -346,7 +358,7 @@ function HomeScreen({
 
         {/* SECÇÃO: ATALHOS RÁPIDOS (PLANTEL & TABELA) */}
         <View style={styles.quickShortcutsSection}>
-          <View style={styles.sectionHeader}>
+          <View style={[styles.sectionHeader, styles.quickShortcutsHeaderCentered]}>
             <View style={styles.sectionTitleWithIcon}>
               <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
                 <Zap size={13} color={isDark ? '#00E676' : '#00874E'} />
@@ -359,46 +371,52 @@ function HomeScreen({
 
           <View style={styles.quickShortcutsRow}>
             {/* 1. Botão Plantel (Camisola Verde e Branca) */}
-            <TouchableOpacity
-              style={[styles.quickShortcutCard, !isDark && styles.quickShortcutCardLight]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.quickShortcutCard,
+                !isDark && styles.quickShortcutCardLight,
+                pressed && styles.quickShortcutCardPressed,
+              ]}
               onPress={() => setPlantelModalVisible(true)}
-              activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel="Abrir Plantel do Rio Ave FC"
             >
               <View style={[styles.quickShortcutIconBox, !isDark && styles.quickShortcutIconBoxLight]}>
-                <RioAveJerseyIcon size={28} />
+                <RioAveJerseyIcon size={25} />
               </View>
               <View style={styles.quickShortcutTextCol}>
-                <Text style={[styles.quickShortcutTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                <Text style={[styles.quickShortcutTitle, !isDark && styles.textDark]} numberOfLines={2}>
                   Plantel
                 </Text>
-                <Text style={[styles.quickShortcutSub, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
-                  Equipa Principal
+                <Text style={[styles.quickShortcutSub, !isDark && styles.chantsDisabledDescLight]} numberOfLines={2}>
+                  Equipa Principal 26/27
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
 
             {/* 2. Botão Tabela Classificativa */}
-            <TouchableOpacity
-              style={[styles.quickShortcutCard, !isDark && styles.quickShortcutCardLight]}
+            <Pressable
+              style={({ pressed }) => [
+                styles.quickShortcutCard,
+                !isDark && styles.quickShortcutCardLight,
+                pressed && styles.quickShortcutCardPressed,
+              ]}
               onPress={() => setTabelaModalVisible(true)}
-              activeOpacity={0.85}
               accessibilityRole="button"
               accessibilityLabel="Abrir Tabela Classificativa da Liga Portugal Betclic"
             >
               <View style={[styles.quickShortcutIconBox, !isDark && styles.quickShortcutIconBoxLight]}>
-                <Trophy size={24} color={isDark ? '#00E676' : '#008751'} />
+                <Trophy size={22} strokeWidth={2.4} color={isDark ? '#00E676' : '#008751'} />
               </View>
               <View style={styles.quickShortcutTextCol}>
-                <Text style={[styles.quickShortcutTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                <Text style={[styles.quickShortcutTitle, !isDark && styles.textDark]} numberOfLines={2}>
                   Tabela
                 </Text>
-                <Text style={[styles.quickShortcutSub, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
+                <Text style={[styles.quickShortcutSub, !isDark && styles.chantsDisabledDescLight]} numberOfLines={2}>
                   Liga Portugal Betclic
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
 
@@ -567,63 +585,99 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 0,
   },
+  quickShortcutsHeaderCentered: {
+    justifyContent: 'center',
+  },
   quickShortcutsRow: {
     flexDirection: 'row',
     gap: 12,
   },
   quickShortcutCard: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 11,
+    minHeight: 114,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
     backgroundColor: '#121D17',
     borderWidth: 1,
     borderColor: 'rgba(0, 230, 118, 0.24)',
-    borderRadius: 16,
-    paddingVertical: 13,
-    paddingHorizontal: 12,
+    borderRadius: 24,
+    padding: 16,
     ...Platform.select({
       web: {
-        boxShadow: '0 6px 18px rgba(0, 0, 0, 0.35)',
+        boxShadow: '0 10px 26px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 230, 118, 0.08)',
+        transition: 'transform 140ms ease, opacity 140ms ease',
+        cursor: 'pointer',
+      },
+      default: {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.34,
+        shadowRadius: 14,
+        elevation: 6,
       },
     }),
   },
   quickShortcutCardLight: {
-    backgroundColor: '#F5FAF7',
-    borderColor: 'rgba(0, 135, 81, 0.22)',
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 81, 0.16)',
     ...Platform.select({
       web: {
-        boxShadow: '0 4px 12px rgba(0, 135, 81, 0.08)',
+        boxShadow: '0 10px 26px rgba(10, 45, 28, 0.10), 0 2px 8px rgba(0, 135, 81, 0.06)',
+      },
+      default: {
+        shadowColor: '#0A2D1C',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 14,
+        elevation: 4,
       },
     }),
   },
+  quickShortcutCardPressed: {
+    transform: [{ scale: 0.965 }],
+    opacity: 0.86,
+  },
   quickShortcutIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 13,
     backgroundColor: 'rgba(0, 135, 81, 0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 230, 118, 0.3)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 230, 118, 0.32)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   quickShortcutIconBoxLight: {
-    backgroundColor: '#E7F5ED',
+    backgroundColor: '#EBF7F0',
     borderColor: 'rgba(0, 135, 81, 0.25)',
   },
   quickShortcutTextCol: {
-    flex: 1,
+    width: '100%',
+    alignItems: 'flex-start',
   },
   quickShortcutTitle: {
     color: '#FFFFFF',
-    fontSize: 14.5,
+    fontFamily: Platform.select({
+      web: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
+      default: 'System',
+    }),
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: '800',
+    letterSpacing: 0.1,
   },
   quickShortcutSub: {
     color: '#8FA89B',
-    fontSize: 11,
+    fontFamily: Platform.select({
+      web: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
+      default: 'System',
+    }),
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 3,
   },
   newsHeaderIconBox: {
     width: 24,

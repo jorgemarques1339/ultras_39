@@ -4,7 +4,41 @@ export const FIXTURES_API = 'https://site.api.espn.com/apis/site/v2/sports/socce
 export const RESULTS_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule';
 export const STANDINGS_API = 'https://site.api.espn.com/apis/v2/sports/soccer/por.1/standings';
 export const ROSTER_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/roster';
-export const SPORTSDB_RIOAVE_PLAYERS_API = 'https://www.thesportsdb.com/api/v1/json/123/lookup_all_players.php?id=134107';
+
+export const OFFICIAL_PLAYER_PHOTOS = {
+  'cezary miszta': 'https://rioavefc.pt/wp-content/uploads/2024/01/Miszta-1-249x300.jpg',
+  'kevin chamorro': 'https://rioavefc.pt/wp-content/uploads/2025/08/22_Chamorro-249x300.jpg',
+  'vitor hugo': 'https://rioavefc.pt/wp-content/uploads/2026/09/Vitor-Hugo-249x300.jpg',
+  'ennio van der gouw': 'https://rioavefc.pt/wp-content/uploads/2026/02/99_Ennio-249x300.jpg',
+  'ze carlos': 'https://rioavefc.pt/wp-content/uploads/2026/09/Ze-Carlos-249x300.jpg',
+  'simon garcia': 'https://rioavefc.pt/wp-content/uploads/2026/09/Simon-Garcia-249x300.jpg',
+  'nelson abbey': 'https://rioavefc.pt/wp-content/uploads/2025/01/6_Nelson-249x300.jpg',
+  'julien lomboto': 'https://rioavefc.pt/wp-content/uploads/2024/08/13_Lomboto-1-249x300.jpg',
+  'jakub brabec': 'https://rioavefc.pt/wp-content/uploads/2025/09/14_Brabec-249x300.jpg',
+  'marios vrousai': 'https://rioavefc.pt/wp-content/uploads/2024/01/17_Vrousai-1-249x300.jpg',
+  'joao tome': 'https://rioavefc.pt/wp-content/uploads/2024/08/20_Tome-249x300.jpg',
+  'francisco petrasso': 'https://rioavefc.pt/wp-content/uploads/2024/08/23_Petrasso-249x300.jpg',
+  'pedro amaral': 'https://rioavefc.pt/wp-content/uploads/2026/09/Pedro-Amaral-1-249x300.jpg',
+  'gustavo mancha': 'https://rioavefc.pt/wp-content/uploads/2026/02/39_Mancha-249x300.jpg',
+  'caike': 'https://rioavefc.pt/wp-content/uploads/2026/08/Caike-249x300.jpg',
+  'andreas ntoi': 'https://rioavefc.pt/wp-content/uploads/2025/01/5_Ntoi-249x300.jpg',
+  'ryan guilherme': 'https://rioavefc.pt/wp-content/uploads/2026/02/8_Ryan-249x300.jpg',
+  'brandon aguilera': 'https://rioavefc.pt/wp-content/uploads/2024/08/10_Aguilera-249x300.jpg',
+  'malik sellouki': 'https://rioavefc.pt/wp-content/uploads/2026/09/Malik-1-249x300.jpg',
+  'tamas nikitscher': 'https://rioavefc.pt/wp-content/uploads/2025/09/44_Nikitscher-249x300.jpg',
+  'georgios liavas': 'https://rioavefc.pt/wp-content/uploads/2025/08/54_Liavas-249x300.jpg',
+  'antoine wenck': 'https://rioavefc.pt/wp-content/uploads/2026/08/70_Antoine-249x300.jpg',
+  'miguel patricio': 'https://rioavefc.pt/wp-content/uploads/2026/08/Miguel-Patricio-1-249x300.jpg',
+  'diogo nascimento': 'https://rioavefc.pt/wp-content/uploads/2026/07/90_Diogo-249x300.jpg',
+  'diogo bezerra': 'https://rioavefc.pt/wp-content/uploads/2026/01/7_Bezerra-249x300.jpg',
+  'tamble': 'https://rioavefc.pt/wp-content/uploads/2026/02/9_Tamble-249x300.jpg',
+  'jalen blesa': 'https://rioavefc.pt/wp-content/uploads/2026/02/11_Blesa-249x300.jpg',
+  'radek siler': 'https://rioavefc.pt/wp-content/uploads/2026/09/Siler-249x300.jpg',
+  'tobias medina': 'https://rioavefc.pt/wp-content/uploads/2024/08/27_Medina-249x300.jpg',
+  'roland galcik': 'https://rioavefc.pt/wp-content/uploads/2026/07/30_Rolan-Galcik-249x300.jpg',
+  'dario spikic': 'https://rioavefc.pt/wp-content/uploads/2025/08/77_Spikic-249x300.jpg',
+  'sebastian clemmensen': 'https://rioavefc.pt/wp-content/uploads/2026/09/Clemmensen-1-249x300.jpg',
+};
 export const FLASHSCORE_RESULTS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/resultados/';
 export const FLASHSCORE_NEWS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/noticias/';
 export const FLASHSCORE_FIXTURES_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/lista/';
@@ -509,19 +543,15 @@ export async function fetchLigaStandings(force = false) {
 }
 
 /**
- * Obtém o Plantel Principal atual do Rio Ave FC (ESPN API + fotos TheSportsDB)
+ * Obtém o Plantel Principal atual do Rio Ave FC (ESPN API + fotos oficiais rioavefc.pt)
  */
 export async function fetchRioAveRoster(force = false) {
   const now = Date.now();
-  if (!force && cachedRoster && (now - lastRosterFetchTime < CACHE_TTL_MS * 5)) {
+  if (!force && cachedRoster && (now - lastRosterFetchTime < CACHE_TTL_MS * 10)) {
     return cachedRoster;
   }
 
-  const [espnRes, sdbRes] = await Promise.all([
-    fetchWithTimeout(ROSTER_API, { headers: { Accept: 'application/json' } }, 7000),
-    fetchWithTimeout(SPORTSDB_RIOAVE_PLAYERS_API, { headers: { Accept: 'application/json' } }, 5000).catch(() => null),
-  ]);
-
+  const espnRes = await fetchWithTimeout(ROSTER_API, { headers: { Accept: 'application/json' } }, 6000);
   if (!espnRes.ok) {
     throw new Error(`Status ${espnRes.status}`);
   }
@@ -530,22 +560,6 @@ export async function fetchRioAveRoster(force = false) {
   const athletes = Array.isArray(espnData?.athletes) ? espnData.athletes : [];
   if (athletes.length === 0) {
     throw new Error('Plantel indisponível');
-  }
-
-  const photoByName = {};
-  if (sdbRes && sdbRes.ok) {
-    try {
-      const sdbData = await sdbRes.json();
-      (sdbData?.player || []).forEach((sp) => {
-        const key = String(sp.strPlayer || '')
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .trim();
-        const img = sp.strCutout || sp.strThumb || null;
-        if (key && img) photoByName[key] = img;
-      });
-    } catch (_) {}
   }
 
   const groupsMap = {
@@ -571,7 +585,7 @@ export async function fetchRioAveRoster(force = false) {
       name: cleanName,
       nat: a.citizenship || 'Portugal',
       pos: posLabelMap[abbr] || abbr,
-      photo: a.headshot?.href || photoByName[normKey] || null,
+      photo: OFFICIAL_PLAYER_PHOTOS[normKey] || a.headshot?.href || null,
     });
   });
 
