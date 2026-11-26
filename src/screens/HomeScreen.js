@@ -20,13 +20,13 @@ import {
   Drum,
   Trophy,
   Newspaper,
-  Bus,
   Lock,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
 import {
   getNextMatchData,
+  fetchLiveSchedule,
   fetchLiveResults,
   fetchRioAveNews,
   fetchLatestTransfer,
@@ -37,6 +37,7 @@ import ClubBadge from '../components/ClubBadge';
 import JogosModal from '../components/JogosModal';
 import ResultadoModal from '../components/ResultadoModal';
 import DeslocacaoModal from '../components/DeslocacaoModal';
+import MatchCenterCarousel, { SAMPLE_MATCH_CENTER_DATA } from '../components/MatchCenterCarousel';
 
 function HomeScreen({
   user,
@@ -58,6 +59,7 @@ function HomeScreen({
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
+  const [liveUpcoming, setLiveUpcoming] = useState([]);
   const [liveResults, setLiveResults] = useState(PAST_RESULTS);
   const [newsItems, setNewsItems] = useState([
     {
@@ -185,6 +187,14 @@ function HomeScreen({
         })
         .catch((err) => console.warn('Erro ao atualizar próximo jogo:', err));
 
+      fetchLiveSchedule(force)
+        .then((upcoming) => {
+          if (isMounted && Array.isArray(upcoming) && upcoming.length > 0) {
+            setLiveUpcoming(upcoming);
+          }
+        })
+        .catch(() => {});
+
       fetchLiveResults(force)
         .then((results) => {
           if (isMounted && Array.isArray(results) && results.length > 0) {
@@ -223,9 +233,6 @@ function HomeScreen({
 
   const newsSlides = useMemo(() => {
     const slides = [];
-    if (lastResult) {
-      slides.push({ id: `slide-result-${lastResult.id}`, type: 'result', data: lastResult });
-    }
     if (newsItems && newsItems.length > 0) {
       slides.push({ id: newsItems[0].id || 'slide-news-0', type: 'news', data: newsItems[0] });
     }
@@ -233,7 +240,7 @@ function HomeScreen({
       slides.push({ id: latestTransfer.id || 'slide-transfer-0', type: 'transfer', data: latestTransfer });
     }
     return slides;
-  }, [lastResult, newsItems, latestTransfer]);
+  }, [newsItems, latestTransfer]);
 
   const goToNewsSlide = useCallback((nextIdx) => {
     if (newsSlides.length <= 1) return;
@@ -295,6 +302,51 @@ function HomeScreen({
 
   const activeNewsSlide = newsSlides[newsSlideIndex % Math.max(1, newsSlides.length)] || null;
 
+  const matchCenterSlides = useMemo(() => {
+    const formatShortPt = (rawDate, fallback = '') => {
+      if (!rawDate) return fallback || 'A DEFINIR';
+      const d = new Date(rawDate);
+      if (Number.isNaN(d.getTime())) return fallback || 'A DEFINIR';
+      const dias = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${dias[d.getDay()]}, ${dd}/${mm}`;
+    };
+
+    if (!liveUpcoming || liveUpcoming.length === 0) {
+      return SAMPLE_MATCH_CENTER_DATA;
+    }
+
+    const pastThree = (liveResults || [])
+      .slice(0, 3)
+      .reverse()
+      .map((r, idx) => ({
+        id: r.id || `mc-past-${idx}`,
+        type: 'past',
+        competition: (r.competition?.split('·')[0] || 'LIGA PORTUGAL BETCLIC').trim().toUpperCase(),
+        dateShort: formatShortPt(r.rawDate, (r.date || '').toUpperCase()),
+        time: '',
+        score: `${r.scoreHome ?? 0} - ${r.scoreAway ?? 0}`,
+        homeTeam: { name: r.home, logo: r.homeLogo || null },
+        awayTeam: { name: r.away, logo: r.awayLogo || null },
+        isHome: String(r.home || '').toLowerCase().includes('rio ave'),
+      }));
+
+    const nextAndFuture = liveUpcoming.slice(0, 4).map((m, idx) => ({
+      id: m.id || `mc-up-${idx}`,
+      type: idx === 0 ? 'next' : 'future',
+      competition: (m.competition || 'LIGA PORTUGAL BETCLIC').toUpperCase(),
+      dateShort: formatShortPt(m.rawDate || m.date, m.dateFormatted),
+      time: m.time || '20:30',
+      score: null,
+      homeTeam: m.homeTeam,
+      awayTeam: m.awayTeam,
+      isHome: m.isHome,
+    }));
+
+    return [...pastThree, ...nextAndFuture];
+  }, [liveResults, liveUpcoming]);
+
   return (
     <View style={[styles.container, !isDark && styles.containerLight]}>
       {/* LOGÓTIPO DE FUNDO DA CLAQUE (GRUPO 39) */}
@@ -320,7 +372,76 @@ function HomeScreen({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {/* 0. SECÇÃO: NOTÍCIAS (ROLL-UP COM ÚLTIMO RESULTADO + 2 ÚLTIMAS NOTÍCIAS) */}
+        {/* CABEÇALHO SUPERIOR: MATCH CENTER CAROUSEL (FULL-WIDTH MARGEM A MARGEM) */}
+        <View style={styles.matchCenterBleed}>
+          <MatchCenterCarousel
+            matches={matchCenterSlides}
+            onPressTickets={(m) => (!m.isHome ? setDeslocacaoModalVisible(true) : setJogosModalVisible(true))}
+            onPressSummary={() => setResultadoModalVisible(true)}
+            isDark={isDark}
+          />
+        </View>
+
+        {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 (EM DESENVOLVIMENTO) */}
+        <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleWithIcon}>
+              <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
+                <Drum size={13} color={isDark ? '#00E676' : '#00874E'} />
+              </View>
+              <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
+                Cânticos
+              </Text>
+            </View>
+          </View>
+          <View
+            style={styles.chantsTouchFull}
+            accessibilityState={{ disabled: true }}
+            accessibilityLabel="Cânticos Grupo 39 em desenvolvimento"
+          >
+            <LinearGradient
+              colors={
+                isDark
+                  ? ['#14201A', '#0E1712']
+                  : ['#EEF4F0', '#F7FAF8']
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.chantsCenteredBtn,
+                styles.chantsDisabledCard,
+                !isDark && styles.chantsDisabledCardLight,
+                isSmallScreen && styles.chantsCenteredBtnSmall,
+              ]}
+            >
+              <View style={styles.chantsLogoWrapper}>
+                <Image
+                  source={require('../../assets/logo_39.png')}
+                  style={styles.chantsLogoImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.chantsTextBoxCentered}>
+                <View style={[styles.chantsDevBadge, !isDark && styles.chantsDevBadgeLight]}>
+                  <Text style={[styles.chantsDevBadgeText, !isDark && styles.chantsDevBadgeTextLight]}>
+                    EM DESENVOLVIMENTO
+                  </Text>
+                </View>
+                <Text style={[styles.shortcutTitleCentered, !isDark && styles.textDark]} numberOfLines={1}>
+                  Cânticos Grupo 39
+                </Text>
+                <Text style={[styles.shortcutDescCentered, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
+                  Letra e ritmos disponíveis em breve
+                </Text>
+              </View>
+              <View style={[styles.chantsLockCircle, !isDark && styles.chantsLockCircleLight]}>
+                <Lock size={13} color={isDark ? '#8DA397' : '#5A6E63'} />
+              </View>
+            </LinearGradient>
+          </View>
+        </View>
+
+        {/* 0. SECÇÃO: NOTÍCIAS (ROLL-UP COM ÚLTIMO RESULTADO + NOTÍCIA + TRANSFERÊNCIA) */}
         {activeNewsSlide && (
           <View style={styles.lastResultSection}>
             <View style={styles.sectionHeader}>
@@ -514,217 +635,6 @@ function HomeScreen({
           </View>
         )}
 
-      {/* 1. HERO BANNER: PRÓXIMO JOGO COM SÍMBOLOS DOS CLUBES */}
-      <LinearGradient
-        colors={
-          isDark
-            ? ['#153826', '#0E2017', '#0B130F']
-            : ['#E7F8EE', '#F4FBF7', '#FFFFFF']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.heroCard, !isDark && styles.heroCardLight, isSmallScreen && styles.heroCardSmall]}
-      >
-        {/* Faixa de destaque superior */}
-        <LinearGradient
-          colors={['#00E676', '#F2B600', '#00874E']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.heroAccentStrip}
-        />
-
-        {/* Header do Confronto: Badge Próximo Jogo + Forma Recente */}
-        <View style={styles.heroTopRow}>
-          <View
-            style={[
-              styles.heroStatusPill,
-              !isDark && styles.heroStatusPillLight,
-              countdownInfo?.isLive && styles.heroStatusPillLive,
-            ]}
-          >
-            <View
-              style={[
-                styles.heroStatusDot,
-                countdownInfo?.isLive && styles.heroStatusDotLive,
-              ]}
-            />
-            <Text
-              style={[
-                styles.heroStatusText,
-                !isDark && styles.heroStatusTextLight,
-                countdownInfo?.isLive && styles.heroStatusTextLive,
-              ]}
-            >
-              {countdownInfo?.isLive
-                ? 'EM DIRETO'
-                : nextMatch.isHome
-                  ? 'PRÓXIMO · CASA'
-                  : 'PRÓXIMO · FORA'}
-            </Text>
-          </View>
-
-          {recentForm.length > 0 && (
-            <View style={[styles.formPill, !isDark && styles.formPillLight]}>
-              <Text style={[styles.formLabel, !isDark && styles.formLabelLight]}>
-                RAFC
-              </Text>
-              <View style={styles.formDotsRow}>
-                {recentForm.map((res, idx) => (
-                  <View
-                    key={`form-${idx}`}
-                    style={[
-                      styles.formDot,
-                      res === 'V'
-                        ? styles.formDotWin
-                        : res === 'E'
-                          ? styles.formDotDraw
-                          : styles.formDotLoss,
-                    ]}
-                  >
-                    <Text style={styles.formDotText}>{res}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-        </View>
-
-        <TouchableOpacity
-          onPress={() => setJogosModalVisible(true)}
-          activeOpacity={0.85}
-          accessibilityLabel="Abrir jogos e calendário oficial"
-        >
-          <View style={styles.heroTopBar}>
-            <View style={styles.compInfo}>
-              <View style={styles.compRoundRow}>
-                <Text style={[styles.compRound, !isDark && styles.compRoundLight]}>
-                  {nextMatch.round || '7.ª Jornada'}
-                </Text>
-                <ChevronRight size={11} color={isDark ? '#00E676' : '#00874E'} />
-              </View>
-            </View>
-          </View>
-
-          {/* Equipas & Emblemas Reais */}
-          <View style={styles.matchTeamsRow}>
-          {/* Equipa Visitada / Casa */}
-          <View style={styles.teamColumn}>
-            <View style={[styles.emblemHalo, !isDark && styles.emblemHaloLight]}>
-              <ClubBadge
-                name={nextMatch.homeTeam.name}
-                logo={nextMatch.homeTeam.logo}
-                size={isSmallScreen ? 'sm' : 'md'}
-                isDark={isDark}
-              />
-            </View>
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={2}>
-              {nextMatch.homeTeam.name}
-            </Text>
-            <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Anfitrião</Text>
-          </View>
-
-          {/* VS & Detalhes + Contagem Decrescente */}
-          <View style={styles.vsColumn}>
-            <View style={[styles.vsBadge, !isDark && styles.vsBadgeLight]}>
-              <Text style={[styles.vsText, !isDark && styles.vsTextLight]}>VS</Text>
-            </View>
-            <View style={[styles.stadiumTag, !isDark && styles.stadiumTagLight]}>
-              <MapPin size={10} color={COLORS.primaryLight} />
-              <Text style={[styles.stadiumTagText, !isDark && styles.stadiumTagTextLight]} numberOfLines={1}>
-                {nextMatch.stadium}
-              </Text>
-            </View>
-            <Text style={[styles.matchTime, !isDark && styles.matchTimeLight]}>
-              {nextMatch.dateFormatted}
-            </Text>
-            {countdownInfo && (
-              <View
-                style={[
-                  styles.countdownPill,
-                  !isDark && styles.countdownPillLight,
-                  countdownInfo.isLive && styles.countdownPillLive,
-                ]}
-              >
-                <Clock
-                  size={9.5}
-                  color={countdownInfo.isLive ? '#FF5252' : (isDark ? '#00E676' : '#00874E')}
-                />
-                <Text
-                  style={[
-                    styles.countdownText,
-                    !isDark && styles.countdownTextLight,
-                    countdownInfo.isLive && styles.countdownTextLive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {countdownInfo.text}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* Equipa Visitante / Fora */}
-          <View style={styles.teamColumn}>
-            <View style={[styles.emblemHalo, !isDark && styles.emblemHaloLight]}>
-              <ClubBadge
-                name={nextMatch.awayTeam.name}
-                logo={nextMatch.awayTeam.logo}
-                size={isSmallScreen ? 'sm' : 'md'}
-                isDark={isDark}
-              />
-            </View>
-            <Text style={[styles.teamName, !isDark && styles.teamNameLight]} numberOfLines={2}>
-              {nextMatch.awayTeam.name}
-            </Text>
-            <Text style={[styles.teamRole, !isDark && styles.teamRoleLight]}>Visitante</Text>
-          </View>
-        </View>
-        </TouchableOpacity>
-
-        {/* Ponto de Encontro / Convívio da Claque */}
-        <TouchableOpacity
-          onPress={handleOpenMeetingMap}
-          activeOpacity={0.82}
-          accessibilityLabel="Abrir ponto de encontro no mapa"
-        >
-          <LinearGradient
-            colors={
-              isDark
-                ? ['rgba(0, 179, 104, 0.28)', 'rgba(0, 135, 78, 0.14)']
-                : ['#E4F7EC', '#D3F1E0']
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.meetingPointBar, !isDark && styles.meetingPointBarLight]}
-          >
-            <View style={styles.meetingPointBarTop}>
-              <View style={[styles.meetingPointIconBox, !isDark && styles.meetingPointIconBoxLight]}>
-                <Navigation size={12} color={isDark ? '#00E676' : '#00874E'} />
-              </View>
-              <View style={styles.meetingPointTextCol}>
-                <Text
-                  style={[styles.meetingPointBarBold, !isDark && styles.meetingPointBarBoldLight]}
-                  numberOfLines={1}
-                >
-                  Concentração · {meetingPointInfo.timeLabel}
-                </Text>
-                <Text
-                  style={[styles.meetingPointSubText, !isDark && styles.meetingPointBarTextLight]}
-                  numberOfLines={1}
-                >
-                  {meetingPointInfo.location}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.meetingMapTag}>
-              <MapPin size={11} color="#FFFFFF" />
-              <Text style={styles.meetingMapTagText}>Ver Mapa</Text>
-              <ChevronRight size={12} color="#FFFFFF" />
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </LinearGradient>
-
       {/* 2. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
       {isMatchdayActive && (
         <View style={styles.matchdayCard}>
@@ -803,102 +713,6 @@ function HomeScreen({
         </View>
       )}
 
-      {/* 2.5 COMPRAR BILHETE + DESLOCAÇÃO (VISÍVEL APENAS EM JOGOS FORA) */}
-      {!nextMatch?.isHome && (
-        <TouchableOpacity
-          onPress={() => setDeslocacaoModalVisible(true)}
-          activeOpacity={0.86}
-          accessibilityLabel="Comprar bilhete e deslocação por transferência bancária"
-        >
-          <LinearGradient
-            colors={
-              isDark
-                ? ['#183424', '#0F2217']
-                : ['#E7F8EE', '#FDF7E3']
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.deslocacaoCard, !isDark && styles.deslocacaoCardLight]}
-          >
-            <View style={styles.deslocacaoLeft}>
-              <View style={[styles.deslocacaoIconBox, !isDark && styles.deslocacaoIconBoxLight]}>
-                <Bus size={18} color={isDark ? '#F2B600' : '#00874E'} />
-              </View>
-              <View style={styles.deslocacaoTextCol}>
-                <Text style={[styles.deslocacaoTitle, !isDark && styles.textDark]} numberOfLines={1}>
-                  Bilhete + Deslocação
-                </Text>
-                <Text style={[styles.deslocacaoSub, !isDark && styles.deslocacaoSubLight]} numberOfLines={1}>
-                  Reserva o teu lugar
-                </Text>
-              </View>
-            </View>
-            <View style={styles.deslocacaoCtaPill}>
-              <Text style={styles.deslocacaoCtaText}>Comprar</Text>
-              <ChevronRight size={13} color="#0D1310" />
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
-
-      {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 (EM DESENVOLVIMENTO) */}
-      <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleWithIcon}>
-            <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
-              <Drum size={13} color={isDark ? '#00E676' : '#00874E'} />
-            </View>
-            <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
-              Cânticos
-            </Text>
-          </View>
-        </View>
-        <View
-          style={styles.chantsTouchFull}
-          accessibilityState={{ disabled: true }}
-          accessibilityLabel="Cânticos Grupo 39 em desenvolvimento"
-        >
-          <LinearGradient
-            colors={
-              isDark
-                ? ['#14201A', '#0E1712']
-                : ['#EEF4F0', '#F7FAF8']
-            }
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              styles.chantsCenteredBtn,
-              styles.chantsDisabledCard,
-              !isDark && styles.chantsDisabledCardLight,
-              isSmallScreen && styles.chantsCenteredBtnSmall,
-            ]}
-          >
-            <View style={styles.chantsLogoWrapper}>
-              <Image
-                source={require('../../assets/logo_39.png')}
-                style={styles.chantsLogoImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.chantsTextBoxCentered}>
-              <View style={[styles.chantsDevBadge, !isDark && styles.chantsDevBadgeLight]}>
-                <Text style={[styles.chantsDevBadgeText, !isDark && styles.chantsDevBadgeTextLight]}>
-                  EM DESENVOLVIMENTO
-                </Text>
-              </View>
-              <Text style={[styles.shortcutTitleCentered, !isDark && styles.textDark]} numberOfLines={1}>
-                Cânticos Grupo 39
-              </Text>
-              <Text style={[styles.shortcutDescCentered, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
-                Letra e ritmos disponíveis em breve
-              </Text>
-            </View>
-            <View style={[styles.chantsLockCircle, !isDark && styles.chantsLockCircleLight]}>
-              <Lock size={13} color={isDark ? '#8DA397' : '#5A6E63'} />
-            </View>
-          </LinearGradient>
-        </View>
-      </View>
       </ScrollView>
 
       {/* Modal de Jogos e Calendário Oficial em Direto */}
@@ -947,6 +761,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 14,
     gap: 16,
+  },
+  matchCenterBleed: {
+    marginHorizontal: -14,
+    marginTop: -14,
   },
   sectionIconBoxGreen: {
     width: 24,
@@ -2241,6 +2059,7 @@ const styles = StyleSheet.create({
   chantsDisabledCard: {
     borderColor: 'rgba(255, 255, 255, 0.1)',
     opacity: 0.82,
+    paddingVertical: 9,
   },
   chantsDisabledCardLight: {
     borderColor: 'rgba(0, 135, 78, 0.16)',
