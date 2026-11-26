@@ -2,6 +2,9 @@ import { NEXT_MATCH, PAST_RESULTS } from '../data/mockData.js';
 
 export const FIXTURES_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule?fixture=true';
 export const RESULTS_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/schedule';
+export const STANDINGS_API = 'https://site.api.espn.com/apis/v2/sports/soccer/por.1/standings';
+export const ROSTER_API = 'https://site.api.espn.com/apis/site/v2/sports/soccer/por.1/teams/3822/roster';
+export const SPORTSDB_RIOAVE_PLAYERS_API = 'https://www.thesportsdb.com/api/v1/json/123/lookup_all_players.php?id=134107';
 export const FLASHSCORE_RESULTS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/resultados/';
 export const FLASHSCORE_NEWS_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/noticias/';
 export const FLASHSCORE_FIXTURES_URL = 'https://www.flashscore.pt/equipa/rio-ave/jPzXLi4l/lista/';
@@ -12,10 +15,14 @@ let cachedUpcoming = null;
 let cachedResults = null;
 let cachedNews = null;
 let cachedTransfer = null;
+let cachedStandings = null;
+let cachedRoster = null;
 let lastFetchTime = 0;
 let lastResultsFetchTime = 0;
 let lastNewsFetchTime = 0;
 let lastTransferFetchTime = 0;
+let lastStandingsFetchTime = 0;
+let lastRosterFetchTime = 0;
 const CACHE_TTL_MS = 60 * 1000; // 1 minuto
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
@@ -440,4 +447,142 @@ export async function fetchLatestTransfer(force = false) {
     console.warn('Erro ao obter transferências do Rio Ave FC:', err);
     return cachedTransfer || FALLBACK_TRANSFER;
   }
+}
+
+/**
+ * Obtém a Tabela Classificativa em tempo real da Liga Portugal Betclic (ESPN API)
+ */
+export async function fetchLigaStandings(force = false) {
+  const now = Date.now();
+  if (!force && cachedStandings && (now - lastStandingsFetchTime < CACHE_TTL_MS)) {
+    return cachedStandings;
+  }
+
+  const res = await fetchWithTimeout(STANDINGS_API, { headers: { Accept: 'application/json' } }, 7000);
+  if (!res.ok) {
+    throw new Error(`Status ${res.status}`);
+  }
+
+  const data = await res.json();
+  const entries = data?.children?.[0]?.standings?.entries || [];
+  if (!Array.isArray(entries) || entries.length === 0) {
+    throw new Error('Classificação indisponível');
+  }
+
+  const parsed = entries.map((entry, idx) => {
+    const statsMap = {};
+    (entry.stats || []).forEach((s) => {
+      statsMap[s.name] = s;
+    });
+
+    const pos = Number(statsMap.rank?.value ?? idx + 1);
+    const rawName = entry.team?.displayName || entry.team?.name || 'Clube';
+    const teamName = normalizeTeamName(rawName);
+    const isRioAve = String(entry.team?.id) === '3822' || teamName.toLowerCase().includes('rio ave');
+
+    let zone;
+    if (pos <= 2) zone = 'cl';
+    else if (pos === 3) zone = 'el';
+    else if (pos === 4) zone = 'conf';
+    else if (pos === 16) zone = 'playoff';
+    else if (pos >= 17) zone = 'rel';
+
+    return {
+      pos,
+      team: teamName,
+      logo: entry.team?.logos?.[0]?.href || null,
+      j: Number(statsMap.gamesPlayed?.value ?? 0),
+      v: Number(statsMap.wins?.value ?? 0),
+      e: Number(statsMap.ties?.value ?? 0),
+      d: Number(statsMap.losses?.value ?? 0),
+      dg: statsMap.pointDifferential?.displayValue ?? '0',
+      pts: Number(statsMap.points?.value ?? 0),
+      zone,
+      isRioAve,
+    };
+  });
+
+  parsed.sort((a, b) => a.pos - b.pos);
+  cachedStandings = parsed;
+  lastStandingsFetchTime = now;
+  return parsed;
+}
+
+/**
+ * Obtém o Plantel Principal atual do Rio Ave FC (ESPN API + fotos TheSportsDB)
+ */
+export async function fetchRioAveRoster(force = false) {
+  const now = Date.now();
+  if (!force && cachedRoster && (now - lastRosterFetchTime < CACHE_TTL_MS * 5)) {
+    return cachedRoster;
+  }
+
+  const [espnRes, sdbRes] = await Promise.all([
+    fetchWithTimeout(ROSTER_API, { headers: { Accept: 'application/json' } }, 7000),
+    fetchWithTimeout(SPORTSDB_RIOAVE_PLAYERS_API, { headers: { Accept: 'application/json' } }, 5000).catch(() => null),
+  ]);
+
+  if (!espnRes.ok) {
+    throw new Error(`Status ${espnRes.status}`);
+  }
+
+  const espnData = await espnRes.json();
+  const athletes = Array.isArray(espnData?.athletes) ? espnData.athletes : [];
+  if (athletes.length === 0) {
+    throw new Error('Plantel indisponível');
+  }
+
+  const photoByName = {};
+  if (sdbRes && sdbRes.ok) {
+    try {
+      const sdbData = await sdbRes.json();
+      (sdbData?.player || []).forEach((sp) => {
+        const key = String(sp.strPlayer || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+        const img = sp.strCutout || sp.strThumb || null;
+        if (key && img) photoByName[key] = img;
+      });
+    } catch (_) {}
+  }
+
+  const groupsMap = {
+    G: { group: 'Guarda-Redes', players: [] },
+    D: { group: 'Defesas', players: [] },
+    M: { group: 'Médios', players: [] },
+    F: { group: 'Avançados', players: [] },
+  };
+
+  athletes.forEach((a) => {
+    const abbr = a.position?.abbreviation || 'M';
+    const bucket = groupsMap[abbr] || groupsMap.M;
+    const cleanName = (a.displayName || a.fullName || 'Jogador').trim();
+    const normKey = cleanName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    const posLabelMap = { G: 'GR', D: 'DEF', M: 'MED', F: 'AVA' };
+    bucket.players.push({
+      id: String(a.id || `${abbr}-${cleanName}`),
+      number: a.jersey ? Number(a.jersey) : null,
+      name: cleanName,
+      nat: a.citizenship || 'Portugal',
+      pos: posLabelMap[abbr] || abbr,
+      photo: a.headshot?.href || photoByName[normKey] || null,
+    });
+  });
+
+  const sections = ['G', 'D', 'M', 'F']
+    .map((k) => ({
+      ...groupsMap[k],
+      players: groupsMap[k].players.sort((a, b) => (a.number ?? 999) - (b.number ?? 999)),
+    }))
+    .filter((s) => s.players.length > 0);
+
+  cachedRoster = sections;
+  lastRosterFetchTime = now;
+  return sections;
 }

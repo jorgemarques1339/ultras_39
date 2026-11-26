@@ -19,7 +19,7 @@ import {
   ChevronRight,
   Drum,
   Trophy,
-  Newspaper,
+  Zap,
   Lock,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
@@ -28,15 +28,13 @@ import {
   getNextMatchData,
   fetchLiveSchedule,
   fetchLiveResults,
-  fetchRioAveNews,
-  fetchLatestTransfer,
-  FLASHSCORE_NEWS_URL,
-  FLASHSCORE_TRANSFERS_URL,
 } from '../services/matchesService';
 import ClubBadge from '../components/ClubBadge';
 import JogosModal from '../components/JogosModal';
 import ResultadoModal from '../components/ResultadoModal';
 import DeslocacaoModal from '../components/DeslocacaoModal';
+import PlantelModal, { RioAveJerseyIcon } from '../components/PlantelModal';
+import TabelaModal from '../components/TabelaModal';
 import MatchCenterCarousel, { SAMPLE_MATCH_CENTER_DATA } from '../components/MatchCenterCarousel';
 
 function HomeScreen({
@@ -56,37 +54,13 @@ function HomeScreen({
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [resultadoModalVisible, setResultadoModalVisible] = useState(false);
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
+  const [plantelModalVisible, setPlantelModalVisible] = useState(false);
+  const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
   const [motmList, setMotmList] = useState(MATCHDAY_DATA.motmCandidates);
   const [nextMatch, setNextMatch] = useState(NEXT_MATCH);
   const [liveUpcoming, setLiveUpcoming] = useState([]);
   const [liveResults, setLiveResults] = useState(PAST_RESULTS);
-  const [newsItems, setNewsItems] = useState([
-    {
-      id: 'news-init-1',
-      title: 'Últimas Notícias e Antevisões do Rio Ave FC',
-      subtitle: 'Acompanha crónicas, plantel e novidades dos Arcos',
-      date: 'Atualidade',
-      url: FLASHSCORE_NEWS_URL,
-    },
-    {
-      id: 'news-init-2',
-      title: 'Atualidade Verde e Branca · Liga Portugal Betclic',
-      subtitle: 'Declarações pós-jogo e novidades dos Arcos',
-      date: 'Atualidade',
-      url: FLASHSCORE_NEWS_URL,
-    },
-  ]);
-  const [latestTransfer, setLatestTransfer] = useState({
-    id: 'transfer-init-1',
-    title: 'Mercado e Transferências · Rio Ave FC',
-    subtitle: 'Últimas entradas, saídas e empréstimos do plantel',
-    date: 'Mercado',
-    url: FLASHSCORE_TRANSFERS_URL,
-  });
-  const [newsSlideIndex, setNewsSlideIndex] = useState(0);
-  const rollUpAnim = useRef(new Animated.Value(0)).current;
-  const rollUpOpacity = useRef(new Animated.Value(1)).current;
   const [nowTs, setNowTs] = useState(() => Date.now());
   const mainScrollRef = useRef(null);
 
@@ -202,22 +176,6 @@ function HomeScreen({
           }
         })
         .catch(() => {});
-
-      fetchRioAveNews(force)
-        .then((news) => {
-          if (isMounted && Array.isArray(news) && news.length > 0) {
-            setNewsItems(news.slice(0, 1));
-          }
-        })
-        .catch(() => {});
-
-      fetchLatestTransfer(force)
-        .then((transfer) => {
-          if (isMounted && transfer) {
-            setLatestTransfer(transfer);
-          }
-        })
-        .catch(() => {});
     };
 
     syncMatches(false);
@@ -230,60 +188,6 @@ function HomeScreen({
   }, [isActive]);
 
   const lastResult = liveResults && liveResults.length > 0 ? liveResults[0] : null;
-
-  const newsSlides = useMemo(() => {
-    const slides = [];
-    if (newsItems && newsItems.length > 0) {
-      slides.push({ id: newsItems[0].id || 'slide-news-0', type: 'news', data: newsItems[0] });
-    }
-    if (latestTransfer) {
-      slides.push({ id: latestTransfer.id || 'slide-transfer-0', type: 'transfer', data: latestTransfer });
-    }
-    return slides;
-  }, [newsItems, latestTransfer]);
-
-  const goToNewsSlide = useCallback((nextIdx) => {
-    if (newsSlides.length <= 1) return;
-    const target = ((nextIdx % newsSlides.length) + newsSlides.length) % newsSlides.length;
-    Animated.parallel([
-      Animated.timing(rollUpOpacity, {
-        toValue: 0,
-        duration: 160,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-      Animated.timing(rollUpAnim, {
-        toValue: -14,
-        duration: 160,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-    ]).start(() => {
-      setNewsSlideIndex(target);
-      rollUpAnim.setValue(16);
-      Animated.parallel([
-        Animated.timing(rollUpOpacity, {
-          toValue: 1,
-          duration: 240,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.timing(rollUpAnim, {
-          toValue: 0,
-          duration: 240,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-      ]).start();
-    });
-  }, [newsSlides.length, rollUpAnim, rollUpOpacity]);
-
-  const newsSlideIndexRef = useRef(0);
-  newsSlideIndexRef.current = newsSlideIndex;
-
-  useEffect(() => {
-    if (!isActive || newsSlides.length <= 1) return;
-    const timer = setInterval(() => {
-      goToNewsSlide(newsSlideIndexRef.current + 1);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, [isActive, goToNewsSlide, newsSlides.length]);
 
   const handleVoteMotm = useCallback((playerId) => {
     setVotedPlayerId((current) => {
@@ -299,8 +203,6 @@ function HomeScreen({
       return playerId;
     });
   }, []);
-
-  const activeNewsSlide = newsSlides[newsSlideIndex % Math.max(1, newsSlides.length)] || null;
 
   const matchCenterSlides = useMemo(() => {
     const formatShortPt = (rawDate, fallback = '') => {
@@ -442,199 +344,63 @@ function HomeScreen({
           </View>
         </View>
 
-        {/* 0. SECÇÃO: NOTÍCIAS (ROLL-UP COM ÚLTIMO RESULTADO + NOTÍCIA + TRANSFERÊNCIA) */}
-        {activeNewsSlide && (
-          <View style={styles.lastResultSection}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleWithIcon}>
-                <View style={[styles.newsHeaderIconBox, !isDark && styles.newsHeaderIconBoxLight]}>
-                  <Newspaper size={14} color={isDark ? '#F2B600' : '#00874E'} />
-                </View>
-                <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
-                  Notícias
+        {/* SECÇÃO: ATALHOS RÁPIDOS (PLANTEL & TABELA) */}
+        <View style={styles.quickShortcutsSection}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleWithIcon}>
+              <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
+                <Zap size={13} color={isDark ? '#00E676' : '#00874E'} />
+              </View>
+              <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
+                Atalhos Rápidos
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.quickShortcutsRow}>
+            {/* 1. Botão Plantel (Camisola Verde e Branca) */}
+            <TouchableOpacity
+              style={[styles.quickShortcutCard, !isDark && styles.quickShortcutCardLight]}
+              onPress={() => setPlantelModalVisible(true)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir Plantel do Rio Ave FC"
+            >
+              <View style={[styles.quickShortcutIconBox, !isDark && styles.quickShortcutIconBoxLight]}>
+                <RioAveJerseyIcon size={28} />
+              </View>
+              <View style={styles.quickShortcutTextCol}>
+                <Text style={[styles.quickShortcutTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                  Plantel
+                </Text>
+                <Text style={[styles.quickShortcutSub, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
+                  Equipa Principal
                 </Text>
               </View>
+            </TouchableOpacity>
 
-              <View style={styles.newsHeaderRight}>
-                <View style={styles.newsDotsRow}>
-                  {newsSlides.map((s, idx) => (
-                    <TouchableOpacity
-                      key={s.id}
-                      onPress={() => goToNewsSlide(idx)}
-                      hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
-                      style={[
-                        styles.newsDot,
-                        idx === newsSlideIndex && styles.newsDotActive,
-                        !isDark && styles.newsDotLight,
-                        !isDark && idx === newsSlideIndex && styles.newsDotActiveLight,
-                      ]}
-                    />
-                  ))}
-                </View>
-              </View>
-            </View>
-
+            {/* 2. Botão Tabela Classificativa */}
             <TouchableOpacity
-              onPress={() =>
-                activeNewsSlide.type === 'result'
-                  ? setResultadoModalVisible(true)
-                  : activeNewsSlide.type === 'transfer'
-                    ? handleOpenExternalUrl(activeNewsSlide.data?.url || FLASHSCORE_TRANSFERS_URL)
-                    : handleOpenExternalUrl(activeNewsSlide.data?.url || FLASHSCORE_NEWS_URL)
-              }
-              activeOpacity={0.86}
-              accessibilityLabel={
-                activeNewsSlide.type === 'result'
-                  ? 'Abrir último resultado do Rio Ave FC no Flashscore'
-                  : activeNewsSlide.type === 'transfer'
-                    ? 'Abrir transferências do Rio Ave FC no Flashscore'
-                    : 'Abrir notícia do Rio Ave FC no Flashscore'
-              }
+              style={[styles.quickShortcutCard, !isDark && styles.quickShortcutCardLight]}
+              onPress={() => setTabelaModalVisible(true)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir Tabela Classificativa da Liga Portugal Betclic"
             >
-              <LinearGradient
-                colors={
-                  isDark
-                    ? ['#203528', '#132219', '#0D1611']
-                    : ['#FFFDF5', '#EDF9F2']
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={[styles.newsFeaturedCard, !isDark && styles.newsFeaturedCardLight]}
-              >
-                <LinearGradient
-                  colors={['#F2B600', '#00E676']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 0, y: 1 }}
-                  style={styles.newsAccentLeft}
-                />
-
-                <Animated.View
-                  style={[
-                    styles.newsFeaturedContent,
-                    {
-                      opacity: rollUpOpacity,
-                      transform: [{ translateY: rollUpAnim }],
-                    },
-                  ]}
-                >
-                  {activeNewsSlide.type === 'result' ? (
-                    <>
-                      <View style={styles.lastResultTopRow}>
-                        <View style={[styles.newsTypePillResult, !isDark && styles.newsTypePillResultLight]}>
-                          <Text style={[styles.newsTypePillResultText, !isDark && styles.newsTypePillResultTextLight]}>
-                            ÚLTIMO RESULTADO
-                          </Text>
-                        </View>
-                        <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
-                          {activeNewsSlide.data.date}
-                        </Text>
-                      </View>
-
-                      <View style={styles.lastResultScoreRow}>
-                        <View style={styles.lastResultTeamGroup}>
-                          <ClubBadge
-                            name={activeNewsSlide.data.home}
-                            logo={activeNewsSlide.data.homeLogo}
-                            size="xs"
-                            isDark={isDark}
-                          />
-                          <Text
-                            style={[
-                              styles.lastResultTeam,
-                              activeNewsSlide.data.home.includes('Rio Ave') && styles.lastResultTeamHighlight,
-                              !isDark && styles.lastResultTeamLight,
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {activeNewsSlide.data.home}
-                          </Text>
-                        </View>
-
-                        <View style={[styles.lastResultScoreBox, !isDark && styles.lastResultScoreBoxLight]}>
-                          <Text style={[styles.lastResultScoreText, !isDark && styles.lastResultScoreTextLight]}>
-                            {activeNewsSlide.data.scoreHome} - {activeNewsSlide.data.scoreAway}
-                          </Text>
-                        </View>
-
-                        <View style={[styles.lastResultTeamGroup, styles.lastResultTeamGroupRight]}>
-                          <Text
-                            style={[
-                              styles.lastResultTeam,
-                              styles.lastResultTeamRight,
-                              activeNewsSlide.data.away.includes('Rio Ave') && styles.lastResultTeamHighlight,
-                              !isDark && styles.lastResultTeamLight,
-                            ]}
-                            numberOfLines={1}
-                          >
-                            {activeNewsSlide.data.away}
-                          </Text>
-                          <ClubBadge
-                            name={activeNewsSlide.data.away}
-                            logo={activeNewsSlide.data.awayLogo}
-                            size="xs"
-                            isDark={isDark}
-                          />
-                        </View>
-                      </View>
-
-                      {!!activeNewsSlide.data.scorers && (
-                        <Text style={[styles.lastResultScorers, !isDark && styles.lastResultScorersLight]} numberOfLines={1}>
-                          {activeNewsSlide.data.scorers}
-                        </Text>
-                      )}
-                    </>
-                  ) : (
-                    <View style={styles.newsSlideBody}>
-                      <View style={styles.lastResultTopRow}>
-                        <View
-                          style={[
-                            activeNewsSlide.type === 'transfer'
-                              ? styles.newsTypePillTransfer
-                              : styles.newsTypePillArticle,
-                            !isDark &&
-                              (activeNewsSlide.type === 'transfer'
-                                ? styles.newsTypePillTransferLight
-                                : styles.newsTypePillArticleLight),
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              activeNewsSlide.type === 'transfer'
-                                ? styles.newsTypePillTransferText
-                                : styles.newsTypePillArticleText,
-                              !isDark &&
-                                (activeNewsSlide.type === 'transfer'
-                                  ? styles.newsTypePillTransferTextLight
-                                  : styles.newsTypePillArticleTextLight),
-                            ]}
-                          >
-                            {activeNewsSlide.type === 'transfer'
-                              ? 'TRANSFERÊNCIA'
-                              : 'NOTÍCIA'}
-                          </Text>
-                        </View>
-                        <Text style={[styles.lastResultDate, !isDark && styles.lastResultDateLight]}>
-                          {activeNewsSlide.data.date}
-                        </Text>
-                      </View>
-
-                      <Text style={[styles.newsArticleTitle, !isDark && styles.newsArticleTitleLight]} numberOfLines={2}>
-                        {activeNewsSlide.data.title}
-                      </Text>
-
-                      <View style={styles.newsArticleFooter}>
-                        <Text style={[styles.newsArticleSub, !isDark && styles.newsArticleSubLight]} numberOfLines={1}>
-                          {activeNewsSlide.data.subtitle}
-                        </Text>
-                        <ChevronRight size={14} color={isDark ? '#F2B600' : '#00874E'} />
-                      </View>
-                    </View>
-                  )}
-                </Animated.View>
-              </LinearGradient>
+              <View style={[styles.quickShortcutIconBox, !isDark && styles.quickShortcutIconBoxLight]}>
+                <Trophy size={24} color={isDark ? '#00E676' : '#008751'} />
+              </View>
+              <View style={styles.quickShortcutTextCol}>
+                <Text style={[styles.quickShortcutTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                  Tabela
+                </Text>
+                <Text style={[styles.quickShortcutSub, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
+                  Liga Portugal Betclic
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
-        )}
+        </View>
 
       {/* 2. MODO DIA DE JOGO (ATIVO APENAS FALTANDO 1 HORA PARA O JOGO) */}
       {isMatchdayActive && (
@@ -740,6 +506,20 @@ function HomeScreen({
         isLoggedIn={isLoggedIn}
       />
 
+      {/* Modal do Plantel Principal */}
+      <PlantelModal
+        visible={plantelModalVisible}
+        onClose={() => setPlantelModalVisible(false)}
+        isDark={isDark}
+      />
+
+      {/* Modal da Tabela Classificativa */}
+      <TabelaModal
+        visible={tabelaModalVisible}
+        onClose={() => setTabelaModalVisible(false)}
+        isDark={isDark}
+      />
+
     </View>
   );
 }
@@ -781,6 +561,69 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 0,
     marginBottom: 0,
+  },
+  quickShortcutsSection: {
+    width: '100%',
+    marginTop: 14,
+    marginBottom: 0,
+  },
+  quickShortcutsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickShortcutCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    backgroundColor: '#121D17',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.24)',
+    borderRadius: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 6px 18px rgba(0, 0, 0, 0.35)',
+      },
+    }),
+  },
+  quickShortcutCardLight: {
+    backgroundColor: '#F5FAF7',
+    borderColor: 'rgba(0, 135, 81, 0.22)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 12px rgba(0, 135, 81, 0.08)',
+      },
+    }),
+  },
+  quickShortcutIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 135, 81, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickShortcutIconBoxLight: {
+    backgroundColor: '#E7F5ED',
+    borderColor: 'rgba(0, 135, 81, 0.25)',
+  },
+  quickShortcutTextCol: {
+    flex: 1,
+  },
+  quickShortcutTitle: {
+    color: '#FFFFFF',
+    fontSize: 14.5,
+    fontWeight: '800',
+  },
+  quickShortcutSub: {
+    color: '#8FA89B',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
   },
   newsHeaderIconBox: {
     width: 24,
