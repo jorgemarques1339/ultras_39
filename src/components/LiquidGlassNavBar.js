@@ -59,6 +59,7 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
               <View
                 style={[
                   styles.iconCapsule,
+                  !isTablet && styles.iconCapsulePhone,
                   isActive && styles.iconCapsuleActiveLogo,
                   isItemLocked && (isDark ? styles.iconCapsuleLockedDark : styles.iconCapsuleLockedLight),
                 ]}
@@ -119,8 +120,8 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   outerContainerPhone: {
-    bottom: Platform.OS === 'ios' ? 22 : 16,
-    paddingHorizontal: 18,
+    bottom: Platform.OS === 'ios' ? 18 : 14,
+    paddingHorizontal: 12,
   },
   outerContainerTablet: {
     bottom: 22,
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.2,
     borderColor: 'rgba(255, 255, 255, 0.16)',
     backgroundColor: 'rgba(12, 20, 16, 0.72)',
-    height: 62,
+    height: 60,
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
@@ -156,8 +157,9 @@ const styles = StyleSheet.create({
   },
   glassBarPhone: {
     width: '100%',
-    maxWidth: 360,
-    paddingHorizontal: 6,
+    maxWidth: 400,
+    height: 58,
+    paddingHorizontal: 4,
   },
   glassBarTablet: {
     width: 440,
@@ -198,6 +200,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  iconCapsulePhone: {
+    width: 46,
+    height: 42,
   },
   iconCapsuleActiveDark: {
     backgroundColor: 'rgba(0, 179, 104, 0.2)',
@@ -274,8 +280,8 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     position: 'absolute',
-    top: 3,
-    right: 6,
+    top: 2,
+    right: 4,
     backgroundColor: '#00B368',
     borderRadius: 8,
     minWidth: 16,

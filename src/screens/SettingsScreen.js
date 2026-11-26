@@ -8,6 +8,8 @@ import {
   Switch,
   Platform,
   Image,
+  StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import {
   Bell,
@@ -31,6 +33,8 @@ function SettingsScreen({
   onOpenNotifications,
   unreadCount = 0,
 }) {
+  const { height } = useWindowDimensions();
+  const isSmallScreen = height < 740;
   const { isDark: contextIsDark, toggleTheme } = useAppTheme();
   const isDark = isDarkProp !== undefined ? isDarkProp : contextIsDark;
   const { appSettings: settings, updateAppSetting } = useAppSettings();
@@ -82,20 +86,20 @@ function SettingsScreen({
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isSmallScreen && styles.scrollContentSmall,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Cabeçalho da Secção */}
-        <View style={styles.headerBlock}>
+        <View style={[styles.headerBlock, isSmallScreen && styles.headerBlockSmall]}>
           <View style={[styles.headerIconBox, !isDark && styles.headerIconBoxLight]}>
             <Settings size={20} color={isDark ? '#00E676' : '#00874E'} />
           </View>
           <View style={styles.headerTextCol}>
             <Text style={[styles.pageTitle, !isDark && styles.textDark]}>
               Definições
-            </Text>
-            <Text style={[styles.pageSubtitle, !isDark && styles.textMutedDark]}>
-              Alertas, tema da aplicação e preferências
             </Text>
           </View>
         </View>
@@ -149,206 +153,12 @@ function SettingsScreen({
           </View>
         )}
 
+        {/* SEPARAÇÃO VISUAL */}
+        <View style={[styles.sectionDivider, !isDark && styles.sectionDividerLight]} />
+
         {/* PREFERÊNCIAS DA APP (INLINE) */}
         <View style={styles.preferencesList}>
-          {/* Opção 1: Notificações da App */}
-          <View
-            style={[
-              styles.settingCard,
-              !isDark && styles.settingCardLight,
-              settings.notifications && styles.settingCardActive,
-            ]}
-          >
-            <View style={styles.settingLeft}>
-              <View
-                style={[
-                  styles.settingIconBox,
-                  settings.notifications
-                    ? styles.settingIconBoxActive
-                    : styles.settingIconBoxInactive,
-                ]}
-              >
-                {settings.notifications ? (
-                  <Bell size={18} color="#00E676" />
-                ) : (
-                  <BellOff size={18} color={isDark ? '#7E9187' : '#94A3B8'} />
-                )}
-              </View>
-              <View style={styles.settingTextCol}>
-                <View style={styles.settingTitleRow}>
-                  <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
-                    1. Notificações da App
-                  </Text>
-                  <View
-                    style={[
-                      styles.statusPill,
-                      settings.notifications
-                        ? styles.statusPillActive
-                        : styles.statusPillInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusPillText,
-                        settings.notifications
-                          ? styles.statusPillTextActive
-                          : styles.statusPillTextInactive,
-                      ]}
-                    >
-                      {settings.notifications ? 'Ativadas' : 'Desativadas'}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[styles.settingDesc, !isDark && styles.textMutedDark]}>
-                  Alertas em tempo real de golos, convocatórias de bancada e avisos da claque.
-                </Text>
-              </View>
-            </View>
-
-            <Switch
-              value={settings.notifications}
-              onValueChange={(val) => updateSetting('notifications', val)}
-              trackColor={{
-                false: isDark ? '#22332A' : '#E2E8F0',
-                true: '#00874E',
-              }}
-              thumbColor={settings.notifications ? '#00E676' : '#94A3B8'}
-              ios_backgroundColor={isDark ? '#22332A' : '#E2E8F0'}
-            />
-          </View>
-
-          {/* Opção 2: NFC do Dispositivo */}
-          <View
-            style={[
-              styles.settingCard,
-              !isDark && styles.settingCardLight,
-              settings.nfc && styles.settingCardActive,
-            ]}
-          >
-            <View style={styles.settingLeft}>
-              <View
-                style={[
-                  styles.settingIconBox,
-                  settings.nfc
-                    ? styles.settingIconBoxActive
-                    : styles.settingIconBoxInactive,
-                ]}
-              >
-                <Nfc
-                  size={18}
-                  color={settings.nfc ? '#00E676' : isDark ? '#7E9187' : '#94A3B8'}
-                />
-              </View>
-              <View style={styles.settingTextCol}>
-                <View style={styles.settingTitleRow}>
-                  <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
-                    2. NFC do Dispositivo
-                  </Text>
-                  <View
-                    style={[
-                      styles.statusPill,
-                      settings.nfc
-                        ? styles.statusPillActive
-                        : styles.statusPillInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusPillText,
-                        settings.nfc
-                          ? styles.statusPillTextActive
-                          : styles.statusPillTextInactive,
-                      ]}
-                    >
-                      {settings.nfc ? 'Ativo' : 'Desativado'}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[styles.settingDesc, !isDark && styles.textMutedDark]}>
-                  Leitura por aproximação nos torniquetes dos Arcos e validação de presença no estádio.
-                </Text>
-              </View>
-            </View>
-
-            <Switch
-              value={settings.nfc}
-              onValueChange={(val) => updateSetting('nfc', val)}
-              trackColor={{
-                false: isDark ? '#22332A' : '#E2E8F0',
-                true: '#00874E',
-              }}
-              thumbColor={settings.nfc ? '#00E676' : '#94A3B8'}
-              ios_backgroundColor={isDark ? '#22332A' : '#E2E8F0'}
-            />
-          </View>
-
-          {/* Opção 3: Acesso ao Som */}
-          <View
-            style={[
-              styles.settingCard,
-              !isDark && styles.settingCardLight,
-              settings.sound && styles.settingCardActive,
-            ]}
-          >
-            <View style={styles.settingLeft}>
-              <View
-                style={[
-                  styles.settingIconBox,
-                  settings.sound
-                    ? styles.settingIconBoxActive
-                    : styles.settingIconBoxInactive,
-                ]}
-              >
-                {settings.sound ? (
-                  <Volume2 size={18} color="#00E676" />
-                ) : (
-                  <VolumeX size={18} color={isDark ? '#7E9187' : '#94A3B8'} />
-                )}
-              </View>
-              <View style={styles.settingTextCol}>
-                <View style={styles.settingTitleRow}>
-                  <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
-                    3. Acesso ao Som
-                  </Text>
-                  <View
-                    style={[
-                      styles.statusPill,
-                      settings.sound
-                        ? styles.statusPillActive
-                        : styles.statusPillInactive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusPillText,
-                        settings.sound
-                          ? styles.statusPillTextActive
-                          : styles.statusPillTextInactive,
-                      ]}
-                    >
-                      {settings.sound ? 'Ligado' : 'Mudo'}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[styles.settingDesc, !isDark && styles.textMutedDark]}>
-                  Efeitos sonoros da aplicação, hino oficial e reprodução interativa de cânticos da bancada.
-                </Text>
-              </View>
-            </View>
-
-            <Switch
-              value={settings.sound}
-              onValueChange={(val) => updateSetting('sound', val)}
-              trackColor={{
-                false: isDark ? '#22332A' : '#E2E8F0',
-                true: '#00874E',
-              }}
-              thumbColor={settings.sound ? '#00E676' : '#94A3B8'}
-              ios_backgroundColor={isDark ? '#22332A' : '#E2E8F0'}
-            />
-          </View>
-
-          {/* Opção 4: Tema da Aplicação (Branco / Preto) */}
+          {/* Tema da Aplicação (Branco / Preto) */}
           <View
             style={[
               styles.settingCard,
@@ -357,8 +167,8 @@ function SettingsScreen({
               styles.settingCardActive,
             ]}
           >
-            <View style={styles.settingLeft}>
-              <View style={[styles.settingIconBox, styles.settingIconBoxActive]}>
+            <View style={[styles.settingLeft, styles.settingLeftCentered]}>
+              <View style={[styles.settingIconBox, styles.settingIconBoxCompact, styles.settingIconBoxActive]}>
                 {isDark ? (
                   <Moon size={18} color="#00E676" />
                 ) : (
@@ -366,9 +176,9 @@ function SettingsScreen({
                 )}
               </View>
               <View style={styles.settingTextCol}>
-                <View style={styles.settingTitleRow}>
+                <View style={[styles.settingTitleRow, styles.settingTitleRowCompact]}>
                   <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
-                    4. Tema da Aplicação
+                    Tema da Aplicação
                   </Text>
                   <View style={[styles.statusPill, styles.statusPillActive]}>
                     <Text style={[styles.statusPillText, styles.statusPillTextActive]}>
@@ -376,9 +186,6 @@ function SettingsScreen({
                     </Text>
                   </View>
                 </View>
-                <Text style={[styles.settingDesc, !isDark && styles.textMutedDark]}>
-                  Escolhe entre o tema escuro (Preto) e o tema claro (Branco).
-                </Text>
               </View>
             </View>
 
@@ -424,6 +231,200 @@ function SettingsScreen({
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* SEPARAÇÃO VISUAL */}
+          <View style={[styles.sectionDividerCompact, !isDark && styles.sectionDividerLight]} />
+
+          {/* Notificações da App */}
+          <View
+            style={[
+              styles.settingCard,
+              !isDark && styles.settingCardLight,
+              settings.notifications && styles.settingCardActive,
+            ]}
+          >
+            <View style={[styles.settingLeft, styles.settingLeftCentered]}>
+              <View
+                style={[
+                  styles.settingIconBox,
+                  styles.settingIconBoxCompact,
+                  settings.notifications
+                    ? styles.settingIconBoxActive
+                    : styles.settingIconBoxInactive,
+                ]}
+              >
+                {settings.notifications ? (
+                  <Bell size={18} color="#00E676" />
+                ) : (
+                  <BellOff size={18} color={isDark ? '#7E9187' : '#94A3B8'} />
+                )}
+              </View>
+              <View style={styles.settingTextCol}>
+                <View style={[styles.settingTitleRow, styles.settingTitleRowCompact]}>
+                  <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
+                    Notificações da App
+                  </Text>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      settings.notifications
+                        ? styles.statusPillActive
+                        : styles.statusPillInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusPillText,
+                        settings.notifications
+                          ? styles.statusPillTextActive
+                          : styles.statusPillTextInactive,
+                      ]}
+                    >
+                      {settings.notifications ? 'Ativadas' : 'Desativadas'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <Switch
+              value={settings.notifications}
+              onValueChange={(val) => updateSetting('notifications', val)}
+              trackColor={{
+                false: isDark ? '#22332A' : '#E2E8F0',
+                true: '#00874E',
+              }}
+              thumbColor={settings.notifications ? '#00E676' : '#94A3B8'}
+              ios_backgroundColor={isDark ? '#22332A' : '#E2E8F0'}
+            />
+          </View>
+
+          {/* NFC do Dispositivo */}
+          <View
+            style={[
+              styles.settingCard,
+              !isDark && styles.settingCardLight,
+              settings.nfc && styles.settingCardActive,
+            ]}
+          >
+            <View style={[styles.settingLeft, styles.settingLeftCentered]}>
+              <View
+                style={[
+                  styles.settingIconBox,
+                  styles.settingIconBoxCompact,
+                  settings.nfc
+                    ? styles.settingIconBoxActive
+                    : styles.settingIconBoxInactive,
+                ]}
+              >
+                <Nfc
+                  size={18}
+                  color={settings.nfc ? '#00E676' : isDark ? '#7E9187' : '#94A3B8'}
+                />
+              </View>
+              <View style={styles.settingTextCol}>
+                <View style={[styles.settingTitleRow, styles.settingTitleRowCompact]}>
+                  <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
+                    NFC do Dispositivo
+                  </Text>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      settings.nfc
+                        ? styles.statusPillActive
+                        : styles.statusPillInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusPillText,
+                        settings.nfc
+                          ? styles.statusPillTextActive
+                          : styles.statusPillTextInactive,
+                      ]}
+                    >
+                      {settings.nfc ? 'Ativo' : 'Desativado'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <Switch
+              value={settings.nfc}
+              onValueChange={(val) => updateSetting('nfc', val)}
+              trackColor={{
+                false: isDark ? '#22332A' : '#E2E8F0',
+                true: '#00874E',
+              }}
+              thumbColor={settings.nfc ? '#00E676' : '#94A3B8'}
+              ios_backgroundColor={isDark ? '#22332A' : '#E2E8F0'}
+            />
+          </View>
+
+          {/* Acesso ao Som */}
+          <View
+            style={[
+              styles.settingCard,
+              !isDark && styles.settingCardLight,
+              settings.sound && styles.settingCardActive,
+            ]}
+          >
+            <View style={[styles.settingLeft, styles.settingLeftCentered]}>
+              <View
+                style={[
+                  styles.settingIconBox,
+                  styles.settingIconBoxCompact,
+                  settings.sound
+                    ? styles.settingIconBoxActive
+                    : styles.settingIconBoxInactive,
+                ]}
+              >
+                {settings.sound ? (
+                  <Volume2 size={18} color="#00E676" />
+                ) : (
+                  <VolumeX size={18} color={isDark ? '#7E9187' : '#94A3B8'} />
+                )}
+              </View>
+              <View style={styles.settingTextCol}>
+                <View style={[styles.settingTitleRow, styles.settingTitleRowCompact]}>
+                  <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
+                    Acesso ao Som
+                  </Text>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      settings.sound
+                        ? styles.statusPillActive
+                        : styles.statusPillInactive,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusPillText,
+                        settings.sound
+                          ? styles.statusPillTextActive
+                          : styles.statusPillTextInactive,
+                      ]}
+                    >
+                      {settings.sound ? 'Ligado' : 'Mudo'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <Switch
+              value={settings.sound}
+              onValueChange={(val) => updateSetting('sound', val)}
+              trackColor={{
+                false: isDark ? '#22332A' : '#E2E8F0',
+                true: '#00874E',
+              }}
+              thumbColor={settings.sound ? '#00E676' : '#94A3B8'}
+              ios_backgroundColor={isDark ? '#22332A' : '#E2E8F0'}
+            />
           </View>
 
           {/* Banner de feedback salvo */}
@@ -484,15 +485,27 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 22,
-    paddingBottom: 120,
+    paddingHorizontal: 14,
+    paddingTop: Platform.OS === 'android' ? Math.max(18, (StatusBar.currentHeight || 0) + 10) : 20,
+    paddingBottom: 106,
+    ...Platform.select({
+      web: {
+        paddingTop: 'max(20px, env(safe-area-inset-top))',
+      },
+    }),
+  },
+  scrollContentSmall: {
+    paddingTop: Platform.OS === 'android' ? Math.max(14, (StatusBar.currentHeight || 0) + 6) : 14,
+    paddingBottom: 96,
   },
   headerBlock: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  headerBlockSmall: {
+    marginBottom: 12,
   },
   headerIconBox: {
     width: 44,
@@ -517,14 +530,23 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0.2,
   },
-  pageSubtitle: {
-    color: '#8FA89B',
-    fontSize: 12.5,
-    fontWeight: '600',
-    marginTop: 2,
-  },
   settingsSection: {
-    marginBottom: 14,
+    marginBottom: 8,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 14,
+    borderRadius: 1,
+  },
+  sectionDividerCompact: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 8,
+    borderRadius: 1,
+  },
+  sectionDividerLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.14)',
   },
   settingsBtn: {
     flexDirection: 'row',
@@ -664,6 +686,9 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
+  settingLeftCentered: {
+    alignItems: 'center',
+  },
   settingIconBox: {
     width: 36,
     height: 36,
@@ -671,6 +696,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
+  },
+  settingIconBoxCompact: {
+    marginTop: 0,
   },
   settingIconBoxActive: {
     backgroundColor: 'rgba(0, 230, 118, 0.12)',
@@ -687,6 +715,9 @@ const styles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
     marginBottom: 4,
+  },
+  settingTitleRowCompact: {
+    marginBottom: 0,
   },
   settingTitle: {
     color: '#FFF',
@@ -713,11 +744,6 @@ const styles = StyleSheet.create({
   },
   statusPillTextInactive: {
     color: '#8FA89B',
-  },
-  settingDesc: {
-    color: '#8FA89B',
-    fontSize: 11,
-    lineHeight: 15,
   },
   feedbackContainer: {
     minHeight: 24,

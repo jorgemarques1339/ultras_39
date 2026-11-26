@@ -90,11 +90,8 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
         </View>
 
         <View style={styles.memberInfoCol}>
-          <Text style={styles.memberName} numberOfLines={1}>
+          <Text style={styles.memberName}>
             {user?.name || 'Sócio Grupo 39'}
-          </Text>
-          <Text style={styles.memberRole} numberOfLines={1}>
-            {user?.memberCategory || 'Membro Oficial G39'}
           </Text>
         </View>
 
@@ -558,16 +555,16 @@ const styles = StyleSheet.create({
     color: '#00874E',
   },
 
-  // 1. Cartão Holográfico Compacto
+  // 1. Cartão Holográfico Expandido
   cardSection: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   holographicCard: {
     backgroundColor: '#111D16',
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1.5,
     borderColor: 'rgba(242, 182, 0, 0.45)',
-    padding: 12,
+    padding: 16,
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
@@ -590,16 +587,16 @@ const styles = StyleSheet.create({
   cardBody: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
+    gap: 12,
+    marginBottom: 13,
   },
   memberPhotoWrapper: {
     position: 'relative',
   },
   memberPhoto: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     backgroundColor: '#00874E',
     alignItems: 'center',
     justifyContent: 'center',
@@ -607,15 +604,15 @@ const styles = StyleSheet.create({
     borderColor: '#00B368',
   },
   memberPhotoImg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     borderWidth: 2,
     borderColor: '#00B368',
   },
   memberPhotoInitial: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 21,
     fontWeight: '900',
   },
   memberPhotoRing: {
@@ -624,7 +621,7 @@ const styles = StyleSheet.create({
     left: -2,
     right: -2,
     bottom: -2,
-    borderRadius: 24,
+    borderRadius: 29,
     borderWidth: 1,
     borderColor: 'rgba(0, 179, 104, 0.5)',
   },
@@ -633,41 +630,36 @@ const styles = StyleSheet.create({
   },
   memberName: {
     color: COLORS.white,
-    fontSize: 15,
+    fontSize: 17,
+    lineHeight: 22,
     fontWeight: '800',
-    marginBottom: 1,
-  },
-  memberRole: {
-    color: '#00E676',
-    fontSize: 10.5,
-    fontWeight: '700',
   },
   cardEditBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     backgroundColor: 'rgba(0, 230, 118, 0.12)',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 7,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: 'rgba(0, 230, 118, 0.3)',
   },
   cardEditBtnText: {
     color: '#00E676',
-    fontSize: 10.5,
+    fontSize: 11.5,
     fontWeight: '800',
   },
 
-  // Grelha Compacta de Dados Oficiais
+  // Grelha de Dados Oficiais
   cardDataContainer: {
     backgroundColor: 'rgba(10, 18, 14, 0.75)',
-    borderRadius: 10,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   cardDataRow: {
     flexDirection: 'row',
@@ -680,28 +672,28 @@ const styles = StyleSheet.create({
   },
   cardDataDivider: {
     width: 1,
-    height: 18,
+    height: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   dataLabel: {
     color: COLORS.textMuted,
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   dataVal: {
     color: COLORS.white,
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '800',
   },
 
-  // Rodapé Compacto Quota Anual
+  // Rodapé Quota Anual
   cardFooterData: {
     backgroundColor: 'rgba(5, 14, 9, 0.92)',
-    borderRadius: 7,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    borderRadius: 9,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(218, 165, 32, 0.35)',
   },
@@ -717,12 +709,12 @@ const styles = StyleSheet.create({
   cardQuotaLabelContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   cardQuotaDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#FFB74D',
   },
   cardQuotaDotPaid: {
@@ -730,57 +722,57 @@ const styles = StyleSheet.create({
   },
   cardQuotaSimpleLabel: {
     color: '#F4E8C1',
-    fontSize: 9.5,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
   cardPayBtn: {
     backgroundColor: '#00874E',
-    paddingVertical: 3,
-    paddingHorizontal: 9,
-    borderRadius: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+    borderRadius: 7,
     borderWidth: 1,
     borderColor: 'rgba(218, 165, 32, 0.6)',
   },
   cardPayBtnText: {
     color: '#FFF',
-    fontSize: 9,
+    fontSize: 10.5,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
   cardPaidSuccessBtn: {
     backgroundColor: 'rgba(0, 200, 83, 0.2)',
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-    borderRadius: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     borderWidth: 1,
     borderColor: 'rgba(0, 230, 118, 0.5)',
   },
   cardPaidSuccessText: {
     color: '#00E676',
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
 
-  // Botões Compactos Carteira Digital Integrados no Cartão
+  // Botões Carteira Digital Integrados no Cartão
   cardWalletRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
+    gap: 10,
+    marginTop: 10,
   },
   cardWalletBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    borderRadius: 7,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
   },
@@ -832,7 +824,7 @@ const styles = StyleSheet.create({
   },
   cardWalletText: {
     color: '#FFFFFF',
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: '700',
   },
   cardWalletTextLight: {
@@ -862,15 +854,15 @@ const styles = StyleSheet.create({
     color: '#00874E',
   },
 
-  // 2. Fidelidade de Bancada & Gamificação (Intacta)
+  // 2. Fidelidade de Bancada & Gamificação
   loyaltySection: {
-    marginBottom: 16,
+    marginBottom: 22,
   },
   loyaltyHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   loyaltyTitleGroup: {
     flexDirection: 'row',
@@ -880,11 +872,11 @@ const styles = StyleSheet.create({
   loyaltyHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     backgroundColor: 'rgba(0, 230, 118, 0.12)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 7,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(0, 230, 118, 0.3)',
   },
@@ -894,7 +886,7 @@ const styles = StyleSheet.create({
   },
   loyaltyHeaderBtnText: {
     color: '#00E676',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
   },
   loyaltyHeaderBtnTextLight: {
@@ -904,10 +896,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 9,
     backgroundColor: '#00874E',
-    borderRadius: 12,
-    paddingVertical: 10,
+    borderRadius: 14,
+    paddingVertical: 14,
     borderWidth: 1,
     borderColor: '#00B368',
     ...Platform.select({
@@ -922,7 +914,7 @@ const styles = StyleSheet.create({
   },
   checkInBtnText: {
     color: '#FFF',
-    fontSize: 12.5,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
@@ -933,14 +925,14 @@ const styles = StyleSheet.create({
   },
   // 3. Quotas
   quotasSection: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   // Divisão Visual
   profileSectionDivider: {
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     marginVertical: 4,
-    marginBottom: 18,
+    marginBottom: 20,
     borderRadius: 1,
   },
   profileSectionDividerLight: {
@@ -956,9 +948,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#121C16',
     borderWidth: 1.5,
     borderColor: 'rgba(0, 230, 118, 0.28)',
-    borderRadius: 14,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 15,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',

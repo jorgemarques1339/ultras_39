@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
+  Modal,
   Platform,
   Animated,
   Image,
@@ -22,6 +23,9 @@ import {
   Trophy,
   Zap,
   Lock,
+  Store,
+  AlertCircle,
+  X,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
@@ -53,11 +57,15 @@ function HomeScreen({
   const isTablet = width >= 650;
   const isSmallScreen = height < 740;
 
+  // Suspensão temporária da compra de bilhetes + deslocações pela app (alterar para false para reativar DeslocacaoModal)
+  const TICKETS_PURCHASE_SUSPENDED = true;
+
   // Modo Dia de Jogo: desativado por agora (só será ativo faltando 1 hora para o jogo)
   const isMatchdayActive = false;
   const [jogosModalVisible, setJogosModalVisible] = useState(false);
   const [resultadoModalVisible, setResultadoModalVisible] = useState(false);
   const [deslocacaoModalVisible, setDeslocacaoModalVisible] = useState(false);
+  const [ticketsNoticeVisible, setTicketsNoticeVisible] = useState(false);
   const [plantelModalVisible, setPlantelModalVisible] = useState(false);
   const [tabelaModalVisible, setTabelaModalVisible] = useState(false);
   const [votedPlayerId, setVotedPlayerId] = useState(null);
@@ -290,7 +298,13 @@ function HomeScreen({
         <View style={styles.matchCenterBleed}>
           <MatchCenterCarousel
             matches={matchCenterSlides}
-            onPressTickets={(m) => (!m.isHome ? setDeslocacaoModalVisible(true) : setJogosModalVisible(true))}
+            onPressTickets={(m) => {
+              if (TICKETS_PURCHASE_SUSPENDED) {
+                setTicketsNoticeVisible(true);
+                return;
+              }
+              !m.isHome ? setDeslocacaoModalVisible(true) : setJogosModalVisible(true);
+            }}
             onPressSummary={() => setResultadoModalVisible(true)}
             isDark={isDark}
             isActive={isActive}
@@ -357,7 +371,7 @@ function HomeScreen({
         </View>
 
         {/* SECÇÃO: ATALHOS RÁPIDOS (PLANTEL & TABELA) */}
-        <View style={styles.quickShortcutsSection}>
+        <View style={[styles.quickShortcutsSection, isSmallScreen && styles.quickShortcutsSectionSmall]}>
           <View style={[styles.sectionHeader, styles.quickShortcutsHeaderCentered]}>
             <View style={styles.sectionTitleWithIcon}>
               <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
@@ -374,6 +388,7 @@ function HomeScreen({
             <Pressable
               style={({ pressed }) => [
                 styles.quickShortcutCard,
+                isSmallScreen && styles.quickShortcutCardSmall,
                 !isDark && styles.quickShortcutCardLight,
                 pressed && styles.quickShortcutCardPressed,
               ]}
@@ -398,6 +413,7 @@ function HomeScreen({
             <Pressable
               style={({ pressed }) => [
                 styles.quickShortcutCard,
+                isSmallScreen && styles.quickShortcutCardSmall,
                 !isDark && styles.quickShortcutCardLight,
                 pressed && styles.quickShortcutCardPressed,
               ]}
@@ -538,6 +554,72 @@ function HomeScreen({
         isDark={isDark}
       />
 
+      {/* Aviso de Suspensão Temporária de Bilhetes na App */}
+      {ticketsNoticeVisible && (
+        <Modal
+          visible={ticketsNoticeVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setTicketsNoticeVisible(false)}
+        >
+          <View style={styles.ticketsNoticeOverlay}>
+            <TouchableOpacity
+              style={StyleSheet.absoluteFillObject}
+              activeOpacity={1}
+              onPress={() => setTicketsNoticeVisible(false)}
+            />
+            <View style={[styles.ticketsNoticeCard, !isDark && styles.ticketsNoticeCardLight]}>
+              <View style={[styles.ticketsNoticeHeader, !isDark && styles.ticketsNoticeHeaderLight]}>
+                <View style={styles.ticketsNoticeHeaderLeft}>
+                  <View style={[styles.ticketsNoticeIconBox, !isDark && styles.ticketsNoticeIconBoxLight]}>
+                    <Store size={19} color={isDark ? '#00E676' : '#00874E'} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.ticketsNoticeTitle, !isDark && styles.textDark]}>
+                      Bilhetes & Deslocações
+                    </Text>
+                    <Text style={[styles.ticketsNoticeSub, !isDark && styles.chantsDisabledDescLight]}>
+                      Compra na app temporariamente suspensa
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setTicketsNoticeVisible(false)}
+                  style={[styles.ticketsNoticeCloseBtn, !isDark && styles.ticketsNoticeCloseBtnLight]}
+                  activeOpacity={0.7}
+                >
+                  <X size={16} color={isDark ? '#A0B4AA' : '#5A6E63'} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.ticketsNoticeBody}>
+                <View style={[styles.ticketsNoticeAlertBox, !isDark && styles.ticketsNoticeAlertBoxLight]}>
+                  <AlertCircle size={18} color={isDark ? '#FFB74D' : '#D97706'} />
+                  <Text style={[styles.ticketsNoticeMessage, !isDark && styles.textDark]}>
+                    De momento, a compra de bilhetes e deslocações pela aplicação está suspensa. Para garantires o teu lugar, dirige-te à Loja do Rio Ave FC para dares o teu nome e efetuares o pagamento diretamente na loja.
+                  </Text>
+                </View>
+
+                <View style={[styles.ticketsNoticeStoreRow, !isDark && styles.ticketsNoticeStoreRowLight]}>
+                  <MapPin size={15} color={isDark ? '#00E676' : '#00874E'} />
+                  <Text style={[styles.ticketsNoticeStoreText, !isDark && styles.textDark]}>
+                    Loja Oficial do Rio Ave FC · Estádio dos Arcos
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.ticketsNoticeDoneBtn}
+                  onPress={() => setTicketsNoticeVisible(false)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.ticketsNoticeDoneBtnText}>Entendido</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
     </View>
   );
 }
@@ -585,6 +667,9 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 0,
   },
+  quickShortcutsSectionSmall: {
+    marginTop: 8,
+  },
   quickShortcutsHeaderCentered: {
     justifyContent: 'center',
   },
@@ -618,6 +703,11 @@ const styles = StyleSheet.create({
         elevation: 6,
       },
     }),
+  },
+  quickShortcutCardSmall: {
+    minHeight: 102,
+    padding: 14,
+    gap: 8,
   },
   quickShortcutCardLight: {
     backgroundColor: '#FFFFFF',
@@ -678,6 +768,142 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '600',
     marginTop: 3,
+  },
+  ticketsNoticeOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.78)',
+    justifyContent: 'flex-end',
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(10px)',
+      },
+    }),
+  },
+  ticketsNoticeCard: {
+    backgroundColor: '#0D1410',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 179, 104, 0.3)',
+    overflow: 'hidden',
+  },
+  ticketsNoticeCardLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.2)',
+  },
+  ticketsNoticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  ticketsNoticeHeaderLight: {
+    borderBottomColor: 'rgba(0, 135, 78, 0.12)',
+  },
+  ticketsNoticeHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  ticketsNoticeIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 230, 118, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ticketsNoticeIconBoxLight: {
+    backgroundColor: '#EBF7F0',
+    borderColor: 'rgba(0, 135, 78, 0.25)',
+  },
+  ticketsNoticeTitle: {
+    color: '#FFFFFF',
+    fontSize: 15.5,
+    fontWeight: '800',
+  },
+  ticketsNoticeSub: {
+    color: '#8FA89B',
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  ticketsNoticeCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ticketsNoticeCloseBtnLight: {
+    backgroundColor: '#EDF5F0',
+  },
+  ticketsNoticeBody: {
+    padding: 18,
+    paddingBottom: 28,
+    gap: 12,
+  },
+  ticketsNoticeAlertBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: 'rgba(255, 183, 77, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 183, 77, 0.28)',
+    borderRadius: 14,
+    padding: 14,
+  },
+  ticketsNoticeAlertBoxLight: {
+    backgroundColor: '#FFFBEB',
+    borderColor: 'rgba(217, 119, 6, 0.25)',
+  },
+  ticketsNoticeMessage: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 13.5,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+  ticketsNoticeStoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#121E18',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 13,
+  },
+  ticketsNoticeStoreRowLight: {
+    backgroundColor: '#F3F8F5',
+    borderColor: 'rgba(0, 135, 78, 0.16)',
+  },
+  ticketsNoticeStoreText: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '700',
+  },
+  ticketsNoticeDoneBtn: {
+    backgroundColor: '#00874E',
+    paddingVertical: 13,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  ticketsNoticeDoneBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
   },
   newsHeaderIconBox: {
     width: 24,

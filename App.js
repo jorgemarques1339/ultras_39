@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LiquidGlassNavBar from './src/components/LiquidGlassNavBar';
-import MbWayCheckoutModal from './src/components/MbWayCheckoutModal';
+import QuotaCheckoutModal from './src/components/QuotaCheckoutModal';
 import ReceiptModal from './src/components/ReceiptModal';
 import AlertasModal from './src/components/AlertasModal';
 import WalletPassModal from './src/components/WalletPassModal';
@@ -287,16 +287,12 @@ function MainApp() {
 
         {/* Modais montados sob demanda para melhor desempenho em smartphones */}
         {checkoutModalVisible && (
-          <MbWayCheckoutModal
+          <QuotaCheckoutModal
             visible={checkoutModalVisible}
             onClose={() => setCheckoutModalVisible(false)}
             checkoutData={checkoutData}
             onPaymentSuccess={handlePaymentSuccess}
             onViewReceipt={handleViewReceipt}
-            onGoProfile={() => {
-              setCheckoutModalVisible(false);
-              handleSelectTab('profile');
-            }}
             user={user}
             isDark={isDark}
           />
