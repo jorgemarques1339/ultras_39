@@ -183,13 +183,12 @@ function MainApp() {
       return updated;
     });
 
-    // Se o pagamento for de quota, atualizar estado do cartão digital do sócio
+    // Se o pagamento for de quota, marcar como aguarda validação até confirmação na Sede/Tesouraria
     if (newTx.type === 'quota') {
       updateUser({
-        quotaStatus: 'em_dia',
-        quotaPendingPeriod: 'Época 2026/2027 Regularizada',
-        quotaPendingMonth: 'Época 2026/2027 Regularizada',
-        memberCategory: 'Sócio Efetivo (Bancada Poente)',
+        quotaStatus: 'aguarda_validacao',
+        quotaPendingPeriod: 'Época 2026/2027 · Aguarda Validação',
+        quotaPendingMonth: 'Época 2026/2027 · Aguarda Validação',
       });
     }
   }, [updateUser]);

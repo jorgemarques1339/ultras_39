@@ -562,10 +562,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#14201A',
     borderWidth: 1.5,
     borderColor: 'rgba(0, 230, 118, 0.28)',
-    borderRadius: 16,
+    borderRadius: 20,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    opacity: 0.82,
+    opacity: 0.9,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
@@ -573,9 +573,9 @@ const styles = StyleSheet.create({
     }),
   },
   settingsBtnLight: {
-    backgroundColor: 'rgba(238, 244, 240, 0.72)',
+    backgroundColor: 'rgba(238, 244, 240, 0.85)',
     borderColor: 'rgba(0, 135, 78, 0.25)',
-    opacity: 0.82,
+    opacity: 0.9,
   },
   settingsBtnLeft: {
     flexDirection: 'row',
@@ -635,17 +635,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 14,
-    borderRadius: 16,
+    borderRadius: 20,
     backgroundColor: '#14201A',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 12,
-    opacity: 0.82,
+    opacity: 0.9,
   },
   settingCardLight: {
-    backgroundColor: 'rgba(238, 244, 240, 0.72)',
+    backgroundColor: 'rgba(238, 244, 240, 0.85)',
     borderColor: 'rgba(0, 135, 78, 0.15)',
-    opacity: 0.82,
+    opacity: 0.9,
   },
   settingCardActive: {
     borderColor: 'rgba(0, 230, 118, 0.25)',

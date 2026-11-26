@@ -72,14 +72,14 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
                   />
                 ) : (
                   <IconComponent
-                    size={22}
+                    size={20}
                     color={
                       isItemLocked
                         ? isDark
-                          ? '#6B7280' // Cor cinzenta evidente no modo escuro
-                          : '#9CA3AF' // Cor cinzenta evidente no modo claro
+                          ? '#6B7280'
+                          : '#9CA3AF'
                         : isDark
-                        ? 'rgba(255, 255, 255, 0.58)'
+                        ? 'rgba(255, 255, 255, 0.65)'
                         : '#5A6E63'
                     }
                     strokeWidth={1.9}
@@ -103,6 +103,18 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
                   </View>
                 )}
               </View>
+
+              <Text
+                style={[
+                  styles.navLabel,
+                  !isDark && styles.navLabelLight,
+                  isActive && (isDark ? styles.navLabelActive : styles.navLabelActiveLight),
+                  isItemLocked && styles.navLabelLocked,
+                ]}
+                numberOfLines={1}
+              >
+                {item.label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -158,12 +170,13 @@ const styles = StyleSheet.create({
   glassBarPhone: {
     width: '100%',
     maxWidth: 400,
-    height: 58,
+    height: 64,
     paddingHorizontal: 4,
   },
   glassBarTablet: {
     width: 440,
     maxWidth: '90%',
+    height: 66,
     paddingHorizontal: 12,
   },
   glassBarLight: {
@@ -194,16 +207,37 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   iconCapsule: {
-    width: 52,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   iconCapsulePhone: {
-    width: 46,
-    height: 42,
+    width: 44,
+    height: 30,
+  },
+  navLabel: {
+    color: 'rgba(255, 255, 255, 0.56)',
+    fontSize: 9.5,
+    fontWeight: '700',
+    marginTop: 2,
+    letterSpacing: 0.1,
+  },
+  navLabelLight: {
+    color: '#5A6E63',
+  },
+  navLabelActive: {
+    color: '#00E676',
+    fontWeight: '800',
+  },
+  navLabelActiveLight: {
+    color: '#00874E',
+    fontWeight: '800',
+  },
+  navLabelLocked: {
+    opacity: 0.65,
   },
   iconCapsuleActiveDark: {
     backgroundColor: 'rgba(0, 179, 104, 0.2)',
@@ -237,9 +271,9 @@ const styles = StyleSheet.create({
     }),
   },
   activeTabLogo: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     ...Platform.select({
       web: {
         filter: 'drop-shadow(0 2px 8px rgba(0, 179, 104, 0.45))',

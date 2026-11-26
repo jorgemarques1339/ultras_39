@@ -34,6 +34,7 @@ import { useAppSettings } from '../context/AppSettingsContext';
 const HolographicMemberCard = memo(function HolographicMemberCard({
   user,
   isQuotaPending,
+  isQuotaAwaitingValidation,
   onPayQuota,
   onEditProfile,
   onOpenWalletPass,
@@ -137,7 +138,7 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
       <View
         style={[
           styles.cardFooterData,
-          !isQuotaPending && styles.cardFooterDataPaid,
+          !isQuotaPending && !isQuotaAwaitingValidation && styles.cardFooterDataPaid,
         ]}
       >
         <View style={styles.cardQuotaSimpleRow}>
@@ -145,7 +146,7 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
             <View
               style={[
                 styles.cardQuotaDot,
-                !isQuotaPending && styles.cardQuotaDotPaid,
+                !isQuotaPending && !isQuotaAwaitingValidation && styles.cardQuotaDotPaid,
               ]}
             />
             <Text style={styles.cardQuotaSimpleLabel}>QUOTA ANUAL</Text>
@@ -166,6 +167,10 @@ const HolographicMemberCard = memo(function HolographicMemberCard({
             >
               <Text style={styles.cardPayBtnText}>Pagar Quota</Text>
             </TouchableOpacity>
+          ) : isQuotaAwaitingValidation ? (
+            <View style={styles.cardAwaitingBtn}>
+              <Text style={styles.cardAwaitingText}>AGUARDA VALIDAÇÃO</Text>
+            </View>
           ) : (
             <View style={styles.cardPaidSuccessBtn}>
               <Check size={10} color="#00E676" strokeWidth={3} />
@@ -293,7 +298,8 @@ function ProfileScreen({
     [onUpdateUser, authUpdateUser]
   );
 
-  const isQuotaPending = user?.quotaStatus === 'pendente';
+  const isQuotaAwaitingValidation = user?.quotaStatus === 'aguarda_validacao';
+  const isQuotaPending = !isQuotaAwaitingValidation && user?.quotaStatus !== 'em_dia';
 
   return (
     <View style={[styles.container, !isDark && styles.containerLight]}>
@@ -353,6 +359,7 @@ function ProfileScreen({
             <HolographicMemberCard
               user={user}
               isQuotaPending={isQuotaPending}
+              isQuotaAwaitingValidation={isQuotaAwaitingValidation}
               onPayQuota={onPayQuota}
               onEditProfile={() => setEditProfileModalVisible(true)}
               onOpenWalletPass={onOpenWalletPass}
@@ -614,7 +621,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(242, 182, 0, 0.45)',
     padding: 16,
-    opacity: 0.88,
+    opacity: 0.93,
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
@@ -807,6 +814,20 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 0.5,
   },
+  cardAwaitingBtn: {
+    backgroundColor: 'rgba(255, 183, 77, 0.18)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 183, 77, 0.5)',
+  },
+  cardAwaitingText: {
+    color: '#FFB74D',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+  },
 
   // Botões Carteira Digital Integrados no Cartão
   cardWalletRow: {
@@ -952,7 +973,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderWidth: 1,
     borderColor: '#00B368',
-    opacity: 0.88,
+    opacity: 0.93,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 135, 78, 0.3)',
@@ -999,10 +1020,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#14201A',
     borderWidth: 1.5,
     borderColor: 'rgba(0, 230, 118, 0.28)',
-    borderRadius: 16,
+    borderRadius: 20,
     paddingVertical: 14,
     paddingHorizontal: 15,
-    opacity: 0.82,
+    opacity: 0.9,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
@@ -1010,9 +1031,9 @@ const styles = StyleSheet.create({
     }),
   },
   settingsBtnLight: {
-    backgroundColor: 'rgba(238, 244, 240, 0.72)',
+    backgroundColor: 'rgba(238, 244, 240, 0.85)',
     borderColor: 'rgba(0, 135, 78, 0.25)',
-    opacity: 0.82,
+    opacity: 0.9,
   },
   settingsBtnLeft: {
     flexDirection: 'row',
