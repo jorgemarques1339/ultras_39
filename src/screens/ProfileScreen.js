@@ -296,16 +296,27 @@ function ProfileScreen({
   const isQuotaPending = user?.quotaStatus === 'pendente';
 
   return (
-    <ScrollView
-      style={[styles.container, !isDark && styles.containerLight]}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-      onScroll={onScroll}
-      scrollEventThrottle={16}
-      keyboardShouldPersistTaps="handled"
-      removeClippedSubviews={Platform.OS !== 'web'}
-      overScrollMode="never"
-    >
+    <View style={[styles.container, !isDark && styles.containerLight]}>
+      {/* LOGÓTIPO DE FUNDO DA CLAQUE (GRUPO 39) */}
+      <View style={styles.backgroundContainer} pointerEvents="none">
+        <Image
+          source={require('../../assets/logo_39.png')}
+          style={[styles.backgroundImage, !isDark && styles.backgroundImageLight]}
+          resizeMode="contain"
+        />
+        <View style={[styles.backgroundOverlay, !isDark && styles.backgroundOverlayLight]} />
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={Platform.OS !== 'web'}
+        overScrollMode="never"
+      >
       {!isLoggedIn ? (
         <View style={[styles.guestCard, !isDark && styles.guestCardLight]}>
           <View style={styles.guestIconBox}>
@@ -510,7 +521,8 @@ function ProfileScreen({
       />
 
       <View style={{ height: 140 }} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -518,7 +530,44 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0D1310',
+    position: 'relative',
     overflow: 'hidden',
+  },
+  containerLight: {
+    backgroundColor: '#F5F8F6',
+  },
+  backgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  backgroundImage: {
+    width: '88%',
+    maxWidth: 380,
+    aspectRatio: 1,
+    opacity: 0.28,
+  },
+  backgroundImageLight: {
+    opacity: 0.22,
+  },
+  backgroundOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+  },
+  backgroundOverlayLight: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+    zIndex: 1,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -560,11 +609,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   holographicCard: {
-    backgroundColor: '#111D16',
+    backgroundColor: '#14201A',
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: 'rgba(242, 182, 0, 0.45)',
     padding: 16,
+    opacity: 0.88,
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
@@ -902,6 +952,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderWidth: 1,
     borderColor: '#00B368',
+    opacity: 0.88,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 135, 78, 0.3)',
@@ -945,12 +996,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#121C16',
+    backgroundColor: '#14201A',
     borderWidth: 1.5,
     borderColor: 'rgba(0, 230, 118, 0.28)',
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 15,
+    opacity: 0.82,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
@@ -958,8 +1010,9 @@ const styles = StyleSheet.create({
     }),
   },
   settingsBtnLight: {
-    backgroundColor: '#F4FAF6',
+    backgroundColor: 'rgba(238, 244, 240, 0.72)',
     borderColor: 'rgba(0, 135, 78, 0.25)',
+    opacity: 0.82,
   },
   settingsBtnLeft: {
     flexDirection: 'row',

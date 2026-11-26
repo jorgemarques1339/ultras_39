@@ -684,11 +684,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 10,
-    backgroundColor: '#121D17',
+    backgroundColor: '#14201A',
     borderWidth: 1,
     borderColor: 'rgba(0, 230, 118, 0.24)',
     borderRadius: 24,
     padding: 16,
+    opacity: 0.82,
     ...Platform.select({
       web: {
         boxShadow: '0 10px 26px rgba(0, 0, 0, 0.42), 0 2px 8px rgba(0, 230, 118, 0.08)',
@@ -710,8 +711,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   quickShortcutCardLight: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(238, 244, 240, 0.72)',
     borderColor: 'rgba(0, 135, 81, 0.16)',
+    opacity: 0.82,
     ...Platform.select({
       web: {
         boxShadow: '0 10px 26px rgba(10, 45, 28, 0.10), 0 2px 8px rgba(0, 135, 81, 0.06)',
@@ -1217,7 +1219,7 @@ const styles = StyleSheet.create({
   },
   backgroundContainer: {
     position: 'absolute',
-    top: 240,
+    top: 0,
     left: 0,
     right: 0,
     bottom: 64,
@@ -2187,7 +2189,7 @@ const styles = StyleSheet.create({
   },
   chantsDisabledCardLight: {
     borderColor: 'rgba(0, 135, 78, 0.16)',
-    opacity: 0.88,
+    opacity: 0.82,
   },
   chantsDevBadge: {
     alignSelf: 'flex-start',

@@ -457,28 +457,35 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   containerLight: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F8F6',
   },
   backgroundContainer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 64,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     zIndex: 0,
   },
   backgroundImage: {
-    width: 240,
-    height: 240,
-    opacity: 0.06,
+    width: '88%',
+    maxWidth: 380,
+    aspectRatio: 1,
+    opacity: 0.28,
   },
   backgroundImageLight: {
-    opacity: 0.05,
+    opacity: 0.22,
   },
   backgroundOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(13, 19, 16, 0.25)',
+    backgroundColor: 'transparent',
   },
   backgroundOverlayLight: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
   },
   scrollView: {
     flex: 1,
@@ -552,12 +559,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#121C16',
+    backgroundColor: '#14201A',
     borderWidth: 1.5,
     borderColor: 'rgba(0, 230, 118, 0.28)',
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 14,
+    opacity: 0.82,
     ...Platform.select({
       web: {
         boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
@@ -565,8 +573,9 @@ const styles = StyleSheet.create({
     }),
   },
   settingsBtnLight: {
-    backgroundColor: '#F4FAF6',
+    backgroundColor: 'rgba(238, 244, 240, 0.72)',
     borderColor: 'rgba(0, 135, 78, 0.25)',
+    opacity: 0.82,
   },
   settingsBtnLeft: {
     flexDirection: 'row',
@@ -627,14 +636,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 14,
     borderRadius: 16,
-    backgroundColor: '#121F19',
+    backgroundColor: '#14201A',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 12,
+    opacity: 0.82,
   },
   settingCardLight: {
-    backgroundColor: '#F8FAF9',
+    backgroundColor: 'rgba(238, 244, 240, 0.72)',
     borderColor: 'rgba(0, 135, 78, 0.15)',
+    opacity: 0.82,
   },
   settingCardActive: {
     borderColor: 'rgba(0, 230, 118, 0.25)',
