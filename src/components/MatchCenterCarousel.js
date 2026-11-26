@@ -101,6 +101,7 @@ function MatchCenterCarousel({
   onPressTickets,
   onPressSummary,
   isDark = true,
+  isActive = true,
   containerWidth,
 }) {
   const { width: windowWidth } = useWindowDimensions();
@@ -118,8 +119,15 @@ function MatchCenterCarousel({
   );
 
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
+  const [isUserDragging, setIsUserDragging] = useState(false);
   const flatListRef = useRef(null);
   const hasScrolledInitial = useRef(false);
+
+  // Índice do último resultado (último jogo passado antes do próximo jogo)
+  const lastPastIndex = listData.reduce(
+    (acc, m, idx) => (m.type === 'past' ? idx : acc),
+    0
+  );
 
   // Garantir foco inicial no Próximo Jogo mesmo em Web / Android
   useEffect(() => {
@@ -138,6 +146,25 @@ function MatchCenterCarousel({
     }
   }, [defaultIndex, listData.length]);
 
+  // Deslize automático de 4 em 4 segundos, voltando ao último resultado ao terminar
+  useEffect(() => {
+    if (!isActive || isUserDragging || listData.length <= 1) return;
+
+    const timer = setTimeout(() => {
+      const nextIndex =
+        activeIndex + 1 >= listData.length ? lastPastIndex : activeIndex + 1;
+      setActiveIndex(nextIndex);
+      try {
+        flatListRef.current?.scrollToIndex({
+          index: nextIndex,
+          animated: true,
+        });
+      } catch (_) {}
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [activeIndex, isActive, isUserDragging, listData.length, lastPastIndex]);
+
   const getItemLayout = useCallback(
     (_, index) => ({
       length: cardWidth,
@@ -145,6 +172,17 @@ function MatchCenterCarousel({
       index,
     }),
     [cardWidth]
+  );
+
+  const handleScroll = useCallback(
+    (event) => {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const idx = Math.round(offsetX / cardWidth);
+      if (idx >= 0 && idx < listData.length) {
+        setActiveIndex((prev) => (prev !== idx ? idx : prev));
+      }
+    },
+    [cardWidth, listData.length]
   );
 
   const handleMomentumScrollEnd = useCallback(
@@ -171,11 +209,20 @@ function MatchCenterCarousel({
   const renderSlide = useCallback(
     ({ item }) => {
       const isPast = item.type === 'past';
+      const isNext = item.type === 'next';
 
       return (
         <View style={[styles.slideWrapper, { width: cardWidth }]}>
-          {/* Topo (Centro): Competição + Data Abreviada */}
+          {/* Topo (Centro): Etiqueta Próximo Jogo + Competição + Data Abreviada */}
           <View style={styles.topCenter}>
+            {isNext && (
+              <View style={[styles.nextMatchPill, !isDark && styles.nextMatchPillLight]}>
+                <View style={[styles.nextMatchDot, !isDark && styles.nextMatchDotLight]} />
+                <Text style={[styles.nextMatchPillText, !isDark && styles.nextMatchPillTextLight]}>
+                  PRÓXIMO JOGO
+                </Text>
+              </View>
+            )}
             <Text style={[styles.competitionText, !isDark && styles.competitionTextLight]} numberOfLines={1}>
               {item.competition}
             </Text>
@@ -188,7 +235,14 @@ function MatchCenterCarousel({
           <View style={styles.matchRow}>
             {/* Esquerda: Equipa da Casa */}
             <View style={styles.teamCol}>
-              <View style={[styles.badgeHalo, !isDark && styles.badgeHaloLight]}>
+              <View
+                style={[
+                  styles.badgeHalo,
+                  !isDark && styles.badgeHaloLight,
+                  isNext && styles.badgeHaloNext,
+                  isNext && !isDark && styles.badgeHaloNextLight,
+                ]}
+              >
                 <ClubBadge
                   name={item.homeTeam?.name}
                   logo={item.homeTeam?.logo}
@@ -203,7 +257,14 @@ function MatchCenterCarousel({
 
             {/* Centro: Hora (futuro/próximo) ou Resultado (passado) + Botão Ação */}
             <View style={styles.centerCol}>
-              <Text style={[styles.mainHighlightText, !isDark && styles.textDark]} numberOfLines={1}>
+              <Text
+                style={[
+                  styles.mainHighlightText,
+                  !isDark && styles.textDark,
+                  isNext && (isDark ? styles.mainHighlightNextDark : styles.mainHighlightNextLight),
+                ]}
+                numberOfLines={1}
+              >
                 {isPast ? item.score || '0 - 0' : item.time || '20:30'}
               </Text>
 
@@ -218,7 +279,7 @@ function MatchCenterCarousel({
                   styles.actionBtn,
                   isPast
                     ? [styles.actionBtnSecondary, !isDark && styles.actionBtnSecondaryLight]
-                    : styles.actionBtnPrimary,
+                    : [styles.actionBtnPrimary, isNext && styles.actionBtnNext],
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel={
@@ -243,7 +304,14 @@ function MatchCenterCarousel({
 
             {/* Direita: Equipa Visitante */}
             <View style={styles.teamCol}>
-              <View style={[styles.badgeHalo, !isDark && styles.badgeHaloLight]}>
+              <View
+                style={[
+                  styles.badgeHalo,
+                  !isDark && styles.badgeHaloLight,
+                  isNext && styles.badgeHaloNext,
+                  isNext && !isDark && styles.badgeHaloNextLight,
+                ]}
+              >
                 <ClubBadge
                   name={item.awayTeam?.name}
                   logo={item.awayTeam?.logo}
@@ -262,13 +330,25 @@ function MatchCenterCarousel({
     [cardWidth, isDark, onPressSummary, onPressTickets]
   );
 
+  const activeItem = listData[activeIndex] || listData[defaultIndex];
+  const isActiveNext = activeItem?.type === 'next';
+  const isActivePast = activeItem?.type === 'past';
+
+  const carouselColors = isActiveNext
+    ? isDark
+      ? ['#0A2E1E', '#005A36', '#091E15']
+      : ['#D9F4E5', '#ECF9F2', '#CBEEDB']
+    : isActivePast
+      ? isDark
+        ? ['#0D1114', '#141B1E', '#090C0E']
+        : ['#F5F7F6', '#ECEFED', '#E4E9E6']
+      : isDark
+        ? ['#0D1310', '#0B2419', '#081216']
+        : ['#FFFFFF', '#F1F8F4', '#E6F4EC'];
+
   return (
     <LinearGradient
-      colors={
-        isDark
-          ? ['#0D1310', '#0B2419', '#081216']
-          : ['#FFFFFF', '#F1F8F4', '#E6F4EC']
-      }
+      colors={carouselColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.carouselContainer, !isDark && styles.carouselContainerLight]}
@@ -286,7 +366,14 @@ function MatchCenterCarousel({
         showsHorizontalScrollIndicator={false}
         initialScrollIndex={defaultIndex}
         getItemLayout={getItemLayout}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onScrollBeginDrag={() => setIsUserDragging(true)}
+        onScrollEndDrag={() => setIsUserDragging(false)}
+        onMomentumScrollEnd={(e) => {
+          setIsUserDragging(false);
+          handleMomentumScrollEnd(e);
+        }}
         bounces={false}
         overScrollMode="never"
         removeClippedSubviews={Platform.OS !== 'web'}
@@ -355,7 +442,42 @@ const styles = StyleSheet.create({
   topCenter: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    minHeight: 56,
+    marginBottom: 12,
+  },
+  nextMatchPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 230, 118, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.42)',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+    marginBottom: 6,
+  },
+  nextMatchPillLight: {
+    backgroundColor: 'rgba(0, 135, 81, 0.1)',
+    borderColor: 'rgba(0, 135, 81, 0.35)',
+  },
+  nextMatchDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00E676',
+  },
+  nextMatchDotLight: {
+    backgroundColor: RIO_AVE_GREEN,
+  },
+  nextMatchPillText: {
+    color: '#00E676',
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+  },
+  nextMatchPillTextLight: {
+    color: RIO_AVE_GREEN,
   },
   competitionText: {
     color: '#B8C7BF',
@@ -392,6 +514,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
   },
+  badgeHaloNext: {
+    backgroundColor: 'rgba(0, 230, 118, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 230, 118, 0.48)',
+  },
+  badgeHaloNextLight: {
+    backgroundColor: 'rgba(0, 135, 81, 0.1)',
+    borderColor: 'rgba(0, 135, 81, 0.4)',
+  },
   teamNameText: {
     color: '#FFFFFF',
     fontSize: 12,
@@ -413,6 +544,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
   },
+  mainHighlightNextDark: {
+    color: '#00E676',
+  },
+  mainHighlightNextLight: {
+    color: RIO_AVE_GREEN,
+  },
   actionBtn: {
     paddingHorizontal: 22,
     paddingVertical: 8.5,
@@ -424,6 +561,21 @@ const styles = StyleSheet.create({
     backgroundColor: RIO_AVE_GREEN,
     borderWidth: 1,
     borderColor: '#00B368',
+  },
+  actionBtnNext: {
+    borderColor: '#00E676',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 4px 14px rgba(0, 230, 118, 0.35)',
+      },
+      default: {
+        shadowColor: '#00E676',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    }),
   },
   actionBtnSecondary: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',

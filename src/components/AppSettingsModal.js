@@ -21,8 +21,11 @@ import {
   CheckCircle2,
   SlidersHorizontal,
   ShieldCheck,
+  Sun,
+  Moon,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
+import { useAppTheme } from '../context/ThemeContext';
 
 const APP_SETTINGS_STORAGE_KEY = '@grupo39_app_settings';
 
@@ -32,9 +35,21 @@ export const DEFAULT_APP_SETTINGS = {
   sound: true,
 };
 
-export default function AppSettingsModal({ visible, onClose, isDark = true }) {
+export default function AppSettingsModal({ visible, onClose, isDark: isDarkProp }) {
+  const { isDark: contextIsDark, toggleTheme } = useAppTheme();
+  const isDark = isDarkProp !== undefined ? isDarkProp : contextIsDark;
   const [settings, setSettings] = useState(DEFAULT_APP_SETTINGS);
   const [hasSavedFeedback, setHasSavedFeedback] = useState(false);
+
+  const handleSelectTheme = (targetDark) => {
+    if (isDark !== targetDark) {
+      toggleTheme();
+      setHasSavedFeedback(true);
+      setTimeout(() => {
+        setHasSavedFeedback(false);
+      }, 2000);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -320,6 +335,84 @@ export default function AppSettingsModal({ visible, onClose, isDark = true }) {
               />
             </View>
 
+            {/* Opção 4: Tema da Aplicação (Branco / Preto) */}
+            <View
+              style={[
+                styles.settingCard,
+                styles.themeSettingCard,
+                !isDark && styles.settingCardLight,
+                styles.settingCardActive,
+              ]}
+            >
+              <View style={styles.settingLeft}>
+                <View style={[styles.settingIconBox, styles.settingIconBoxActive]}>
+                  {isDark ? (
+                    <Moon size={18} color="#00E676" />
+                  ) : (
+                    <Sun size={18} color="#00874E" />
+                  )}
+                </View>
+                <View style={styles.settingTextCol}>
+                  <View style={styles.settingTitleRow}>
+                    <Text style={[styles.settingTitle, !isDark && styles.textDark]}>
+                      4. Tema da Aplicação
+                    </Text>
+                    <View style={[styles.statusPill, styles.statusPillActive]}>
+                      <Text style={[styles.statusPillText, styles.statusPillTextActive]}>
+                        {isDark ? 'Preto' : 'Branco'}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.settingDesc, !isDark && styles.textMutedDark]}>
+                    Escolhe entre o tema escuro (Preto) e o tema claro (Branco).
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.themeOptionsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.themeOptionBtn,
+                    !isDark && styles.themeOptionBtnLightBase,
+                    !isDark && styles.themeOptionBtnSelected,
+                  ]}
+                  onPress={() => handleSelectTheme(false)}
+                  activeOpacity={0.8}
+                >
+                  <Sun size={14} color={!isDark ? '#FFF' : '#8FA89B'} />
+                  <Text
+                    style={[
+                      styles.themeOptionText,
+                      !isDark && styles.themeOptionTextSelected,
+                    ]}
+                  >
+                    Branco
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.themeOptionBtn,
+                    !isDark && styles.themeOptionBtnLightBase,
+                    isDark && styles.themeOptionBtnSelected,
+                  ]}
+                  onPress={() => handleSelectTheme(true)}
+                  activeOpacity={0.8}
+                >
+                  <Moon size={14} color={isDark ? '#FFF' : '#556A5E'} />
+                  <Text
+                    style={[
+                      styles.themeOptionText,
+                      !isDark && styles.themeOptionTextLightBase,
+                      isDark && styles.themeOptionTextSelected,
+                    ]}
+                  >
+                    Preto
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* Banner de feedback salvo */}
             <View style={styles.feedbackContainer}>
               {hasSavedFeedback ? (
@@ -455,6 +548,47 @@ const styles = StyleSheet.create({
   },
   settingCardActive: {
     borderColor: 'rgba(0, 230, 118, 0.25)',
+  },
+  themeSettingCard: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 12,
+  },
+  themeOptionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  themeOptionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.09)',
+  },
+  themeOptionBtnLightBase: {
+    backgroundColor: '#EDF3EF',
+    borderColor: 'rgba(0, 135, 78, 0.16)',
+  },
+  themeOptionBtnSelected: {
+    backgroundColor: '#00874E',
+    borderColor: '#00E676',
+  },
+  themeOptionText: {
+    color: '#8FA89B',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  themeOptionTextLightBase: {
+    color: '#556A5E',
+  },
+  themeOptionTextSelected: {
+    color: '#FFFFFF',
   },
   settingLeft: {
     flexDirection: 'row',

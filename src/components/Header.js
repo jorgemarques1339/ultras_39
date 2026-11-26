@@ -1,16 +1,11 @@
 import React, { useRef, useEffect, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Image, Platform } from 'react-native';
-import { Bell, Sun, Moon } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 
 function Header({
-  onOpenNotifications,
-  unreadCount = 0,
   visible = true,
   isDark = true,
-  onToggleTheme,
   isLoggedIn = false,
-  onOpenAuth,
   onNavigateProfile,
 }) {
   const anim = useRef(new Animated.Value(1)).current;
@@ -74,39 +69,8 @@ function Header({
           </View>
         </View>
 
-        {/* Grupo de Ações à Direita: Alternar Tema & Notificações */}
-        <View style={styles.rightActionsRow}>
-          {/* Botão Alternador de Tema: Light / Black */}
-          <TouchableOpacity
-            style={[styles.themeToggleButton, !isDark && styles.themeToggleButtonLight]}
-            onPress={onToggleTheme}
-            activeOpacity={0.75}
-            accessibilityLabel={isDark ? 'Mudar para modo Light' : 'Mudar para modo Black'}
-          >
-            {isDark ? (
-              <Sun size={17} color="#00B368" />
-            ) : (
-              <Moon size={17} color="#00874E" />
-            )}
-          </TouchableOpacity>
-
-          {/* Sino de Alertas & Comunicados */}
-          <TouchableOpacity
-            style={[styles.notifButton, !isDark && styles.notifButtonLight]}
-            onPress={onOpenNotifications}
-            activeOpacity={0.7}
-            accessibilityLabel="Ver Alertas e Comunicados"
-          >
-            <Bell size={18} color={isDark ? COLORS.textSecondary : '#4A5D53'} />
-            {unreadCount > 0 && (
-              <View style={styles.notifBadge}>
-                <Text style={styles.notifBadgeText}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+        {/* Espaço à direita para manter o logótipo perfeitamente centrado */}
+        <View style={styles.rightActionsRow} />
       </View>
     </Animated.View>
   );

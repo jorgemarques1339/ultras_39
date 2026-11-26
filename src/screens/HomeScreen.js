@@ -379,6 +379,7 @@ function HomeScreen({
             onPressTickets={(m) => (!m.isHome ? setDeslocacaoModalVisible(true) : setJogosModalVisible(true))}
             onPressSummary={() => setResultadoModalVisible(true)}
             isDark={isDark}
+            isActive={isActive}
           />
         </View>
 

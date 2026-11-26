@@ -9,7 +9,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from './src/components/Header';
 import LiquidGlassNavBar from './src/components/LiquidGlassNavBar';
 import MbWayCheckoutModal from './src/components/MbWayCheckoutModal';
 import ReceiptModal from './src/components/ReceiptModal';
@@ -115,7 +114,6 @@ function MainApp() {
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
 
   const handleOpenNotifications = useCallback(() => openAlertsModal('all'), [openAlertsModal]);
-  const handleNavigateProfile = useCallback(() => handleSelectTab('profile'), [handleSelectTab]);
   const handleOpenChants = useCallback(() => setChantsModalVisible(true), []);
   const handleOpenPwaInstall = useCallback(() => setPwaModalVisible(true), []);
   const handleOpenWalletPass = useCallback((type) => {
@@ -214,18 +212,6 @@ function MainApp() {
           !isDark && !isTablet && styles.appContainerMobileLight,
         ]}
       >
-        {/* Cabeçalho Superior: visível apenas na aba Principal (Início) */}
-        <Header
-          onOpenNotifications={handleOpenNotifications}
-          unreadCount={unreadCount}
-          visible={activeTab === 'home'}
-          isDark={isDark}
-          onToggleTheme={toggleTheme}
-          isLoggedIn={isLoggedIn}
-          onOpenAuth={openAuthModal}
-          onNavigateProfile={handleNavigateProfile}
-        />
-
         {/* Ecrãs Conforme a Aba Ativa com Lazy-Mount & Keep-Alive para Arranque Rápido */}
         <View style={[styles.screenArea, !isDark && styles.screenAreaLight]}>
           <View style={[styles.tabContentPane, activeTab !== 'home' && styles.hiddenPane]}>
@@ -271,6 +257,8 @@ function MainApp() {
                 onOpenAuth={openAuthModal}
                 onLogout={handleLogout}
                 onUpdateUser={updateUser}
+                onOpenNotifications={handleOpenNotifications}
+                unreadCount={unreadCount}
               />
             </View>
           )}

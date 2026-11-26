@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   Edit3,
   CreditCard,
+  Bell,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { FAN_ACHIEVEMENTS } from '../data/mockData';
@@ -243,6 +244,8 @@ function ProfileScreen({
   onOpenAuth,
   onLogout,
   onUpdateUser,
+  onOpenNotifications,
+  unreadCount = 0,
 }) {
   const { updateUser: authUpdateUser } = useAuth();
   const [hasCheckedIn, setHasCheckedIn] = useState(false);
@@ -451,7 +454,60 @@ function ProfileScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 4. DEFINIÇÕES DA APP (POR CIMA DO BOTÃO TERMINAR SESSÃO) */}
+          {/* 4. ALERTAS & COMUNICADOS NA ÁREA PESSOAL */}
+          {onOpenNotifications && (
+            <View style={styles.settingsSection}>
+              <TouchableOpacity
+                style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
+                onPress={onOpenNotifications}
+                activeOpacity={0.85}
+              >
+                <View style={styles.settingsBtnLeft}>
+                  <View
+                    style={[
+                      styles.settingsIconBox,
+                      !isDark && styles.settingsIconBoxLight,
+                    ]}
+                  >
+                    <Bell
+                      size={17}
+                      color={isDark ? '#00E676' : '#00874E'}
+                    />
+                  </View>
+                  <View>
+                    <View style={styles.settingsTitleRow}>
+                      <Text
+                        style={[styles.settingsBtnTitle, !isDark && styles.textDark]}
+                      >
+                        Alertas & Comunicados
+                      </Text>
+                      {unreadCount > 0 && (
+                        <View style={styles.alertsUnreadBadge}>
+                          <Text style={styles.alertsUnreadBadgeText}>
+                            {unreadCount > 9 ? '9+' : unreadCount} {unreadCount === 1 ? 'novo' : 'novos'}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.settingsBtnSubtitle,
+                        !isDark && styles.textMutedDark,
+                      ]}
+                    >
+                      Avisos da claque, convocatórias e notificações
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight
+                  size={16}
+                  color={isDark ? COLORS.textMuted : '#7E9187'}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* 5. DEFINIÇÕES DA APP (POR CIMA DO BOTÃO TERMINAR SESSÃO) */}
           <View style={styles.settingsSection}>
             <TouchableOpacity
               style={[styles.settingsBtn, !isDark && styles.settingsBtnLight]}
@@ -487,7 +543,7 @@ function ProfileScreen({
                       !isDark && styles.textMutedDark,
                     ]}
                   >
-                    Notificações, leitor NFC e som da bancada
+                    Tema branco/preto, notificações, NFC e som
                   </Text>
                 </View>
               </View>
@@ -1054,6 +1110,17 @@ const styles = StyleSheet.create({
     color: '#00E676',
     fontSize: 9,
     fontWeight: '800',
+  },
+  alertsUnreadBadge: {
+    backgroundColor: '#FF5252',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+  },
+  alertsUnreadBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
   },
   settingsBtnSubtitle: {
     color: COLORS.textMuted,
