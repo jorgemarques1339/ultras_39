@@ -77,7 +77,17 @@ function StoreScreen({ isDark = true, isActive = false }) {
 
   const handleLoadFinished = useCallback(() => {
     setIsLoading(false);
-  }, []);
+    const theme = isDark ? 'dark' : 'light';
+    if (Platform.OS === 'web') {
+      try {
+        iframeRef.current?.contentWindow?.postMessage({ type: 'g39-theme', theme }, '*');
+      } catch (_) {}
+    } else if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(
+        `(function(){ if(typeof applyStoreTheme==='function'){ applyStoreTheme('${theme}'); } })(); true;`
+      );
+    }
+  }, [isDark]);
 
   const handleReload = useCallback(() => {
     setHasError(false);

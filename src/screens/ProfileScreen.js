@@ -350,12 +350,6 @@ function ProfileScreen({
         <>
           {/* 1. CARTÃO DIGITAL DO SÓCIO DA CLAQUE G39 */}
           <View style={styles.cardSection}>
-            <View style={styles.sectionTitleHeaderRow}>
-              <Text style={[styles.sectionHeaderTitle, !isDark && styles.textDark]}>
-                Cartão Sócio G39
-              </Text>
-            </View>
-
             <HolographicMemberCard
               user={user}
               isQuotaPending={isQuotaPending}

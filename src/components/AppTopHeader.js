@@ -3,9 +3,9 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const HEADER_TITLES = {
-  home: 'GRUPO',
-  apoio: 'APOIO',
-  profile: 'SÓCIO',
+  home: { prefix: 'GRUPO', accent: '39' },
+  apoio: { prefix: 'APOIO AO', accent: 'SÓCIO' },
+  profile: { prefix: 'PERFIL DO', accent: 'SÓCIO' },
 };
 
 const MATCH_CENTER_HEADER_DARK = [
@@ -21,7 +21,7 @@ const MATCH_CENTER_HEADER_LIGHT = [
 ];
 
 function AppTopHeader({ activeTab, isDark = true }) {
-  const prefix = HEADER_TITLES[activeTab] || 'GRUPO';
+  const { prefix, accent } = HEADER_TITLES[activeTab] || HEADER_TITLES.home;
   const isHome = activeTab === 'home';
 
   const content = (
@@ -34,7 +34,7 @@ function AppTopHeader({ activeTab, isDark = true }) {
         />
       </View>
       <Text style={[styles.brandName, !isDark && styles.brandNameLight]}>
-        {prefix} <Text style={[styles.greenText, !isDark && styles.greenTextLight]}>39</Text>
+        {prefix} <Text style={[styles.greenText, !isDark && styles.greenTextLight]}>{accent}</Text>
       </Text>
     </View>
   );
