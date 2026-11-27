@@ -22,6 +22,9 @@ import {
   Trophy,
   Zap,
   Lock,
+  ShieldCheck,
+  LogIn,
+  UserPlus,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
 import { NEXT_MATCH, MATCHDAY_DATA, PAST_RESULTS, CHANT_OF_THE_WEEK } from '../data/mockData';
@@ -41,6 +44,7 @@ import PlantelModal, { RioAveJerseyIcon } from '../components/PlantelModal';
 import TabelaModal from '../components/TabelaModal';
 import TicketsSuspendedModal from '../components/TicketsSuspendedModal';
 import HomeTicketModal from '../components/HomeTicketModal';
+import BecomeMemberModal from '../components/BecomeMemberModal';
 import MatchCenterCarousel, { SAMPLE_MATCH_CENTER_DATA } from '../components/MatchCenterCarousel';
 
 function HomeScreen({
@@ -50,10 +54,12 @@ function HomeScreen({
   isDark = true,
   isActive = true,
   isLoggedIn = false,
+  onOpenAuth,
 }) {
   const { width, height } = useWindowDimensions();
   const isTablet = width >= 650;
   const isSmallScreen = height < 740;
+  const isCompactWidth = width < 380;
 
   // Suspensão temporária da marcação de deslocações pela app (alterar para false para reativar DeslocacaoModal)
   const DESLOCACAO_PURCHASE_SUSPENDED = true;
@@ -67,6 +73,7 @@ function HomeScreen({
   const [ticketsNoticeMode, setTicketsNoticeMode] = useState('deslocacao');
   const [homeTicketModalVisible, setHomeTicketModalVisible] = useState(false);
   const [selectedHomeMatch, setSelectedHomeMatch] = useState(null);
+  const [becomeMemberModalVisible, setBecomeMemberModalVisible] = useState(false);
 
   const isBigThreeMatch = useCallback((matchItem) => {
     const names = `${matchItem?.homeTeam?.name || ''} ${matchItem?.awayTeam?.name || ''}`.toLowerCase();
@@ -207,6 +214,7 @@ function HomeScreen({
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
+          isSmallScreen && styles.scrollContentSmall,
           {
             paddingBottom: isTablet ? 115 : (isSmallScreen ? 100 : 112),
           },
@@ -243,64 +251,151 @@ function HomeScreen({
           />
         </View>
 
-        {/* DESTAQUE PRINCIPAL: CÂNTICOS G39 (EM DESENVOLVIMENTO) */}
-        <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleWithIcon}>
-              <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
-                <Drum size={13} color={isDark ? '#00E676' : '#00874E'} />
+        {/* DESTAQUE PRINCIPAL: CÂNTICOS (COM LOGIN) OU CONVITE PARA SÓCIOS (SEM LOGIN) */}
+        {isLoggedIn ? (
+          <View style={[styles.chantsCenterWrapper, isSmallScreen && styles.chantsCenterWrapperSmall]}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleWithIcon}>
+                <View style={[styles.sectionIconBoxGreen, !isDark && styles.newsHeaderIconBoxLight]}>
+                  <Drum size={13} color={isDark ? '#00E676' : '#00874E'} />
+                </View>
+                <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
+                  Cânticos
+                </Text>
               </View>
-              <Text style={[styles.sectionTitle, styles.newsSectionTitle, !isDark && styles.sectionTitleLight]}>
-                Cânticos
-              </Text>
+            </View>
+            <View
+              style={styles.chantsTouchFull}
+              accessibilityState={{ disabled: true }}
+              accessibilityLabel="Cânticos Grupo 39 em desenvolvimento"
+            >
+              <LinearGradient
+                colors={
+                  isDark
+                    ? ['#14201A', '#0E1712']
+                    : ['#EEF4F0', '#F7FAF8']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[
+                  styles.chantsCenteredBtn,
+                  styles.chantsDisabledCard,
+                  !isDark && styles.chantsDisabledCardLight,
+                  isSmallScreen && styles.chantsCenteredBtnSmall,
+                ]}
+              >
+                <View style={styles.chantsLogoWrapper}>
+                  <Image
+                    source={require('../../assets/logo_39.png')}
+                    style={styles.chantsLogoImage}
+                    resizeMode="contain"
+                  />
+                </View>
+                <View style={styles.chantsTextBoxCentered}>
+                  <View style={[styles.chantsDevBadge, !isDark && styles.chantsDevBadgeLight]}>
+                    <Text style={[styles.chantsDevBadgeText, !isDark && styles.chantsDevBadgeTextLight]}>
+                      EM DESENVOLVIMENTO
+                    </Text>
+                  </View>
+                  <Text style={[styles.shortcutTitleCentered, !isDark && styles.textDark]} numberOfLines={1}>
+                    Cânticos Grupo 39
+                  </Text>
+                  <Text style={[styles.shortcutDescCentered, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
+                    Letra e ritmos disponíveis em breve
+                  </Text>
+                </View>
+                <View style={[styles.chantsLockCircle, !isDark && styles.chantsLockCircleLight]}>
+                  <Lock size={13} color={isDark ? '#8DA397' : '#5A6E63'} />
+                </View>
+              </LinearGradient>
             </View>
           </View>
-          <View
-            style={styles.chantsTouchFull}
-            accessibilityState={{ disabled: true }}
-            accessibilityLabel="Cânticos Grupo 39 em desenvolvimento"
-          >
+        ) : (
+          onOpenAuth && (
             <LinearGradient
               colors={
                 isDark
-                  ? ['#14201A', '#0E1712']
-                  : ['#EEF4F0', '#F7FAF8']
+                  ? ['#0D3B26', '#0B2418', '#0D1712']
+                  : ['#E3F6EC', '#F2FBF6', '#FFFFFF']
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[
-                styles.chantsCenteredBtn,
-                styles.chantsDisabledCard,
-                !isDark && styles.chantsDisabledCardLight,
-                isSmallScreen && styles.chantsCenteredBtnSmall,
+                styles.memberPromptCard,
+                isSmallScreen && styles.memberPromptCardSmall,
+                !isDark && styles.memberPromptCardLight,
               ]}
             >
-              <View style={styles.chantsLogoWrapper}>
-                <Image
-                  source={require('../../assets/logo_39.png')}
-                  style={styles.chantsLogoImage}
-                  resizeMode="contain"
-                />
+              <View style={styles.memberPromptGlowOrb} pointerEvents="none" />
+
+              <View style={[styles.memberPromptPill, !isDark && styles.memberPromptPillLight]}>
+                <View style={[styles.memberPromptPillDot, !isDark && styles.memberPromptPillDotLight]} />
+                <Text style={[styles.memberPromptPillText, !isDark && styles.memberPromptPillTextLight]}>
+                  ÁREA DE SÓCIO · GRUPO 39
+                </Text>
               </View>
-              <View style={styles.chantsTextBoxCentered}>
-                <View style={[styles.chantsDevBadge, !isDark && styles.chantsDevBadgeLight]}>
-                  <Text style={[styles.chantsDevBadgeText, !isDark && styles.chantsDevBadgeTextLight]}>
-                    EM DESENVOLVIMENTO
+
+              <View style={styles.memberPromptHeader}>
+                <View style={[styles.memberPromptIconBox, !isDark && styles.memberPromptIconBoxLight]}>
+                  <Image
+                    source={require('../../assets/logo_39.png')}
+                    style={styles.memberPromptLogo}
+                    resizeMode="contain"
+                  />
+                </View>
+                <View style={styles.memberPromptTextCol}>
+                  <Text style={[styles.memberPromptTitle, !isDark && styles.textDark]} numberOfLines={1}>
+                    És Sócio do Grupo 39?
+                  </Text>
+                  <Text
+                    style={[styles.memberPromptDesc, !isDark && styles.chantsDisabledDescLight]}
+                    numberOfLines={2}
+                  >
+                    Entra com a tua conta ou torna-te sócio para teres acesso aos dados de login e cartão digital.
                   </Text>
                 </View>
-                <Text style={[styles.shortcutTitleCentered, !isDark && styles.textDark]} numberOfLines={1}>
-                  Cânticos Grupo 39
-                </Text>
-                <Text style={[styles.shortcutDescCentered, !isDark && styles.chantsDisabledDescLight]} numberOfLines={1}>
-                  Letra e ritmos disponíveis em breve
-                </Text>
               </View>
-              <View style={[styles.chantsLockCircle, !isDark && styles.chantsLockCircleLight]}>
-                <Lock size={13} color={isDark ? '#8DA397' : '#5A6E63'} />
+
+              <View style={styles.memberPromptActions}>
+                <TouchableOpacity
+                  style={[styles.memberLoginBtn, isSmallScreen && styles.memberActionBtnSmall]}
+                  onPress={() => onOpenAuth({ initialTab: 'login' })}
+                  activeOpacity={0.85}
+                >
+                  <LogIn size={14} color="#FFFFFF" />
+                  <Text
+                    style={[styles.memberLoginBtnText, isCompactWidth && styles.memberActionTextCompact]}
+                    numberOfLines={1}
+                  >
+                    Sim, fazer Login
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.memberRegisterBtn,
+                    isSmallScreen && styles.memberActionBtnSmall,
+                    !isDark && styles.memberRegisterBtnLight,
+                  ]}
+                  onPress={() => setBecomeMemberModalVisible(true)}
+                  activeOpacity={0.85}
+                >
+                  <UserPlus size={14} color={isDark ? '#00E676' : '#00874E'} />
+                  <Text
+                    style={[
+                      styles.memberRegisterBtnText,
+                      isCompactWidth && styles.memberActionTextCompact,
+                      !isDark && styles.memberRegisterBtnTextLight,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    Quero ser Sócio
+                  </Text>
+                </TouchableOpacity>
               </View>
             </LinearGradient>
-          </View>
-        </View>
+          )
+        )}
 
         {/* SECÇÃO: ATALHOS RÁPIDOS (PLANTEL & TABELA) */}
         <View style={[styles.quickShortcutsSection, isSmallScreen && styles.quickShortcutsSectionSmall]}>
@@ -511,6 +606,14 @@ function HomeScreen({
         />
       )}
 
+      {becomeMemberModalVisible && (
+        <BecomeMemberModal
+          visible={becomeMemberModalVisible}
+          onClose={() => setBecomeMemberModalVisible(false)}
+          isDark={isDark}
+        />
+      )}
+
     </View>
   );
 }
@@ -533,6 +636,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 14,
     gap: 16,
+  },
+  scrollContentSmall: {
+    gap: 12,
   },
   matchCenterBleed: {
     marginHorizontal: -14,
@@ -661,6 +767,178 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '600',
     marginTop: 3,
+  },
+  memberPromptCard: {
+    width: '100%',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 230, 118, 0.6)',
+    borderRadius: 20,
+    padding: 16,
+    gap: 11,
+    overflow: 'hidden',
+    position: 'relative',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(0, 230, 118, 0.22)',
+      },
+      default: {
+        shadowColor: '#00E676',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35,
+        shadowRadius: 14,
+        elevation: 8,
+      },
+    }),
+  },
+  memberPromptCardLight: {
+    borderColor: 'rgba(0, 135, 78, 0.45)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 12px 28px rgba(0, 135, 78, 0.16), 0 0 16px rgba(0, 135, 78, 0.12)',
+      },
+    }),
+  },
+  memberPromptGlowOrb: {
+    position: 'absolute',
+    top: -32,
+    right: -28,
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: 'rgba(0, 230, 118, 0.12)',
+  },
+  memberPromptPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(0, 230, 118, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.4)',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  memberPromptPillLight: {
+    backgroundColor: 'rgba(0, 135, 78, 0.12)',
+    borderColor: 'rgba(0, 135, 78, 0.32)',
+  },
+  memberPromptPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#00E676',
+  },
+  memberPromptPillDotLight: {
+    backgroundColor: '#00874E',
+  },
+  memberPromptPillText: {
+    color: '#00E676',
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.9,
+  },
+  memberPromptPillTextLight: {
+    color: '#00874E',
+  },
+  memberPromptCardSmall: {
+    padding: 13,
+    gap: 9,
+  },
+  memberActionBtnSmall: {
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+  },
+  memberActionTextCompact: {
+    fontSize: 11.5,
+  },
+  memberPromptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  memberPromptIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#00E676',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  memberPromptIconBoxLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#00874E',
+  },
+  memberPromptLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  memberPromptTextCol: {
+    flex: 1,
+  },
+  memberPromptTitle: {
+    color: '#FFFFFF',
+    fontSize: 16.5,
+    fontWeight: '900',
+    letterSpacing: 0.1,
+  },
+  memberPromptDesc: {
+    color: '#B8C7BF',
+    fontSize: 12,
+    lineHeight: 16.5,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  memberPromptActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  memberLoginBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#00874E',
+    borderWidth: 1,
+    borderColor: '#00B368',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  memberLoginBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  memberRegisterBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0, 230, 118, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.35)',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  memberRegisterBtnLight: {
+    backgroundColor: '#E7F5ED',
+    borderColor: 'rgba(0, 135, 81, 0.3)',
+  },
+  memberRegisterBtnText: {
+    color: '#00E676',
+    fontSize: 12.5,
+    fontWeight: '800',
+  },
+  memberRegisterBtnTextLight: {
+    color: '#00874E',
   },
   newsHeaderIconBox: {
     width: 24,
@@ -987,7 +1265,7 @@ const styles = StyleSheet.create({
     width: '88%',
     maxWidth: 380,
     aspectRatio: 1,
-    opacity: 0.28,
+    opacity: 0.52,
   },
   backgroundImageLight: {
     opacity: 0.22,

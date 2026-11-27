@@ -14,12 +14,14 @@ const NAV_ITEMS = [
 function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn = false, unreadCount = 0 }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
+  const isSmallPhone = width < 360;
 
   return (
     <View
       style={[
         styles.outerContainer,
         isTablet ? styles.outerContainerTablet : styles.outerContainerPhone,
+        isSmallPhone && styles.outerContainerSmallPhone,
         { pointerEvents: 'box-none' },
       ]}
     >
@@ -107,6 +109,7 @@ function LiquidGlassNavBar({ activeTab, onSelectTab, isDark = true, isLoggedIn =
               <Text
                 style={[
                   styles.navLabel,
+                  isSmallPhone && styles.navLabelSmallPhone,
                   !isDark && styles.navLabelLight,
                   isActive && (isDark ? styles.navLabelActive : styles.navLabelActiveLight),
                   isItemLocked && styles.navLabelLocked,
@@ -134,6 +137,14 @@ const styles = StyleSheet.create({
   outerContainerPhone: {
     bottom: Platform.OS === 'ios' ? 18 : 14,
     paddingHorizontal: 12,
+    ...Platform.select({
+      web: {
+        bottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+      },
+    }),
+  },
+  outerContainerSmallPhone: {
+    paddingHorizontal: 8,
   },
   outerContainerTablet: {
     bottom: 22,
@@ -224,6 +235,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
     letterSpacing: 0.1,
+  },
+  navLabelSmallPhone: {
+    fontSize: 8.8,
+    letterSpacing: 0,
   },
   navLabelLight: {
     color: '#5A6E63',

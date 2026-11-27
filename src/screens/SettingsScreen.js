@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     width: '88%',
     maxWidth: 380,
     aspectRatio: 1,
-    opacity: 0.28,
+    opacity: 0.52,
   },
   backgroundImageLight: {
     opacity: 0.22,

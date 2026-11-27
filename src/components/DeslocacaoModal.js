@@ -9,6 +9,7 @@ import {
   TextInput,
   Platform,
   Share,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -134,7 +135,10 @@ function DeslocacaoModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.overlay}
+      >
         <View style={[styles.container, !isDark && styles.containerLight]}>
           {/* Header */}
           <View style={[styles.header, !isDark && styles.headerLight]}>
@@ -465,7 +469,7 @@ function DeslocacaoModal({
             <View style={{ height: 20 }} />
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

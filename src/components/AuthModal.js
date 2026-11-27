@@ -10,20 +10,18 @@ import {
   Platform,
   ActivityIndicator,
   useWindowDimensions,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {
   X,
   LogIn,
-  UserPlus,
   Mail,
   Lock,
   Eye,
   EyeOff,
-  User,
   ShieldCheck,
   Sparkles,
   AlertCircle,
-  Phone,
   MessageSquare,
 } from 'lucide-react-native';
 import { COLORS } from '../theme/colors';
@@ -33,19 +31,15 @@ function AuthModal({
   visible,
   onClose,
   isDark = true,
-  initialTab = 'login',
   customMessage,
   onAuthSuccess,
 }) {
   const { width } = useWindowDimensions();
   const isTablet = width >= 650;
-  const { login, register, authModalOptions } = useAuth();
+  const { login, authModalOptions } = useAuth();
 
-  const [activeTab, setActiveTab] = useState(initialTab); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -54,14 +48,9 @@ function AuthModal({
 
   useEffect(() => {
     if (visible) {
-      if (authModalOptions?.initialTab) {
-        setActiveTab(authModalOptions.initialTab);
-      } else if (initialTab) {
-        setActiveTab(initialTab);
-      }
       setErrorMsg('');
     }
-  }, [visible, authModalOptions?.initialTab, initialTab]);
+  }, [visible]);
 
   const handleFillDemo = () => {
     setEmail('exemplo@gmail.com');
@@ -86,23 +75,6 @@ function AuthModal({
     }
   };
 
-  const handleRegister = async () => {
-    setErrorMsg('');
-    if (!name || !email || !password) {
-      setErrorMsg('Por favor preenche todos os campos obrigatórios.');
-      return;
-    }
-    setLoading(true);
-    const res = await register(name, email, password, phone || '912 345 678');
-    setLoading(false);
-    if (!res.success) {
-      setErrorMsg(res.error || 'Erro ao criar conta.');
-    } else {
-      if (onAuthSuccess) onAuthSuccess();
-      if (onClose) onClose();
-    }
-  };
-
   if (!visible) return null;
 
   return (
@@ -112,7 +84,10 @@ function AuthModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.overlay}
+      >
         <View
           style={[
             styles.container,
@@ -158,57 +133,6 @@ function AuthModal({
             </View>
           )}
 
-          {/* Seletor de Abas (Login / Registar) */}
-          <View style={[styles.tabBar, !isDark && styles.tabBarLight]}>
-            <TouchableOpacity
-              style={[
-                styles.tabBtn,
-                activeTab === 'login' && styles.tabBtnActive,
-                !isDark && activeTab === 'login' && styles.tabBtnActiveLight,
-              ]}
-              onPress={() => {
-                setActiveTab('login');
-                setErrorMsg('');
-              }}
-              activeOpacity={0.8}
-            >
-              <LogIn size={14} color={activeTab === 'login' ? '#FFF' : (isDark ? '#8A9E93' : '#5A6E63')} />
-              <Text
-                style={[
-                  styles.tabBtnText,
-                  !isDark && styles.textMutedDark,
-                  activeTab === 'login' && styles.tabBtnTextActive,
-                ]}
-              >
-                Iniciar Sessão
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.tabBtn,
-                activeTab === 'register' && styles.tabBtnActive,
-                !isDark && activeTab === 'register' && styles.tabBtnActiveLight,
-              ]}
-              onPress={() => {
-                setActiveTab('register');
-                setErrorMsg('');
-              }}
-              activeOpacity={0.8}
-            >
-              <UserPlus size={14} color={activeTab === 'register' ? '#FFF' : (isDark ? '#8A9E93' : '#5A6E63')} />
-              <Text
-                style={[
-                  styles.tabBtnText,
-                  !isDark && styles.textMutedDark,
-                  activeTab === 'register' && styles.tabBtnTextActive,
-                ]}
-              >
-                Criar Conta
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -221,9 +145,6 @@ function AuthModal({
                 <Text style={styles.errorText}>{errorMsg}</Text>
               </View>
             )}
-
-            {activeTab === 'login' ? (
-              <>
                 {/* Banner de Demonstração Rápida */}
                 <TouchableOpacity
                   style={[styles.demoBanner, !isDark && styles.demoBannerLight]}
@@ -309,114 +230,15 @@ function AuthModal({
                     </>
                   )}
                 </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                {/* Formulário de Registo */}
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, !isDark && styles.inputLabelLight]}>
-                    Nome Completo
-                  </Text>
-                  <View style={[styles.inputWrapper, !isDark && styles.inputWrapperLight]}>
-                    <User size={16} color={isDark ? '#7E9187' : '#5A6E63'} />
-                    <TextInput
-                      style={[styles.textInput, !isDark && styles.textInputLight]}
-                      placeholder="Salvador Vilacondense"
-                      placeholderTextColor={isDark ? '#55685F' : '#94A39B'}
-                      value={name}
-                      onChangeText={setName}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, !isDark && styles.inputLabelLight]}>
-                    Email
-                  </Text>
-                  <View style={[styles.inputWrapper, !isDark && styles.inputWrapperLight]}>
-                    <Mail size={16} color={isDark ? '#7E9187' : '#5A6E63'} />
-                    <TextInput
-                      style={[styles.textInput, !isDark && styles.textInputLight]}
-                      placeholder="teu.email@dominio.pt"
-                      placeholderTextColor={isDark ? '#55685F' : '#94A39B'}
-                      value={email}
-                      onChangeText={setEmail}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, !isDark && styles.inputLabelLight]}>
-                    Telemóvel (para MB WAY)
-                  </Text>
-                  <View style={[styles.inputWrapper, !isDark && styles.inputWrapperLight]}>
-                    <Phone size={16} color={isDark ? '#7E9187' : '#5A6E63'} />
-                    <TextInput
-                      style={[styles.textInput, !isDark && styles.textInputLight]}
-                      placeholder="912 345 678"
-                      placeholderTextColor={isDark ? '#55685F' : '#94A39B'}
-                      value={phone}
-                      onChangeText={setPhone}
-                      keyboardType="phone-pad"
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, !isDark && styles.inputLabelLight]}>
-                    Palavra-passe
-                  </Text>
-                  <View style={[styles.inputWrapper, !isDark && styles.inputWrapperLight]}>
-                    <Lock size={16} color={isDark ? '#7E9187' : '#5A6E63'} />
-                    <TextInput
-                      style={[styles.textInput, !isDark && styles.textInputLight]}
-                      placeholder="Mínimo 4 caracteres"
-                      placeholderTextColor={isDark ? '#55685F' : '#94A39B'}
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry={!showPassword}
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword((p) => !p)}
-                      activeOpacity={0.7}
-                    >
-                      {showPassword ? (
-                        <EyeOff size={16} color={isDark ? '#7E9187' : '#5A6E63'} />
-                      ) : (
-                        <Eye size={16} color={isDark ? '#7E9187' : '#5A6E63'} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
-                  onPress={handleRegister}
-                  disabled={loading}
-                  activeOpacity={0.85}
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#FFF" />
-                  ) : (
-                    <>
-                      <UserPlus size={16} color="#FFF" />
-                      <Text style={styles.submitBtnText}>Criar Conta de Adepto</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
 
             <View style={styles.infoFooter}>
               <Text style={[styles.infoFooterText, !isDark && styles.textMutedDark]}>
-                Acesso livre sem login às páginas Início e Loja. O Apoio ao Adepto e o Perfil de Sócio requerem sessão iniciada.
+                A criação de conta é feita na hora do pagamento do novo associado, com os dados de login enviados pela Direção via WhatsApp. Se ainda não és sócio, usa a opção "Quero ser Sócio" na Página Inicial.
               </Text>
             </View>
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -437,6 +259,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 440,
+    maxHeight: '90%',
     backgroundColor: '#0C1510',
     borderRadius: 24,
     borderWidth: 1,

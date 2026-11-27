@@ -29,12 +29,8 @@ function buildNativeThemeScript(isDark) {
           existing.id = id;
           document.head.appendChild(existing);
         }
-        var base = 'html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; } body { padding-bottom: 84px !important; } ::-webkit-scrollbar { display: none; } #lite-badge, a[href*="typebot.io"], [id*="badge"] { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; }';
-        existing.innerHTML = base + ' ' + ${
-          isDark
-            ? "'html { filter: invert(0.95) hue-rotate(180deg); background: #FFFFFF !important; } img, video { filter: invert(1) hue-rotate(180deg); }'"
-            : "'html { filter: none; background: #FFFFFF !important; } img, video { filter: none; }'"
-        };
+        var base = 'html, body { background: transparent !important; background-color: transparent !important; overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; } body { padding-bottom: 84px !important; } ::-webkit-scrollbar { display: none; } #lite-badge, a[href*="typebot.io"], [id*="badge"] { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; }';
+        existing.innerHTML = base + ' html, img, video { filter: none !important; } .typebot-container, [data-testid="typebot-container"] { background: transparent !important; background-image: none !important; }';
       } catch (e) {}
     })();
     true;
@@ -105,6 +101,15 @@ function ApoioScreen({ user, isDark = true, isActive = false }) {
 
   return (
     <View style={[styles.container, !isDark && styles.containerLight]}>
+      {/* LOGÓTIPO DE FUNDO DA CLAQUE (GRUPO 39) IGUAL À PÁGINA INICIAL */}
+      <View style={styles.backgroundContainer} pointerEvents="none">
+        <Image
+          source={require('../../assets/logo_39.png')}
+          style={[styles.backgroundImage, !isDark && styles.backgroundImageLight]}
+          resizeMode="contain"
+        />
+      </View>
+
       {/* Área Edge-to-Edge Imersiva em Full Screen (igual à secção Loja) */}
       <View style={styles.webViewWrapper}>
         {hasError ? (
@@ -145,6 +150,7 @@ function ApoioScreen({ user, isDark = true, isActive = false }) {
               key={reloadKey}
               src={botUrl}
               title="Apoio ao Adepto · Grupo 39"
+              allowTransparency="true"
               style={{
                 position: 'absolute',
                 top: 0,
@@ -154,9 +160,7 @@ function ApoioScreen({ user, isDark = true, isActive = false }) {
                 height: 'calc(100% + 52px)',
                 border: 'none',
                 display: 'block',
-                backgroundColor: '#FFFFFF',
-                filter: isDark ? 'invert(0.95) hue-rotate(180deg)' : 'none',
-                transition: 'filter 0.25s ease',
+                backgroundColor: 'transparent',
               }}
               allow="microphone; clipboard-write"
               onLoad={handleLoadFinished}
@@ -252,7 +256,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1310',
   },
   containerLight: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F8F6',
+  },
+  backgroundContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  backgroundImage: {
+    width: '88%',
+    maxWidth: 380,
+    aspectRatio: 1,
+    opacity: 0.52,
+  },
+  backgroundImageLight: {
+    opacity: 0.22,
   },
   webViewWrapper: {
     flex: 1,
@@ -260,13 +284,14 @@ const styles = StyleSheet.create({
     height: '100%',
     position: 'relative',
     overflow: 'hidden',
+    zIndex: 1,
   },
   nativeWebView: {
     flex: 1,
-    backgroundColor: '#0D1310',
+    backgroundColor: 'transparent',
   },
   nativeWebViewLight: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   bottomNavFade: {
     position: 'absolute',

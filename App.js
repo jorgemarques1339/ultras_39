@@ -18,6 +18,7 @@ import ChantsModal from './src/components/ChantsModal';
 import PwaInstallPromptModal from './src/components/PwaInstallPromptModal';
 import AuthModal from './src/components/AuthModal';
 import ForumLoginPromptModal from './src/components/ForumLoginPromptModal';
+import BecomeMemberModal from './src/components/BecomeMemberModal';
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ApoioScreen from './src/screens/ApoioScreen';
@@ -116,6 +117,7 @@ function MainApp() {
   const [walletPassType, setWalletPassType] = useState(Platform.OS === 'android' ? 'google' : 'apple');
   const [chantsModalVisible, setChantsModalVisible] = useState(false);
   const [pwaModalVisible, setPwaModalVisible] = useState(false);
+  const [becomeMemberModalVisible, setBecomeMemberModalVisible] = useState(false);
 
   // Abrir automaticamente o pop-up de instalação PWA (Android & Apple) ao visitar o site
   useEffect(() => {
@@ -255,6 +257,7 @@ function MainApp() {
               isDark={isDark}
               isActive={activeTab === 'home'}
               isLoggedIn={isLoggedIn}
+              onOpenAuth={openAuthModal}
             />
           </View>
 
@@ -367,14 +370,8 @@ function MainApp() {
             }}
             onOpenRegister={() => {
               setAccessPromptVisible(false);
-              setPendingTabAfterLogin(accessPromptType);
-              openAuthModal({
-                initialTab: 'register',
-                message:
-                  accessPromptType === 'profile'
-                    ? 'Cria a tua conta para teres acesso ao teu Cartão Digital de Sócio e Perfil.'
-                    : 'Cria a tua conta para acederes ao Assistente de Apoio do Grupo 39.',
-              });
+              setPendingTabAfterLogin(null);
+              setBecomeMemberModalVisible(true);
             }}
             isDark={isDark}
           />
@@ -402,6 +399,14 @@ function MainApp() {
           <PwaInstallPromptModal
             visible={pwaModalVisible}
             onClose={handleClosePwaModal}
+            isDark={isDark}
+          />
+        )}
+
+        {becomeMemberModalVisible && (
+          <BecomeMemberModal
+            visible={becomeMemberModalVisible}
+            onClose={() => setBecomeMemberModalVisible(false)}
             isDark={isDark}
           />
         )}

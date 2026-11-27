@@ -39,13 +39,13 @@ function ForumLoginPromptModal({
     ? 'CARTÃO DE SÓCIO DIGITAL'
     : (isPagamentos ? 'ÁREA RESERVADA · GRUPO 39' : 'ASSISTENTE VIRTUAL · G39');
   const title = isProfile
-    ? 'Perfil do Sócio & Adepto'
+    ? 'Perfil do Sócio G39'
     : (isPagamentos ? 'Os Meus Pagamentos' : 'Apoio ao Adepto');
   const subtitle = isProfile
     ? 'Cartão Digital & Quotas'
     : (isPagamentos ? 'Histórico & Recibos SIBS' : 'Dúvidas Frequentes & Suporte');
   const description = isProfile
-    ? 'Para acederes ao teu Perfil, Cartão Digital de Sócio, histórico de quotas e encomendas, precisas de iniciar sessão.'
+    ? 'Para acederes ao teu Perfil, Cartão Digital de Sócio, histórico de quotas, precisas de iniciar sessão.'
     : (isPagamentos
       ? 'Para visualizar os Pagamentos e o histórico de transações executadas, tem que ter Login feito.'
       : 'Para acederes ao Assistente de Apoio e esclarecer dúvidas sobre o Grupo 39, precisas de iniciar sessão na tua conta.');
@@ -128,7 +128,7 @@ function ForumLoginPromptModal({
                       <CreditCard size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Cartão Digital oficial com QR Code SIBS
+                      Cartão Digital G39
                     </Text>
                   </View>
 
@@ -137,7 +137,7 @@ function ForumLoginPromptModal({
                       <ShieldCheck size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Regularização de quotas de época via MB WAY
+                      Regularização das suas quotas
                     </Text>
                   </View>
 
@@ -146,7 +146,7 @@ function ForumLoginPromptModal({
                       <Receipt size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Histórico de compras na Loja Oficial e comprovativos
+                      Histórico e comprovativos
                     </Text>
                   </View>
                 </>
@@ -192,19 +192,10 @@ function ForumLoginPromptModal({
 
                   <View style={styles.benefitRow}>
                     <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
-                      <MessageSquare size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
-                    </View>
-                    <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Informações sobre quotas, bancada, jogos e sede
-                    </Text>
-                  </View>
-
-                  <View style={styles.benefitRow}>
-                    <View style={[styles.benefitBullet, !isDark && styles.benefitBulletLight]}>
                       <ShieldCheck size={13} color={isDark ? COLORS.primaryLight : '#00874E'} />
                     </View>
                     <Text style={[styles.benefitText, !isDark && styles.benefitTextLight]}>
-                      Atendimento oficial dedicado a sócios e adeptos
+                      Atendimento oficial dedicado a sócios do Grupo 39
                     </Text>
                   </View>
                 </>
@@ -224,16 +215,18 @@ function ForumLoginPromptModal({
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.secondaryBtn, !isDark && styles.secondaryBtnLight]}
-                onPress={onOpenRegister}
-                activeOpacity={0.8}
-              >
-                <UserPlus size={16} color={isDark ? COLORS.textPrimary : '#18241D'} />
-                <Text style={[styles.secondaryBtnText, !isDark && styles.secondaryBtnTextLight]}>
-                  Criar Conta de Sócio / Adepto
-                </Text>
-              </TouchableOpacity>
+              {isPagamentos && (
+                <TouchableOpacity
+                  style={[styles.secondaryBtn, !isDark && styles.secondaryBtnLight]}
+                  onPress={onOpenRegister}
+                  activeOpacity={0.8}
+                >
+                  <UserPlus size={16} color={isDark ? COLORS.textPrimary : '#18241D'} />
+                  <Text style={[styles.secondaryBtnText, !isDark && styles.secondaryBtnTextLight]}>
+                    Quero ser Sócio do Grupo 39
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 style={styles.cancelBtn}

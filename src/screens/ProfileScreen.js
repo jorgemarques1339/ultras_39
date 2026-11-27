@@ -342,7 +342,7 @@ function ProfileScreen({
           >
             <LogIn size={16} color="#FFF" />
             <Text style={styles.guestLoginBtnText}>
-              Iniciar Sessão / Criar Conta
+              Iniciar Sessão
             </Text>
           </TouchableOpacity>
         </View>
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     width: '88%',
     maxWidth: 380,
     aspectRatio: 1,
-    opacity: 0.28,
+    opacity: 0.52,
   },
   backgroundImageLight: {
     opacity: 0.22,
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(242, 182, 0, 0.45)',
     padding: 16,
-    opacity: 0.93,
+    opacity: 0.98,
     position: 'relative',
     overflow: 'hidden',
     ...Platform.select({
