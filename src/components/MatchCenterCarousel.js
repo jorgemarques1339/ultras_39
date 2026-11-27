@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Lock } from 'lucide-react-native';
@@ -503,6 +504,20 @@ function MatchCenterCarousel({
       onMouseLeave={Platform.OS === 'web' ? () => setIsPaused(false) : undefined}
       style={[styles.carouselContainer, !isDark && styles.carouselContainerLight]}
     >
+      {/* Cabeçalho Integrado GRUPO 39 (Parte única com o Match Center) */}
+      <View style={styles.integratedHeaderRow}>
+        <View style={[styles.integratedLogoCircle, !isDark && styles.integratedLogoCircleLight]}>
+          <Image
+            source={require('../../assets/logo_39.png')}
+            style={styles.integratedLogoImg}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={[styles.integratedBrandName, !isDark && styles.integratedBrandNameLight]}>
+          GRUPO <Text style={[styles.integratedGreenText, !isDark && styles.integratedGreenTextLight]}>39</Text>
+        </Text>
+      </View>
+
       <FlatList
         ref={flatListRef}
         data={listData}
@@ -584,6 +599,48 @@ const styles = StyleSheet.create({
   },
   carouselContainerLight: {
     borderColor: 'rgba(0, 135, 81, 0.28)',
+  },
+  integratedHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  integratedLogoCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(13, 19, 16, 0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 168, 89, 0.45)',
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  integratedLogoCircleLight: {
+    backgroundColor: '#FFFFFF',
+    borderColor: 'rgba(0, 135, 78, 0.35)',
+  },
+  integratedLogoImg: {
+    width: '100%',
+    height: '100%',
+  },
+  integratedBrandName: {
+    fontSize: 18.5,
+    fontWeight: '900',
+    letterSpacing: -0.2,
+    color: '#FFFFFF',
+  },
+  integratedBrandNameLight: {
+    color: '#111827',
+  },
+  integratedGreenText: {
+    color: '#34d399',
+  },
+  integratedGreenTextLight: {
+    color: '#00874E',
   },
   slideWrapper: {
     paddingHorizontal: 16,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -40,6 +40,25 @@ function StoreScreen({ isDark = true, isActive = false }) {
   const [hasError, setHasError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const webViewRef = useRef(null);
+  const iframeRef = useRef(null);
+
+  const themedStoreUrl = useMemo(
+    () => `${STORE_URL}?theme=${isDark ? 'dark' : 'light'}`,
+    [isDark]
+  );
+
+  useEffect(() => {
+    const theme = isDark ? 'dark' : 'light';
+    if (Platform.OS === 'web') {
+      try {
+        iframeRef.current?.contentWindow?.postMessage({ type: 'g39-theme', theme }, '*');
+      } catch (_) {}
+    } else if (webViewRef.current && hasActivated && !isLoading) {
+      webViewRef.current.injectJavaScript(
+        `(function(){ if(typeof applyStoreTheme==='function'){ applyStoreTheme('${theme}'); } })(); true;`
+      );
+    }
+  }, [isDark, hasActivated, isLoading]);
 
   useEffect(() => {
     if (isActive && !hasActivated) {
@@ -117,8 +136,9 @@ function StoreScreen({ isDark = true, isActive = false }) {
         ) : hasActivated ? (
           Platform.OS === 'web' ? (
             <iframe
+              ref={iframeRef}
               key={reloadKey}
-              src={STORE_URL}
+              src={themedStoreUrl}
               title="Loja Oficial Grupo 39"
               style={{
                 position: 'absolute',
@@ -143,7 +163,7 @@ function StoreScreen({ isDark = true, isActive = false }) {
             NativeWebView && (
               <NativeWebView
                 ref={webViewRef}
-                source={{ uri: STORE_URL }}
+                source={{ uri: themedStoreUrl }}
                 style={[styles.nativeWebView, !isDark && styles.nativeWebViewLight]}
                 javaScriptEnabled
                 domStorageEnabled

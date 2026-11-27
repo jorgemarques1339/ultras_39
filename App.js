@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LiquidGlassNavBar from './src/components/LiquidGlassNavBar';
+import AppTopHeader from './src/components/AppTopHeader';
 import QuotaCheckoutModal from './src/components/QuotaCheckoutModal';
 import ReceiptModal from './src/components/ReceiptModal';
 import AlertasModal from './src/components/AlertasModal';
@@ -248,6 +249,11 @@ function MainApp() {
           !isDark && !isTablet && styles.appContainerMobileLight,
         ]}
       >
+        {/* Header Superior Unificado nas abas Apoio e Perfil (no Início está integrado no Match Center) */}
+        {(activeTab === 'apoio' || activeTab === 'profile') && (
+          <AppTopHeader activeTab={activeTab} isDark={isDark} />
+        )}
+
         {/* Ecrãs Conforme a Aba Ativa com Lazy-Mount & Keep-Alive para Arranque Rápido */}
         <View style={[styles.screenArea, !isDark && styles.screenAreaLight]}>
           <View style={[styles.tabContentPane, activeTab !== 'home' && styles.hiddenPane]}>
